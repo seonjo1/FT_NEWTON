@@ -1,32 +1,10 @@
 #include "../include/vulkanInstance.h"
 
-// 디버그 메시지 콜백 함수
-VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInstance::debugCallback( VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-																VkDebugUtilsMessageTypeFlagsEXT messageType,
-																const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-																void* pUserData) {
-	// 메시지 내용만 출력
-	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-	// VK_TRUE 반환시 프로그램 종료됨
-	return VK_FALSE;
-}
-
 std::unique_ptr<VulkanInstance> VulkanInstance::create(GLFWwindow* window)
 {
 	std::unique_ptr<VulkanInstance> vulkanInstance(new VulkanInstance());
 	vulkanInstance->init(window);
 	return vulkanInstance;
-}
-
-
-VkInstance VulkanInstance::getInstance()
-{
-	return instance;
-}
-
-VkSurfaceKHR VulkanInstance::getSurface()
-{
-	return surface;
 }
 
 void VulkanInstance::init(GLFWwindow* window)
@@ -202,4 +180,25 @@ VulkanInstance::~VulkanInstance()
 	}
 	vkDestroySurfaceKHR(instance, surface, nullptr);	// 화면 객체 파괴
 	vkDestroyInstance(instance, nullptr);				// 인스턴스 파괴
+}
+
+// 디버그 메시지 콜백 함수
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInstance::debugCallback( VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+																VkDebugUtilsMessageTypeFlagsEXT messageType,
+																const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+																void* pUserData) {
+	// 메시지 내용만 출력
+	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+	// VK_TRUE 반환시 프로그램 종료됨
+	return VK_FALSE;
+}
+
+VkInstance VulkanInstance::getInstance()
+{
+	return instance;
+}
+
+VkSurfaceKHR VulkanInstance::getSurface()
+{
+	return surface;
 }

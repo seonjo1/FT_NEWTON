@@ -1,5 +1,6 @@
 #include "../include/common.h"
 #include "../include/vulkanInstance.h"
+#include "../include/deviceManager.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -12,14 +13,12 @@
 #include <stdexcept>
 #include <algorithm>
 #include <chrono>
-#include <vector>
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
 #include <limits>
 #include <array>
 #include <optional>
-#include <set>
 
 // texture 경로
 const std::string MODEL_PATH = "models/viking_room.obj";
@@ -27,30 +26,6 @@ const std::string TEXTURE_PATH = "textures/viking_room.png";
 
 // 동시에 처리할 최대 프레임 수
 const int MAX_FRAMES_IN_FLIGHT = 2;
-
-// 스왑 체인 확장
-const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
-
-
-// 큐 패밀리 인덱스 관리 구조체
-struct QueueFamilyIndices {
-	std::optional<uint32_t> graphicsFamily;
-	std::optional<uint32_t> presentFamily;
-
-	bool isComplete() {
-		return graphicsFamily.has_value() && presentFamily.has_value();
-	}
-};
-
-// GPU와 surface가 지원하는 SwapChain 지원 세부 정보 구조체
-struct SwapChainSupportDetails {
-	VkSurfaceCapabilitiesKHR capabilities;
-	std::vector<VkSurfaceFormatKHR> formats;
-	std::vector<VkPresentModeKHR> presentModes;
-};
-
 
 struct Vertex {
 	glm::vec3 pos;
@@ -118,19 +93,22 @@ private:
 		VkInstance instance;
 		VkSurfaceKHR surface;
 
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-	VkDevice device;
-	
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
+	std::unique_ptr<DeviceManager> deviceManager;
+		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+		VkDevice device;
+		VkQueue graphicsQueue;
+		VkQueue presentQueue;
+		QueueFamilyIndices queueFamilyIndices;	
+		SwapChainSupportDetails swapChainSupport;
 
-	VkSwapchainKHR swapChain;
-	std::vector<VkImage> swapChainImages;
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
-	std::vector<VkImageView> swapChainImageViews;
-	std::vector<VkFramebuffer> swapChainFramebuffers;
+	
+		VkSwapchainKHR swapChain;
+		std::vector<VkImage> swapChainImages;
+		VkFormat swapChainImageFormat;
+		VkExtent2D swapChainExtent;
+		std::vector<VkImageView> swapChainImageViews;
+		std::vector<VkFramebuffer> swapChainFramebuffers;
 
 	VkRenderPass renderPass;
 	VkDescriptorSetLayout descriptorSetLayout;
@@ -200,12 +178,17 @@ private:
 	// 렌더링을 위한 초기 setting
 	void initVulkan() {
 		vulkanInstance = VulkanInstance::create(window);
-		instance = vulkanInstance->getInstance();
-		surface = vulkanInstance->getSurface();
+			instance = vulkanInstance->getInstance();
+			surface = vulkanInstance->getSurface();
 
-		// DeviceManager 클래스
-		pickPhysicalDevice();
-		createLogicalDevice();
+		deviceManager = DeviceManager::create(vulkanInstance.get());
+			physicalDevice = deviceManager->getPhysicalDevice();
+			device = deviceManager->getLogicalDevice();
+			queueFamilyIndices = deviceManager->getQueueFamilyIndices();
+			graphicsQueue = deviceManager->getGraphicsQueue();
+			presentQueue = deviceManager->getPresentQueue();
+			msaaSamples = deviceManager->getMsaaSamples();
+			swapChainSupport = deviceManager->getSwapChainSupport();
 
 		// SwapChainManager 클래스
 		createSwapChain();
@@ -324,7 +307,6 @@ private:
 
 		vkDestroyCommandPool(device, commandPool, nullptr); 	  	// 커맨드 풀 파괴
 
-		vkDestroyDevice(device, nullptr);                         	// 논리적 장치 파괴
 
 		vulkanInstance->~VulkanInstance();
 
@@ -359,93 +341,6 @@ private:
 		createDepthResources();
 		createFramebuffers();
 	}
-	
-	// 적절한 GPU 고르는 함수
-	void pickPhysicalDevice() {
-		// GPU 장치 목록 불러오기
-		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-
-		if (deviceCount == 0) {
-  			  throw std::runtime_error("failed to find GPUs with Vulkan support!");
-		}
-
-		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-		// 적합한 GPU 탐색
-		for (const auto& device : devices) {
-			if (isDeviceSuitable(device)) {
-				physicalDevice = device;
-				msaaSamples = getMaxUsableSampleCount();
-				break;
-			}
-		}
-
-		// 적합한 GPU가 발견되지 않은 경우 에러 발생
-		if (physicalDevice == VK_NULL_HANDLE) {
-			throw std::runtime_error("failed to find a suitable GPU!");
-		}
-	}	
-
-	// GPU와 소통할 인터페이스인 Logical device 생성
-	void createLogicalDevice() {
-		// 그래픽 큐 패밀리의 인덱스를 가져옴
-		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-		// 큐 패밀리의 인덱스들을 set으로 래핑
-		std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-
-		// 큐 생성을 위한 정보 설정 
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		// 큐 우선순위 0.0f ~ 1.0f 로 표현
-		float queuePriority = 1.0f;
-		// 큐 패밀리 별로 정보 생성
-		for (uint32_t queueFamily : uniqueQueueFamilies) {
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueFamily;
-			queueCreateInfo.queueCount = 1;
-			queueCreateInfo.pQueuePriorities = &queuePriority;
-			queueCreateInfos.push_back(queueCreateInfo);
-		}
-
-		// 사용할 장치 기능이 포함된 구조체
-		// vkGetPhysicalDeviceFeatures 함수로 디바이스에서 설정 가능한
-		// 장치 기능 목록을 확인할 수 있음
-		// 일단 지금은 VK_FALSE로 전부 등록함
-		VkPhysicalDeviceFeatures deviceFeatures{};
-        deviceFeatures.samplerAnisotropy = VK_TRUE;		// 이방성 필터링 사용 설정
-		deviceFeatures.sampleRateShading = VK_TRUE; 	// 디바이스에 샘플 셰이딩 기능 활성화
-
-		// 논리적 장치 생성을 위한 정보 등록
-		VkDeviceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-		createInfo.pQueueCreateInfos = queueCreateInfos.data();
-		createInfo.pEnabledFeatures = &deviceFeatures;
-
-		// 확장 설정
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-		
-		// 구버전 호환을 위해 디버그 모드일 경우
-		// 검증 레이어를 포함 시키지만, 현대 시스템에서는 논리적 장치의 레이어를 안 씀
-		if (enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
-		} else {
-			createInfo.enabledLayerCount = 0;
-		}
-
-		// 논리적 장치 생성
-		if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
- 		   throw std::runtime_error("failed to create logical device!");
-		}
-
-		// 큐 핸들 가져오기
-		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
-		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
-	}
 
 	/*
 	[스왑 체인 생성]
@@ -456,9 +351,6 @@ private:
 	4. 화면과 GPU작업의 동기화 (GPU가 이미지를 생성하는 작업과 화면이 이미지를 띄우는 작업 간의 동기화) 
 	*/ 
 	void createSwapChain() {
-		// GPU와 surface가 지원하는 SwapChain 정보 불러오기
-		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
-
 		// 서피스 포맷 선택
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 		// 프레젠테이션 모드 선택
@@ -488,19 +380,17 @@ private:
 		createInfo.imageArrayLayers = 1; // 한 번의 렌더링에 n 개의 결과가 생긴다. (스테레오 3D, cubemap 이용시 여러 개 레이어 사용)
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; // 기본 렌더링에만 사용하는 플래그 (만약 렌더링 후 2차 가공 필요시 다른 플래그 사용)
 
-		// GPU가 지원하는 큐패밀리 목록 가져오기
-		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-		uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+		uint32_t queueFamilyIndicesArray[] = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value()};
 
 		// 큐패밀리 정보 등록
-		if (indices.graphicsFamily != indices.presentFamily) {
+		if (queueFamilyIndices.graphicsFamily != queueFamilyIndices.presentFamily) {
 			// [그래픽스 큐패밀리와 프레젠트 큐패밀리가 서로 다른 큐인 경우]
 			// 하나의 이미지에 두 큐패밀리가 동시에 접근할 수 있게 하여 성능을 높인다.
 			// (큐패밀리가 이미지에 접근할 때 다른 큐패밀리가 접근했는지 확인하는 절차 삭제)
 			// 그러나 실제로 동시에 접근하면 안 되므로 순서를 프로그래머가 직접 조율해야 한다. 
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; // 동시 접근 허용
 			createInfo.queueFamilyIndexCount = 2;                     // 큐패밀리 개수 등록
-			createInfo.pQueueFamilyIndices = queueFamilyIndices;      // 큐패밀리 인덱스 배열 등록
+			createInfo.pQueueFamilyIndices = queueFamilyIndicesArray;      // 큐패밀리 인덱스 배열 등록
 		} else {
 			// [그래픽스 큐패밀리와 프레젠트 큐패밀리가 서로 같은 큐인 경우]
 			// 어처피 1개의 큐패밀리만 존재하므로 큐패밀리의 이미지 독점을 허용한다.
@@ -1102,24 +992,6 @@ private:
 		endSingleTimeCommands(commandBuffer);
 	}
 
-	// GPU 에서 지원하는 최대 샘플 개수 반환
-	VkSampleCountFlagBits getMaxUsableSampleCount() {
-		VkPhysicalDeviceProperties physicalDeviceProperties;
-		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
-
-		// GPU가 지원하는 color 샘플링 개수와 depth 샘플링 개수의 공통 분모를 찾음
-		VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-		// 가장 높은 샘플링 개수부터 확인하면서 반환
-		if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
-		if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-		if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-		if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
-		if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
-		if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
-
-		return VK_SAMPLE_COUNT_1_BIT;
-	}
 
 	// 텍스처 이미지 뷰 생성
 	void createTextureImageView() {
@@ -1990,78 +1862,6 @@ private:
 
 			return actualExtent;
 		}
-	}
-	
-	// GPU와 surface가 호환하는 SwapChain 정보를 반환
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
-		SwapChainSupportDetails details;
-
-		// GPU와 surface가 호환할 수 있는 capability 정보 쿼리
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
-
-		// device에서 surface 객체를 지원하는 format이 존재하는지 확인 
-		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-
-		if (formatCount != 0) {
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-		}
-
-		// device에서 surface 객체를 지원하는 presentMode가 있는지 확인 
-		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-
-		if (presentModeCount != 0) {
-			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
-		}
-
-		return details;
-	}
-
-	// 그래픽, 프레젠테이션 큐 패밀리가 존재하는지, GPU와 surface가 호환하는 SwapChain이 존재하는지 검사
-	bool isDeviceSuitable(VkPhysicalDevice device) {
-		// 큐 패밀리 확인
-		QueueFamilyIndices indices = findQueueFamilies(device);
-		
-		// 스왑 체인 확장을 지원하는지 확인
-		bool extensionsSupported = checkDeviceExtensionSupport(device);
-		bool swapChainAdequate = false;
-
-		// 스왑 체인 확장이 존재하는 경우
-		if (extensionsSupported) {
-			// 물리 디바이스와 surface가 호환하는 SwapChain 정보를 가져옴
-			SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
-			// GPU와 surface가 지원하는 format과 presentMode가 존재하면 통과
-			swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-		}
-
-		// GPU 에서 이방성 필터링을 지원하는지 확인
-        VkPhysicalDeviceFeatures supportedFeatures;
-        vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
-
-		return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
-	}
-
-	// 디바이스가 지원하는 확장 중 
-	bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
-		uint32_t extensionCount;
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
-		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-		// 스왑 체인 확장이 존재하는지 확인
-		std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-		for (const auto& extension : availableExtensions) {
-			// 지원 가능한 확장들 목록을 순회하며 제거
-			requiredExtensions.erase(extension.extensionName);
-		}
-
-		// 만약 기존에 있던 확장이 제거되면 true
-		// 기존에 있던 확장이 그대로면 지원을 안 하는 것이므로 false
-		return requiredExtensions.empty();
 	}
 
 	/*
