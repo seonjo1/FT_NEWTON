@@ -1,24 +1,10 @@
 #include "../include/image.h"
 
-std::unique_ptr<Image> Image::create(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent)
-{
-	std::unique_ptr<Image> colorImage(new Image());
-	colorImage->init(deviceManager, format, swapChainExtent);
-	return colorImage;
-}
-
 void Image::clear(VkDevice device)
 {
 	vkDestroyImageView(device, imageView, nullptr);
 	vkDestroyImage(device, image, nullptr);
 	vkFreeMemory(device, imageMemory, nullptr);
-}
-
-// 멀티샘플링용 color Image생성
-void Image::init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) {
-	imageFormat = format;
-	createImage(deviceManager, swapChainExtent.width, swapChainExtent.height, 1, deviceManager->getMsaaSamples(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	createImageView(deviceManager->getLogicalDevice(), VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
 VkImageView Image::createSwapChainImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
@@ -138,6 +124,21 @@ void Image::createImageView(VkDevice device, VkImageAspectFlags aspectFlags, uin
 VkImageView Image::getImageView()
 {
 	return imageView;
+}
+
+std::unique_ptr<ColorImage> ColorImage::create(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent)
+{
+	std::unique_ptr<ColorImage> colorImage(new ColorImage());
+	colorImage->init(deviceManager, format, swapChainExtent);
+	return colorImage;
+
+}
+
+// 멀티샘플링용 color Image생성
+void ColorImage::init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) {
+	imageFormat = format;
+	createImage(deviceManager, swapChainExtent.width, swapChainExtent.height, 1, deviceManager->getMsaaSamples(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	createImageView(deviceManager->getLogicalDevice(), VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
 std::unique_ptr<DepthImage> DepthImage::create(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent)

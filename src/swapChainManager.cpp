@@ -16,7 +16,7 @@ std::unique_ptr<SwapChainManager> SwapChainManager::create(GLFWwindow* window, D
 void SwapChainManager::createFramebuffers(DeviceManager* deviceManager, VkRenderPass renderPass)
 {
 	// colorImage, depthImage 생성
-	colorImage = Image::create(deviceManager, swapChainImageFormat, swapChainExtent);
+	colorImage = ColorImage::create(deviceManager, swapChainImageFormat, swapChainExtent);
 	depthImage = DepthImage::create(deviceManager, deviceManager->findDepthFormat(), swapChainExtent);
 	
 	// 프레임 버퍼 배열 초기화

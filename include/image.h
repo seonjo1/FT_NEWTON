@@ -7,7 +7,6 @@
 class Image
 {
 public:
-	static std::unique_ptr<Image> create(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent);
 	static VkImageView createSwapChainImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 	Image() = default;
 	virtual ~Image() = default;
@@ -15,7 +14,7 @@ public:
 	VkImageView getImageView();
 
 protected:
-	virtual void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent);
+	virtual void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) = 0;
 	void createImage(DeviceManager* deviceManager, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 	uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	void createImageView(VkDevice device, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
@@ -24,6 +23,16 @@ protected:
 	VkDeviceMemory imageMemory;
 	VkImageView imageView;
 	VkFormat imageFormat;
+};
+
+class ColorImage : public Image
+{
+public:
+	static std::unique_ptr<ColorImage> create(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent);
+	ColorImage() = default;
+	virtual ~ColorImage() = default;
+private:
+	virtual void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) override;	
 };
 
 class DepthImage : public Image

@@ -8,7 +8,7 @@
 # include <algorithm>
 # include <array>
 
-class Image;
+class ColorImage;
 class DepthImage;
 
 class SwapChainManager
@@ -48,7 +48,7 @@ private:
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
 
-	std::unique_ptr<Image> colorImage;
+	std::unique_ptr<ColorImage> colorImage;
 	std::unique_ptr<DepthImage> depthImage;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 };
