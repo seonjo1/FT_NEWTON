@@ -16,8 +16,8 @@ public:
 protected:
 	virtual void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) = 0;
 	void createImage(DeviceManager* deviceManager, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
-	uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	void createImageView(VkDevice device, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+	uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 	VkImage image;
 	VkDeviceMemory imageMemory;

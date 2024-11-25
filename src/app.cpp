@@ -4,6 +4,7 @@
 #include "../include/swapChainManager.h"
 #include "../include/image.h"
 #include "../include/renderer.h"
+#include "../include/buffer.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -12,7 +13,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#include <chrono>
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
@@ -22,15 +22,6 @@
 // texture 경로
 const std::string MODEL_PATH = "models/viking_room.obj";
 const std::string TEXTURE_PATH = "textures/viking_room.png";
-
-// 동시에 처리할 최대 프레임 수
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
-struct UniformBufferObject {
-	alignas(16) glm::mat4 model;
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
-};
 
 class App {
 public:
@@ -80,14 +71,14 @@ private:
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-	VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;
+	
+	std::unique_ptr<VertexBuffer> vertexBuffer;
+	std::unique_ptr<IndexBuffer> indexBuffer;
+	std::unique_ptr<UniformBuffer> uniformBuffer;
+		std::vector<VkBuffer> uniformBuffers;
+		std::vector<VkDeviceMemory> uniformBuffersMemory;
+		std::vector<void*> uniformBuffersMapped;
 
-	std::vector<VkBuffer> uniformBuffers;
-	std::vector<VkDeviceMemory> uniformBuffersMemory;
-	std::vector<void*> uniformBuffersMapped;
 
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
@@ -161,10 +152,10 @@ private:
 
 		// Model 클래스
 			loadModel();
-			createVertexBuffer();
-			createIndexBuffer();
-			createUniformBuffers();
-
+			vertexBuffer = VertexBuffer::create(vertices, deviceManager.get(), commandPool);
+			indexBuffer = IndexBuffer::create(indices, deviceManager.get(), commandPool);
+			uniformBuffer = UniformBuffer::create(deviceManager.get());
+				uniformBuffers = uniformBuffer->getBuffers();
 			// Texture 클래스
 			createTextureImage();
 			createTextureImageView();
@@ -198,12 +189,8 @@ private:
 
 		renderer->clear();
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			// 매핑된 거 해제 안하나?????????????????????
-            vkDestroyBuffer(device, uniformBuffers[i], nullptr);	// 유니폼 버퍼 객체 삭제
-            vkFreeMemory(device, uniformBuffersMemory[i], nullptr);	// 유니폼 버퍼에 할당된 메모리 삭제
-        }
-
+		uniformBuffer->clear();
+        
 		vkDestroyDescriptorPool(device, descriptorPool, nullptr);			// 디스크립터 풀 삭제
  
 		vkDestroySampler(device, textureSampler, nullptr);					// 샘플러 삭제
@@ -212,11 +199,8 @@ private:
 		vkDestroyImage(device, textureImage, nullptr);						// 텍스처 객체 삭제
 		vkFreeMemory(device, textureImageMemory, nullptr);					// 텍스처에 할당된 메모리 삭제
 
-		vkDestroyBuffer(device, indexBuffer, nullptr);				// 인덱스 버퍼 객체 삭제
-		vkFreeMemory(device, indexBufferMemory, nullptr);			// 인덱스 버퍼에 할당된 메모리 삭제
-		
-		vkDestroyBuffer(device, vertexBuffer, nullptr);				// 버텍스 버퍼 객체 삭제
-		vkFreeMemory(device, vertexBufferMemory, nullptr);			// 버텍스 버퍼에 할당된 메모리 삭제
+		indexBuffer->clear();
+		vertexBuffer->clear();
 
 		// 세마포어, 펜스 파괴
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -579,103 +563,6 @@ private:
 		endSingleTimeCommands(commandBuffer);
 	}
 
-	/*
-		[버텍스 버퍼 생성]
-		1. 스테이징 버퍼 생성
-		2. 스테이징 버퍼에 정점 정보 복사
-		3. 버텍스 버퍼 생성
-		4. 스테이징 버퍼의 정점 정보를 버텍스 버퍼에 복사
-		5. 스테이징 버퍼 리소스 해제
-	*/ 
-	void createVertexBuffer() {
-		// 정점 정보 크기		
-		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
-		// 스테이징 버퍼 객체, 스테이징 버퍼 메모리 객체 생성
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-
-		// [스테이징 버퍼 생성]
-		// 용도)
-		//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT : 데이터 전송의 소스로 사용
-		// 속성)
-		// 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT  : CPU에서 GPU 메모리에 접근이 가능한 설정
-		// 		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT : CPU에서 GPU 메모리의 값을 수정하면 그 즉시 GPU 메모리와 캐시에 해당 값을 수정하는 설정 
-		//      									  (원래는 CPU에서 GPU 메모리 값을 수정하면 GPU 캐시를 플러쉬하여 다시 캐시에 값을 올리는 형식으로 동작)
-		createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-		// [스테이징 버퍼(GPU 메모리)에 정점 정보 입력]
-		void* data; // GPU 메모리에 매핑될 CPU 메모리 가상 포인터
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data); 	// GPU 메모리에 매핑된 CPU 메모리 포인터 반환 (현재는 버텍스 버퍼 메모리 전부를 매핑)
-		memcpy(data, vertices.data(), (size_t) bufferSize);					// CPU 메모리 포인터는 가상포인터로 data에 정점 정보를 복사하면 GPU에 즉시 반영
-																			// 실제 CPU 메모리에 저장되는게 아닌 CPU 메모리 포인터는 가상 포인터역할만 하고 GPU 메모리에 바로 저장
-																			// 메모리 유형의 속성에 의해 GPU 캐시를 플러쉬할 필요없이 즉시 적용
-																			// VK_MEMORY_PROPERTY_HOST_COHERENT_BIT 속성 덕분
-																			// 만약 해당 속성 없이 플러쉬도 안 하면 GPU에서 변경사항이 바로 적용되지 않음
-		vkUnmapMemory(device, stagingBufferMemory);							// GPU 메모리 매핑 해제
-
-
-		// [버텍스 버퍼 생성]
-		// 용도)
-		//		VK_BUFFER_USAGE_TRANSFER_DST_BIT : 데이터 전송의 대상으로 사용
-		// 속성)
-		// 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT : 버퍼를 정점 데이터를 저장하고 처리하는 용도로 설정.
-		// 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : GPU 전용 메모리에 데이터를 저장하여, GPU가 최적화된 방식으로 접근할 수 있게 함.
-		createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
-
-		// [스테이징 버퍼에서 버텍스 버퍼로 메모리 이동]
-		copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
-
-		// 스테이징 버퍼와 할당된 메모리 해제
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
-	}
-
-	/*
-		[인덱스 버퍼 생성]
-		버텍스 버퍼 생성 과정과 같음
-	*/
-	void createIndexBuffer() {
-		VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, indices.data(), (size_t) bufferSize);
-		vkUnmapMemory(device, stagingBufferMemory);
-
-		// [버텍스 버퍼 생성]
-		// 속성)
-		// 		VK_BUFFER_USAGE_INDEX_BUFFER_BIT : 버퍼를 인덱스 데이터를 저장하고 처리하는 용도로 설정.
-		// 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : GPU 전용 메모리에 데이터를 저장하여, GPU가 최적화된 방식으로 접근할 수 있게 함.
-		createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
-
-		copyBuffer(stagingBuffer, indexBuffer, bufferSize);
-
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
-	}
-
-	// 유니폼 버퍼 생성
-	void createUniformBuffers() {
-		// 유니폼 버퍼에 저장 될 구조체의 크기
-		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-		// 각 요소들을 동시에 처리 가능한 최대 프레임 수만큼 만들어 둔다.
-		uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);		// 유니폼 버퍼 객체
-		uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);	// 유니폼 버퍼에 할당할 메모리
-		uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);	// GPU 메모리에 매핑할 CPU 메모리 포인터
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			// 유니폼 버퍼 객체 생성 + 메모리 할당 + 바인딩
-			createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
-			// GPU 메모리 CPU 가상 포인터에 매핑
-			vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
-		}
-	}
 
 	// 디스크립터 풀 생성
 	void createDescriptorPool() {
@@ -840,18 +727,6 @@ private:
 		vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);	// 커맨드 버퍼 제거
 	}
 
-	// srcBuffer 에서 dstBuffer 로 데이터 복사
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-		VkCommandBuffer commandBuffer = beginSingleTimeCommands();
-
-		VkBufferCopy copyRegion{}; 	// 복사할 버퍼 영역을 지정 (크기, src 와 dst의 시작 offset 등)
-		copyRegion.size = size;		// 복사할 버퍼 크기 설정
-		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion); // 커맨드 버퍼에 복사 명령 기록
-
-        endSingleTimeCommands(commandBuffer);		
-	}
-
-
 	/*
 		[커맨드 버퍼 생성]
 		커맨드 버퍼에 GPU에서 실행할 작업을 전부 기록한뒤 제출한다.
@@ -938,12 +813,11 @@ private:
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);		// [커맨드 버퍼에 시저 설정 등록]
 
 		// 버텍스 정보 입력
-		VkBuffer vertexBuffers[] = {vertexBuffer};			// 버택스 버퍼 객체
 		VkDeviceSize offsets[] = {0};						// 버텍스 버퍼 메모리의 시작 위치 offset
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets); // 커맨드 버퍼에 버텍스 버퍼 바인딩
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffer->getBuffers().data(), offsets); // 커맨드 버퍼에 버텍스 버퍼 바인딩
 
 		// 인덱스 정보 입력
-		vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32); // 커맨드 버퍼에 인덱스 버퍼 바인딩 (4번째 매개변수 index 데이터 타입 uint32 설정)
+		vkCmdBindIndexBuffer(commandBuffer, (indexBuffer->getBuffers())[0], 0, VK_INDEX_TYPE_UINT32); // 커맨드 버퍼에 인덱스 버퍼 바인딩 (4번째 매개변수 index 데이터 타입 uint32 설정)
 
 		// 디스크립터 셋을 커맨드 버퍼에 바인딩
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
@@ -995,24 +869,6 @@ private:
 		}
 	}
 
-	// Uniform 변수에 해당하는 값을 구한 후 매핑된 GPU 메모리에 복사
-    void updateUniformBuffer(uint32_t currentImage) {
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-		// 이번 프레임의 유니폼 변수 값 구하기
-		// 1초에 90도씩 회전하는 model view projection 변환 생성
-        UniformBufferObject ubo{};
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1;
-
-		// 유니폼 변수를 매핑된 GPU 메모리에 복사
-        memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
-    }
 
 	/*
 		[다중 Frame 방식으로 그리기]
@@ -1043,7 +899,7 @@ private:
 		}
 
 		// Uniform buffer 업데이트
-		updateUniformBuffer(currentFrame);
+		uniformBuffer->update(swapChainManager->getSwapChainExtent(), currentFrame);
 
 		// [Fence 초기화]
 		// Fence signal 상태 not signaled 로 초기화

@@ -1,4 +1,5 @@
 #include "../include/renderer.h"
+#include "../include/buffer.h"
 
 std::unique_ptr<Renderer> Renderer::create(DeviceManager* deviceManager, VkFormat swapChainImageFormat)
 {
