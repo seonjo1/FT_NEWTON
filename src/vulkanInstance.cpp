@@ -172,7 +172,7 @@ void VulkanInstance::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugU
 	}
 }
 
-VulkanInstance::~VulkanInstance()
+void VulkanInstance::clear()
 {
 	// 메시지 객체 파괴
 	if (enableValidationLayers) {

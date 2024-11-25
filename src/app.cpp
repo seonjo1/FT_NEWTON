@@ -1,6 +1,8 @@
 #include "../include/common.h"
 #include "../include/vulkanInstance.h"
 #include "../include/deviceManager.h"
+#include "../include/swapChainManager.h"
+#include "../include/image.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -11,13 +13,11 @@
 
 #include <fstream>
 #include <stdexcept>
-#include <algorithm>
 #include <chrono>
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
 #include <limits>
-#include <array>
 #include <optional>
 
 // texture 경로
@@ -102,12 +102,10 @@ private:
 		QueueFamilyIndices queueFamilyIndices;	
 		SwapChainSupportDetails swapChainSupport;
 
-	
+	std::unique_ptr<SwapChainManager> swapChainManager;
 		VkSwapchainKHR swapChain;
-		std::vector<VkImage> swapChainImages;
 		VkFormat swapChainImageFormat;
 		VkExtent2D swapChainExtent;
-		std::vector<VkImageView> swapChainImageViews;
 		std::vector<VkFramebuffer> swapChainFramebuffers;
 
 	VkRenderPass renderPass;
@@ -117,14 +115,6 @@ private:
 
 	VkCommandPool commandPool;
 	
-	VkImage colorImage;
-	VkDeviceMemory colorImageMemory;
-	VkImageView colorImageView;
-
-	VkImage depthImage;
-	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
-
 	uint32_t mipLevels;
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
@@ -189,29 +179,27 @@ private:
 			presentQueue = deviceManager->getPresentQueue();
 			msaaSamples = deviceManager->getMsaaSamples();
 			swapChainSupport = deviceManager->getSwapChainSupport();
-
+		
 		// SwapChainManager 클래스
-		createSwapChain();
-		createImageViews();
-			// 동기화 클래스
-			createSyncObjects();
+		swapChainManager = SwapChainManager::create(window, deviceManager.get(), vulkanInstance->getSurface());
+			swapChain = swapChainManager->getSwapChain();
+			swapChainImageFormat = swapChainManager->getSwapChainImageFormat();
+			swapChainExtent = swapChainManager->getSwapChainExtent();
 
 		// Renderer 클래스
 		createRenderPass();
 			// Render 클래스 하위
 			createDescriptorSetLayout();
+
 			createGraphicsPipeline();
 
 		// Command 클래스
 		createCommandPool();
 		createCommandBuffers();
 
-		// Image 클래스
-		createColorResources();
-		createDepthResources();
+		swapChainManager->createFramebuffers(deviceManager.get(), renderPass);
+		swapChainFramebuffers = swapChainManager->getFramebuffers();
 
-		// SwapChainManager 클래스
-		createFramebuffers();
 
 		// Model 클래스
 			loadModel();
@@ -227,6 +215,9 @@ private:
 		// Descriptor 클래스		
 		createDescriptorPool();
 		createDescriptorSets();
+
+		// 동기화 클래스
+		createSyncObjects();
 	}
 
 	/*
@@ -240,37 +231,12 @@ private:
 		vkDeviceWaitIdle(device);  // 종료시 실행 중인 GPU 작업을 전부 기다림
 	}
 
-	// FrameBuffer, ImageView, SwapChain 삭제
-	void cleanupSwapChain() {
-
-		// 깊이 버퍼 이미지, 이미지 뷰, 메모리 삭제 
-        vkDestroyImageView(device, depthImageView, nullptr);
-        vkDestroyImage(device, depthImage, nullptr);
-        vkFreeMemory(device, depthImageMemory, nullptr);
-
-		// 컬러 버퍼 이미지, 이미지 뷰, 메모리 삭제
-		vkDestroyImageView(device, colorImageView, nullptr);
-		vkDestroyImage(device, colorImage, nullptr);
-		vkFreeMemory(device, colorImageMemory, nullptr);
-		
-		// 프레임 버퍼 배열 삭제
-		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}
-		// 이미지뷰 삭제
-		for (auto imageView : swapChainImageViews) {
-			vkDestroyImageView(device, imageView, nullptr);
-		}
-		// 스왑 체인 파괴
-		vkDestroySwapchainKHR(device, swapChain, nullptr);
-	}
-
 	/*
 		[사용한 자원들 정리]
 	*/
 	void cleanup() {
 		// 스왑 체인 파괴
-		cleanupSwapChain();
+		swapChainManager->cleanupSwapChain();
 
 		vkDestroyPipeline(device, graphicsPipeline, nullptr);      	// 파이프라인 객체 삭제
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);  	// 파이프라인 레이아웃 삭제
@@ -308,138 +274,10 @@ private:
 		vkDestroyCommandPool(device, commandPool, nullptr); 	  	// 커맨드 풀 파괴
 
 
-		vulkanInstance->~VulkanInstance();
+		vulkanInstance->clear();
 
 		glfwDestroyWindow(window);                              	// 윈도우 파괴
 		glfwTerminate();									        // glfw 종료
-	}
-
-	/*
-		변경된 window 크기에 맞게 SwapChain, ImageView, FrameBuffer 재생성
-	*/
-	void recreateSwapChain() {
-		// 현재 프레임버퍼 사이즈 체크
-		int width = 0, height = 0;
-		glfwGetFramebufferSize(window, &width, &height);
-		
-		// 현재 프레임 버퍼 사이즈가 0이면 다음 이벤트 호출까지 대기
-		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(window, &width, &height);
-			glfwWaitEvents(); // 다음 이벤트 발생 전까지 대기하여 CPU 사용률을 줄이는 함수 
-		}
-
-		// 모든 GPU 작업 종료될 때까지 대기 (사용중인 리소스를 건들지 않기 위해)
-		vkDeviceWaitIdle(device);
-
-		// 스왑 체인 관련 리소스 정리
-		cleanupSwapChain();
-
-		// 현재 window 크기에 맞게 SwapChain, DepthResource, ImageView, FrameBuffer 재생성
-		createSwapChain();
-		createImageViews();
-		createColorResources();
-		createDepthResources();
-		createFramebuffers();
-	}
-
-	/*
-	[스왑 체인 생성]
-	스왑 체인의 역할
-	1. 다수의 프레임 버퍼(이미지) 관리
-	2. 이중 버퍼링 및 삼중 버퍼링 (다수의 버퍼를 이용하여 화면에 프레임 전환시 딜레이 최소화)
-	3. 프레젠테이션 모드 관리 (화면에 프레임을 표시하는 방법 설정 가능)
-	4. 화면과 GPU작업의 동기화 (GPU가 이미지를 생성하는 작업과 화면이 이미지를 띄우는 작업 간의 동기화) 
-	*/ 
-	void createSwapChain() {
-		// 서피스 포맷 선택
-		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-		// 프레젠테이션 모드 선택
-		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-		// 스왑 범위 선택 (스왑 체인의 이미지 해상도 결정)
-		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
-		// 스왑 체인에서 필요한 이미지 수 결정 (최소 이미지 수 + 1)
-		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-
-		// 만약 필요한 이미지 수가 최댓값을 넘으면 clamp
-		if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
- 		   imageCount = swapChainSupport.capabilities.maxImageCount;
-		}
-		
-		// SwapChain 정보 생성
-		VkSwapchainCreateInfoKHR createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = surface;
-
-		// 이미지 개수의 최솟값 설정 (최댓값은 아까 봤던 이미지 최댓값으로 들어감)
-		createInfo.minImageCount = imageCount;
-		// 이미지 정보 입력
-		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;
-		createInfo.imageExtent = extent;
-		createInfo.imageArrayLayers = 1; // 한 번의 렌더링에 n 개의 결과가 생긴다. (스테레오 3D, cubemap 이용시 여러 개 레이어 사용)
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; // 기본 렌더링에만 사용하는 플래그 (만약 렌더링 후 2차 가공 필요시 다른 플래그 사용)
-
-		uint32_t queueFamilyIndicesArray[] = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value()};
-
-		// 큐패밀리 정보 등록
-		if (queueFamilyIndices.graphicsFamily != queueFamilyIndices.presentFamily) {
-			// [그래픽스 큐패밀리와 프레젠트 큐패밀리가 서로 다른 큐인 경우]
-			// 하나의 이미지에 두 큐패밀리가 동시에 접근할 수 있게 하여 성능을 높인다.
-			// (큐패밀리가 이미지에 접근할 때 다른 큐패밀리가 접근했는지 확인하는 절차 삭제)
-			// 그러나 실제로 동시에 접근하면 안 되므로 순서를 프로그래머가 직접 조율해야 한다. 
-			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; // 동시 접근 허용
-			createInfo.queueFamilyIndexCount = 2;                     // 큐패밀리 개수 등록
-			createInfo.pQueueFamilyIndices = queueFamilyIndicesArray;      // 큐패밀리 인덱스 배열 등록
-		} else {
-			// [그래픽스 큐패밀리와 프레젠트 큐패밀리가 서로 같은 큐인 경우]
-			// 어처피 1개의 큐패밀리만 존재하므로 큐패밀리의 이미지 독점을 허용한다.
-			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;  // 큐패밀리의 독점 접근 허용
-		}
-
-		createInfo.preTransform = swapChainSupport.capabilities.currentTransform;  // 스왑 체인 이미지를 화면에 표시할때 적용되는 변환 등록
-		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;  // 렌더링 결과의 알파 값을 window에도 적용시킬지 설정 (현재는 알파블랜딩 없는 설정)
-		createInfo.presentMode = presentMode; // 프레젠트 모드 설정
-		createInfo.clipped = VK_TRUE; // 실제 컴퓨터 화면에 보이지 않는 부분을 렌더링 할 것인지 설정 (VK_TRUE = 렌더링 하지 않겠다)
-
-		createInfo.oldSwapchain = VK_NULL_HANDLE; // 재활용할 이전 스왑체인 설정 (만약 설정한다면 새로운 할당을 하지 않고 가능한만큼 이전 스왑체인 리소스 재활용)
-
-		/* 
-		[스왑 체인 생성] 
-		스왑 체인 생성시 이미지들도 설정대로 만들어지고, 
-	 	만약 렌더링에 필요한 추가 이미지가 있으면 따로 만들어야 함 
-		*/
-		if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create swap chain!");
-		}
-
-		// 스왑 체인 이미지 개수 저장
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
-		// 스왑 체인 이미지 개수만큼 vector 초기화 
-		swapChainImages.resize(imageCount);
-		// 이미지 개수만큼 vector에 스왑 체인의 이미지 핸들 채우기 
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
-
-		// 스왑 체인의 이미지 포맷 저장
-		swapChainImageFormat = surfaceFormat.format;
-		// 스왑 체인의 이미지 크기 저장
-		swapChainExtent = extent;
-	}
-
-	/*
-	[이미지 뷰 생성]
-	이미지 뷰란 VKImage에 대한 접근 방식을 정의하는 객체
-	GPU가 이미지를 읽을 때만 사용 (이미지를 텍스처로 쓰거나 후처리 하는 등)
-	GPU가 이미지에 쓰기 작업할 떄는 x
-	*/ 
-	void createImageViews() {
-		// 이미지의 개수만큼 vector 초기화
-		swapChainImageViews.resize(swapChainImages.size());
-
-		// 이미지의 개수만큼 이미지뷰 생성
-		for (size_t i = 0; i < swapChainImages.size(); i++) {
-			swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-		}
 	}
 
 	/*
@@ -451,7 +289,6 @@ private:
 	void createRenderPass() {
 		// [attachment 설정]
 		// FrameBuffer의 attachment에 어떤 정보를 어떻게 기록할지 정하는 객체
-
 		// 멀티 샘플링 color attachment 설정
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = swapChainImageFormat;		 					// 이미지 포맷 (스왑 체인과 일치 시킴)
@@ -465,7 +302,7 @@ private:
 
 		// depth attachment 설정
 		VkAttachmentDescription depthAttachment{};
-		depthAttachment.format = findDepthFormat();
+		depthAttachment.format = deviceManager->findDepthFormat();
 		depthAttachment.samples = msaaSamples;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -539,6 +376,7 @@ private:
 		if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
 		}
+
 	}
 
 	/* 
@@ -745,47 +583,12 @@ private:
 	}
 
 	/*
-		[프레임 버퍼 생성]
-		프레임 버퍼를 생성하고 SwapChain의 이미지를 attachment로 설정 
-		(depth buffer 같은 image가 더 필요하면 따로 image를 생성해서 attachment에 추가해야 함)
-	*/
-	void createFramebuffers() {
-		// 프레임 버퍼 배열 초기화
-		swapChainFramebuffers.resize(swapChainImageViews.size());
-
-		// 이미지 뷰마다 프레임 버퍼 1개씩 생성
-		for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-			std::array<VkImageView, 3> attachments = {
-				colorImageView,
-				depthImageView,
-				swapChainImageViews[i]
-			};
-
-			VkFramebufferCreateInfo framebufferInfo{};
-			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = renderPass; 										// 렌더 패스 등록
-			framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size()); 	// attachment 개수
-			framebufferInfo.pAttachments = attachments.data();								// attachment 등록
-			framebufferInfo.width = swapChainExtent.width;									// 프레임 버퍼 width
-			framebufferInfo.height = swapChainExtent.height;								// 프레임 버퍼 height
-			framebufferInfo.layers = 1;														// 레이어 수
-
-			if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create framebuffer!");
-			}
-		}
-	}
-
-	/*
 		[커맨드 풀 생성]
 		커맨드 풀이란?
 		1. 커맨드 버퍼들을 관리한다.
 		2. 큐 패밀리당 1개의 커맨드 풀이 필요하다.
 	*/
 	void createCommandPool() {
-		// 큐 패밀리 인덱스 가져오기
-		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
-
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; 		// 커맨드 버퍼를 개별적으로 재설정할 수 있도록 설정 
@@ -796,51 +599,6 @@ private:
 		if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create command pool!");
 		}
-	}
-
-	// 멀티샘플링용 color Image생성
-    void createColorResources() {
-        VkFormat colorFormat = swapChainImageFormat;
-
-        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
-        colorImageView = createImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-    }
-
-	// Depth test에 쓰일 image, imageView 준비
-    void createDepthResources() {
-		// depth image의 format 결정
-        VkFormat depthFormat = findDepthFormat();
-
-        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-        depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-    }
-
-	// Vulkan의 특정 format에 대해 GPU가 tiling의 features를 지원하는지 확인
-	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
-		// format 들에 대해 GPU가 tiling과 features를 지원하는지 확인
-		for (VkFormat format : candidates) {
-			// GPU가 format에 대해 지원하는 특성 가져오는 함수
-			VkFormatProperties props;
-			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
-
-			// GPU가 지원하는 특성과 비교
-			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {				// VK_IMAGE_TILING_LINEAR의 특성 비교
-				return format;
-			} else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {		// VK_IMAGE_TILING_OPTIMAL의 특성 비교
-				return format;
-			}
-		}
-
-		throw std::runtime_error("failed to find supported format!");
-	}
-
-	// depth image의 format 설정
-	VkFormat findDepthFormat() {
-		return findSupportedFormat(
-			{VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-			VK_IMAGE_TILING_OPTIMAL,
-			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-		);
 	}
 
 	bool hasStencilComponent(VkFormat format) {
@@ -1086,76 +844,6 @@ private:
 			indices[3 * i + 1] = mesh->mFaces[i].mIndices[1];
 			indices[3 * i + 2] = mesh->mFaces[i].mIndices[2];
 		}
-	}
-
-	// 이미지 뷰 생성
-	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
-		// 이미지 뷰 정보 생성
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = image;													// 이미지 핸들
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;								// 이미지 타입
-		viewInfo.format = format;												// 이미지 포맷
-		viewInfo.subresourceRange.aspectMask = aspectFlags;  					// 이미지 형식 결정 (color / depth / stencil 등)
-		viewInfo.subresourceRange.baseMipLevel = 0;                          	// 렌더링할 mipmap 단계 설정
-		viewInfo.subresourceRange.levelCount = mipLevels;                            	// baseMipLevel 기준으로 몇 개의 MipLevel을 더 사용할지 설정 (실제 mipmap 만드는 건 따로 해줘야함)
-		viewInfo.subresourceRange.baseArrayLayer = 0;                        	// ImageView가 참조하는 이미지 레이어의 시작 위치 정의
-		viewInfo.subresourceRange.layerCount = 1;                            	// 스왑 체인에서 설정한 이미지 레이어 개수
-
-		// 이미지 뷰 생성
-		VkImageView imageView;
-		if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create image view!");
-		}
-
-		return imageView;
-	}
-
-	/*
-		[이미지 객체 생성 및 메모리 할당]
-		1. 이미지 객체 생성
-		2. 이미지 객체가 사용할 메모리 할당
-		3. 이미지 객체에 할당한 메모리 바인딩
-	*/
-	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
-		// 이미지 객체를 만드는데 사용되는 구조체
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;					// 이미지의 차원을 설정
-		imageInfo.extent.width = width;							// 이미지의 너비 지정
-		imageInfo.extent.height = height;						// 이미지의 높이 지정 
-		imageInfo.extent.depth = 1;								// 이미지의 깊이 지정 (2D 이미지의 경우 depth는 1로 지정해야 함)
-		imageInfo.mipLevels = mipLevels;						// 생성할 mipLevel의 개수 지정
-		imageInfo.arrayLayers = 1;								// 생성할 이미지 레이어 수 (큐브맵의 경우 6개 생성)
-		imageInfo.format = format;								// 이미지의 포맷을 지정하며, 채널 구성과 각 채널의 비트 수를 정의
-		imageInfo.tiling = tiling;								// 이미지를 GPU 메모리에 배치할 때 메모리 레이아웃을 결정하는 설정 (CPU에서도 접근 가능하게 할꺼냐, GPU에만 접근 가능하게 최적화 할거냐 결정) 
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;	// 이미지 초기 레이아웃 설정 (이미지가 메모리에 배치될 때 초기 상태를 정의)
-		imageInfo.usage = usage;								// 이미지의 사용 용도 결정
-		imageInfo.samples = numSamples;							// 멀티 샘플링을 위한 샘플 개수
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;		// 이미지의 큐 공유 모드 설정 (VK_SHARING_MODE_EXCLUSIVE: 한 번에 하나의 큐 패밀리에서만 접근 가능한 단일 큐 모드)
-
-		// 이미지 객체 생성
-		if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create image!");
-		}
-
-		// 이미지에 필요한 메모리 요구 사항을 조회 
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(device, image, &memRequirements);
-
-		// 메모리 할당을 위한 구조체
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;											// 메모리 크기 설정
-		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);		// 메모리 유형과 속성 설정
-
-		// 이미지를 위한 메모리 할당
-		if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate image memory!");
-		}
-
-		// 이미지에 할당한 메모리 바인딩
-		vkBindImageMemory(device, image, imageMemory, 0);
 	}
 
 	// 이미지 레이아웃, 접근 권한을 변경할 수 있는 베리어를 커맨드 버퍼에 기록
@@ -1510,25 +1198,6 @@ private:
         endSingleTimeCommands(commandBuffer);		
 	}
 
-	/*
-		GPU와 buffer가 호환되는 메모리 유형중 properties에 해당하는 속성들을 갖는 메모리 유형 찾기
-	*/
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-		// GPU에서 사용한 메모리 유형을 가져온다.
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-			// typeFilter & (1 << i) : GPU의 메모리 유형중 버퍼와 호환되는 것인지 판단
-			// memProperties.memoryTypes[i].propertyFlags & properties : GPU 메모리 유형의 속성이 properties와 일치하는지 판단
-			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				// 해당 메모리 유형 반환
-				return i;
-			}
-		}
-
-		throw std::runtime_error("failed to find suitable memory type!");
-	}
 
 	/*
 		[커맨드 버퍼 생성]
@@ -1713,7 +1382,7 @@ private:
 		// image 준비 실패로 인한 오류 처리
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			// 스왑 체인이 surface 크기와 호환되지 않는 경우로(창 크기 변경), 스왑 체인 재생성 후 다시 draw
-			recreateSwapChain();
+			swapChainManager->recreateSwapChain(window, deviceManager.get(), surface, renderPass);
 			return;
 		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			// 진짜 오류 gg
@@ -1780,7 +1449,7 @@ private:
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			// 스왑 체인 크기와 surface의 크기가 호환되지 않는 경우
 			framebufferResized = false;
-			recreateSwapChain(); 	// 변경된 surface에 맞는 SwapChain, ImageView, FrameBuffer 생성 
+			swapChainManager->recreateSwapChain(window, deviceManager.get(), surface, renderPass); // 변경된 surface에 맞는 SwapChain, ImageView, FrameBuffer 생성 
 		} else if (result != VK_SUCCESS) {
 			// 진짜 오류 gg
 			throw std::runtime_error("failed to present swap chain image!");
@@ -1810,104 +1479,6 @@ private:
 		return shaderModule;
 	}
 
-	/* 
-	지원하는 포맷중 선호하는 포맷 1개 반환
-	선호하는 포맷이 없을 시 가장 앞에 있는 포맷 반환
-	*/
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-		for (const auto& availableFormat : availableFormats) {
-			// 만약 선호하는 포맷이 존재할 경우 그 포맷을 반환
-			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
-				availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-				return availableFormat;
-			}
-		}
-		// 선호하는 포맷이 없는 경우 첫 번째 포맷 반환
-		return availableFormats[0];
-	}
-
-	/*
-	지원하는 프레젠테이션 모드 중 선호하는 모드 선택
-	선호하는 모드가 없을 시 기본 값인 VK_PRESENT_MODE_FIFO_KHR 반환
-	*/
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-		for (const auto& availablePresentMode : availablePresentModes) {
-			// 선호하는 mode가 존재하면 해당 mode 반환 
-			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-				return availablePresentMode;
-			}
-		}
-		// 선호하는 mode가 존재하지 않으면 기본 값인 VK_PRESENT_MODE_FIFO_KHR 반환
-		return VK_PRESENT_MODE_FIFO_KHR;
-	}
-
-	// 스왑 체인 이미지의 해상도 결정
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-		// 만약 currentExtent의 width가 std::numeric_limits<uint32_t>::max()가 아니면, 시스템이 이미 권장하는 스왑체인 크기를 제공하는 것
-		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-			return capabilities.currentExtent; // 권장 사항 사용
-		} else {
-			// 그렇지 않은 경우, 창의 현재 프레임 버퍼 크기를 사용하여 스왑체인 크기를 결정
-			int width, height;
-			glfwGetFramebufferSize(window, &width, &height);
-
-			VkExtent2D actualExtent = {
-				static_cast<uint32_t>(width),
-				static_cast<uint32_t>(height)
-			};
-
-			// width, height를 capabilites의 min, max 범위로 clamping
-			actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-			actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-			return actualExtent;
-		}
-	}
-
-	/*
-	GPU가 지원하는 큐패밀리 인덱스 가져오기
-	그래픽스 큐패밀리, 프레젠테이션 큐패밀리 인덱스를 저장
-	해당 큐패밀리가 없으면 optional 객체에 정보가 empty 상태
-	*/
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
-		QueueFamilyIndices indices;
-
-		// GPU가 지원하는 큐 패밀리 개수 가져오기
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-		// GPU가 지원하는 큐 패밀리 리스트 가져오기
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-		// 그래픽 큐 패밀리 검색
-		int i = 0;
-		for (const auto& queueFamily : queueFamilies) {
-			// 그래픽 큐 패밀리 찾기 성공한 경우 indices에 값 생성
-			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				indices.graphicsFamily = i;
-			}
-
-			// GPU의 i 인덱스 큐 패밀리가 surface에서 프레젠테이션을 지원하는지 확인
-			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-
-			// 프레젠테이션 큐 패밀리 등록
-			if (presentSupport) {
-				indices.presentFamily = i;
-			}
-
-			// 그래픽 큐 패밀리 찾은 경우 break
-			if (indices.isComplete()) {
-				break;
-			}
-
-			i++;
-		}
-		// 그래픽 큐 패밀리를 못 찾은 경우 값이 없는 채로 반환 됨
-		return indices;
-	}
-
 	// shader 파일인 SPIR-V 파일을 바이너리 형태로 읽어오는 함수
 	static std::vector<char> readFile(const std::string& filename) {
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -1926,6 +1497,96 @@ private:
 
 		return buffer;
 	}
+	
+	/*
+		[이미지 객체 생성 및 메모리 할당]
+		1. 이미지 객체 생성
+		2. 이미지 객체가 사용할 메모리 할당
+		3. 이미지 객체에 할당한 메모리 바인딩
+	*/
+	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
+		// 이미지 객체를 만드는데 사용되는 구조체
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;					// 이미지의 차원을 설정
+		imageInfo.extent.width = width;							// 이미지의 너비 지정
+		imageInfo.extent.height = height;						// 이미지의 높이 지정 
+		imageInfo.extent.depth = 1;								// 이미지의 깊이 지정 (2D 이미지의 경우 depth는 1로 지정해야 함)
+		imageInfo.mipLevels = mipLevels;						// 생성할 mipLevel의 개수 지정
+		imageInfo.arrayLayers = 1;								// 생성할 이미지 레이어 수 (큐브맵의 경우 6개 생성)
+		imageInfo.format = format;								// 이미지의 포맷을 지정하며, 채널 구성과 각 채널의 비트 수를 정의
+		imageInfo.tiling = tiling;								// 이미지를 GPU 메모리에 배치할 때 메모리 레이아웃을 결정하는 설정 (CPU에서도 접근 가능하게 할꺼냐, GPU에만 접근 가능하게 최적화 할거냐 결정) 
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;	// 이미지 초기 레이아웃 설정 (이미지가 메모리에 배치될 때 초기 상태를 정의)
+		imageInfo.usage = usage;								// 이미지의 사용 용도 결정
+		imageInfo.samples = numSamples;							// 멀티 샘플링을 위한 샘플 개수
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;		// 이미지의 큐 공유 모드 설정 (VK_SHARING_MODE_EXCLUSIVE: 한 번에 하나의 큐 패밀리에서만 접근 가능한 단일 큐 모드)
+
+		// 이미지 객체 생성
+		if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image!");
+		}
+
+		// 이미지에 필요한 메모리 요구 사항을 조회 
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+		// 메모리 할당을 위한 구조체
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;											// 메모리 크기 설정
+		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);		// 메모리 유형과 속성 설정
+
+		// 이미지를 위한 메모리 할당
+		if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate image memory!");
+		}
+
+		// 이미지에 할당한 메모리 바인딩
+		vkBindImageMemory(device, image, imageMemory, 0);
+	}
+	
+	/*
+		GPU와 buffer가 호환되는 메모리 유형중 properties에 해당하는 속성들을 갖는 메모리 유형 찾기
+	*/
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+		// GPU에서 사용한 메모리 유형을 가져온다.
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+			// typeFilter & (1 << i) : GPU의 메모리 유형중 버퍼와 호환되는 것인지 판단
+			// memProperties.memoryTypes[i].propertyFlags & properties : GPU 메모리 유형의 속성이 properties와 일치하는지 판단
+			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				// 해당 메모리 유형 반환
+				return i;
+			}
+		}
+
+		throw std::runtime_error("failed to find suitable memory type!");
+	}
+	
+	// 이미지 뷰 생성
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+		// 이미지 뷰 정보 생성
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = image;													// 이미지 핸들
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;								// 이미지 타입
+		viewInfo.format = format;												// 이미지 포맷
+		viewInfo.subresourceRange.aspectMask = aspectFlags;  					// 이미지 형식 결정 (color / depth / stencil 등)
+		viewInfo.subresourceRange.baseMipLevel = 0;                          	// 렌더링할 mipmap 단계 설정
+		viewInfo.subresourceRange.levelCount = mipLevels;                            	// baseMipLevel 기준으로 몇 개의 MipLevel을 더 사용할지 설정 (실제 mipmap 만드는 건 따로 해줘야함)
+		viewInfo.subresourceRange.baseArrayLayer = 0;                        	// ImageView가 참조하는 이미지 레이어의 시작 위치 정의
+		viewInfo.subresourceRange.layerCount = 1;                            	// 스왑 체인에서 설정한 이미지 레이어 개수
+
+		// 이미지 뷰 생성
+		VkImageView imageView;
+		if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image view!");
+		}
+
+		return imageView;
+	}
 };
 
 int main() {
@@ -1940,3 +1601,7 @@ int main() {
 
 	return EXIT_SUCCESS;
 }
+
+
+
+

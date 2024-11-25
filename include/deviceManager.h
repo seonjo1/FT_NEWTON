@@ -21,7 +21,8 @@ class DeviceManager
 {
 public:
 	static std::unique_ptr<DeviceManager> create(VulkanInstance* vulkanInstance);
-	~DeviceManager();
+	~DeviceManager() = default;
+	void clear();
 	VkPhysicalDevice getPhysicalDevice();
 	VkDevice getLogicalDevice();
 	QueueFamilyIndices getQueueFamilyIndices();
@@ -29,6 +30,7 @@ public:
 	VkQueue getPresentQueue();
 	VkSampleCountFlagBits getMsaaSamples();
 	SwapChainSupportDetails getSwapChainSupport();
+	VkFormat findDepthFormat();
 
 private:
 	DeviceManager() = default;
@@ -40,6 +42,7 @@ private:
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 	QueueFamilyIndices  findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
 	VkSampleCountFlagBits getMaxUsableSampleCount();
+	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice device;

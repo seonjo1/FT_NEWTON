@@ -7,7 +7,8 @@ class VulkanInstance
 {
 public:
 	static std::unique_ptr<VulkanInstance> create(GLFWwindow* window);
-	~VulkanInstance();
+	~VulkanInstance() = default;
+	void clear();
 	VkInstance getInstance();
 	VkSurfaceKHR getSurface();
 

@@ -8,7 +8,8 @@ set(WINDOW_WIDTH 1920)
 set(WINDOW_HEIGHT 1080)
 
 project(${PROJECT_NAME})
-set(SRC src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp)
+set(SRC src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
+		src/swapChainManager.cpp src/image.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
@@ -23,6 +24,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)
 target_include_directories(${PROJECT_NAME} PUBLIC ${DEP_INCLUDE_DIR})
 target_link_directories(${PROJECT_NAME} PUBLIC ${DEP_LIB_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
+
+target_compile_options(${PROJECT_NAME} PUBLIC "/utf-8")
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
 WINDOW_NAME="${WINDOW_NAME}"

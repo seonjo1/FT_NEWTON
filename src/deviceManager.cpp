@@ -230,7 +230,36 @@ void DeviceManager::createLogicalDevice() {
 	vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
 }
 
-DeviceManager::~DeviceManager()
+
+// Vulkan의 특정 format에 대해 GPU가 tiling의 features를 지원하는지 확인
+VkFormat DeviceManager::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
+{
+	// format 들에 대해 GPU가 tiling과 features를 지원하는지 확인
+	for (VkFormat format : candidates) {
+		// GPU가 format에 대해 지원하는 특성 가져오는 함수
+		VkFormatProperties props;
+		vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+		// GPU가 지원하는 특성과 비교
+		if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {				// VK_IMAGE_TILING_LINEAR의 특성 비교
+			return format;
+		} else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {		// VK_IMAGE_TILING_OPTIMAL의 특성 비교
+			return format;
+		}
+	}
+
+	throw std::runtime_error("failed to find supported format!");
+}
+
+VkFormat DeviceManager::findDepthFormat()
+{
+	return findSupportedFormat( {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+					VK_IMAGE_TILING_OPTIMAL,
+					VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+				);
+}
+
+void DeviceManager::clear()
 {
 	vkDestroyDevice(device, nullptr);	// 논리적 장치 파괴
 }
