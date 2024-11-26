@@ -24,45 +24,19 @@ public:
 
 private:
 	GLFWwindow* window;
-
+	VkDevice device;
 	std::unique_ptr<VulkanInstance> vulkanInstance;
-		VkInstance instance;
-		VkSurfaceKHR surface;
-
 	std::unique_ptr<DeviceManager> deviceManager;
-		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-		VkDevice device;
-		VkQueue graphicsQueue;
-		VkQueue presentQueue;
-		QueueFamilyIndices queueFamilyIndices;	
-		SwapChainSupportDetails swapChainSupport;
-
 	std::unique_ptr<SwapChainManager> swapChainManager;
-		VkSwapchainKHR swapChain;
-		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
-		std::vector<VkFramebuffer> swapChainFramebuffers;
-
-	// Renderer
 	std::unique_ptr<Renderer> renderer;
-		VkRenderPass renderPass;
-		VkPipelineLayout pipelineLayout;
-		VkPipeline graphicsPipeline;
-
 	VkCommandPool commandPool;
-	
 	std::unique_ptr<Model> model;
-
 	VkDescriptorPool descriptorPool;
-	
 	std::vector<VkCommandBuffer> commandBuffers;
-
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> inFlightFences;
 	uint32_t currentFrame = 0;
-
 	bool framebufferResized = false;
 
 	// glfw 실행, window 생성, 콜백 함수 등록
@@ -89,28 +63,13 @@ private:
 	// 렌더링을 위한 초기 setting
 	void initVulkan() {
 		vulkanInstance = VulkanInstance::create(window);
-			instance = vulkanInstance->getInstance();
-			surface = vulkanInstance->getSurface();
 		deviceManager = DeviceManager::create(vulkanInstance.get());
-			physicalDevice = deviceManager->getPhysicalDevice();
-			device = deviceManager->getLogicalDevice();
-			queueFamilyIndices = deviceManager->getQueueFamilyIndices();
-			graphicsQueue = deviceManager->getGraphicsQueue();
-			presentQueue = deviceManager->getPresentQueue();
-			msaaSamples = deviceManager->getMsaaSamples();
-			swapChainSupport = deviceManager->getSwapChainSupport();
+		device = deviceManager->getLogicalDevice();
 		swapChainManager = SwapChainManager::create(window, deviceManager.get(), vulkanInstance->getSurface());
-			swapChain = swapChainManager->getSwapChain();
-			swapChainImageFormat = swapChainManager->getSwapChainImageFormat();
-			swapChainExtent = swapChainManager->getSwapChainExtent();
 		createCommandPool();
 		renderer = Renderer::create(deviceManager.get(), swapChainManager->getSwapChainImageFormat());
-			renderPass = renderer->getRenderPass();
-			pipelineLayout = renderer->getPipelineLayout();
-			graphicsPipeline = renderer->getGraphicsPipeline();
-			createCommandBuffers();
-		swapChainManager->createFramebuffers(deviceManager.get(), renderPass);
-		swapChainFramebuffers = swapChainManager->getFramebuffers();
+		createCommandBuffers();
+		swapChainManager->createFramebuffers(deviceManager.get(), renderer->getRenderPass());
 		model = Model::create("models/backpack/backpack.obj", deviceManager.get(), commandPool);	
 		createDescriptorPool();
 		model->createDescriptorSets(device, descriptorPool, renderer->getDescriptorSetLayout());
@@ -160,7 +119,7 @@ private:
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; 		// 커맨드 버퍼를 개별적으로 재설정할 수 있도록 설정 
 																				// (이게 아니면 커맨드 풀의 모든 커맨드 버퍼 설정이 한 번에 이루어짐)
-		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value(); 	// 그래픽스 큐 인덱스 등록 (대응시킬 큐 패밀리 등록)
+		poolInfo.queueFamilyIndex = deviceManager->getQueueFamilyIndices().graphicsFamily.value(); 	// 그래픽스 큐 인덱스 등록 (대응시킬 큐 패밀리 등록)
 
 		// 커맨드 풀 생성
 		if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
@@ -236,10 +195,10 @@ private:
 		// 렌더 패스 정보 지정
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass;								// 렌더 패스 등록
-		renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];		// 프레임 버퍼 등록
-		renderPassInfo.renderArea.offset = {0, 0};							// 렌더링 시작 좌표 등록
-		renderPassInfo.renderArea.extent = swapChainExtent;					// 렌더링 width, height 등록 (보통 프레임버퍼, 스왑체인의 크기와 같게 설정)
+		renderPassInfo.renderPass = renderer->getRenderPass();												// 렌더 패스 등록
+		renderPassInfo.framebuffer = swapChainManager->getFramebuffers()[imageIndex];		// 프레임 버퍼 등록
+		renderPassInfo.renderArea.offset = {0, 0};											// 렌더링 시작 좌표 등록
+		renderPassInfo.renderArea.extent = swapChainManager->getSwapChainExtent();			// 렌더링 width, height 등록 (보통 프레임버퍼, 스왑체인의 크기와 같게 설정)
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
@@ -258,7 +217,9 @@ private:
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		//	[사용할 그래픽 파이프 라인을 설정하는 명령 기록]
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->getGraphicsPipeline());
+
+		VkExtent2D swapChainExtent = swapChainManager->getSwapChainExtent();
 
 		// 뷰포트 정보 입력
 		VkViewport viewport{};
@@ -276,7 +237,7 @@ private:
 		scissor.extent = swapChainExtent;					// 시저의 width, height
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);		// [커맨드 버퍼에 시저 설정 등록]
 
-		model->recordDrawCommand(commandBuffer, pipelineLayout, currentFrame);
+		model->recordDrawCommand(commandBuffer, renderer->getPipelineLayout(), currentFrame);
 
 		/*
 			[렌더 패스 종료]
@@ -339,12 +300,12 @@ private:
 		// vkAcquireNextImageKHR 함수는 CPU에서 swapChain과 surface의 호환성을 확인하고 GPU에 이미지 준비 명령을 내리는 함수
 		// 만약 image가 프레젠테이션 큐에 작업이 진행 중이거나 대기 중이면 해당 image는 사용하지 않고 대기한다.
 		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(device, swapChainManager->getSwapChain(), UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
 		// image 준비 실패로 인한 오류 처리
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			// 스왑 체인이 surface 크기와 호환되지 않는 경우로(창 크기 변경), 스왑 체인 재생성 후 다시 draw
-			swapChainManager->recreateSwapChain(window, deviceManager.get(), surface, renderPass);
+			swapChainManager->recreateSwapChain(window, deviceManager.get(), vulkanInstance->getSurface(), renderer->getRenderPass());
 			return;
 		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			// 진짜 오류 gg
@@ -385,7 +346,7 @@ private:
 		submitInfo.pSignalSemaphores = signalSemaphores;										// 작업 끝나고 신호를 보낼 세마포어 등록
 
 		// 커맨드 버퍼 제출
-		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+		if (vkQueueSubmit(deviceManager->getGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
@@ -399,19 +360,19 @@ private:
 		presentInfo.pWaitSemaphores = signalSemaphores;											// 대기 세마포어 등록
 
 		// 제출할 스왑 체인 설정
-		VkSwapchainKHR swapChains[] = {swapChain};
+		VkSwapchainKHR swapChains[] = {swapChainManager->getSwapChain()};
 		presentInfo.swapchainCount = 1;															// 스왑체인 개수
 		presentInfo.pSwapchains = swapChains;													// 스왑체인 등록
 		presentInfo.pImageIndices = &imageIndex;												// 스왑체인에서 표시할 이미지 핸들 등록
 
 		// 프레젠테이션 큐에 이미지 제출
-		result = vkQueuePresentKHR(presentQueue, &presentInfo);
+		result = vkQueuePresentKHR(deviceManager->getPresentQueue(), &presentInfo);
 
 		// 프레젠테이션 실패 오류 발생 시
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			// 스왑 체인 크기와 surface의 크기가 호환되지 않는 경우
 			framebufferResized = false;
-			swapChainManager->recreateSwapChain(window, deviceManager.get(), surface, renderPass); // 변경된 surface에 맞는 SwapChain, ImageView, FrameBuffer 생성 
+			swapChainManager->recreateSwapChain(window, deviceManager.get(), vulkanInstance->getSurface(), renderer->getRenderPass()); // 변경된 surface에 맞는 SwapChain, ImageView, FrameBuffer 생성 
 		} else if (result != VK_SUCCESS) {
 			// 진짜 오류 gg
 			throw std::runtime_error("failed to present swap chain image!");
