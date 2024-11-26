@@ -1,7 +1,6 @@
 #ifndef DEVICEMANAGER_H
 # define DEVICEMANAGER_H
 
-# include "common.h"
 # include "vulkanInstance.h"
 
 # include <optional>

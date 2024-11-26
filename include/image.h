@@ -1,7 +1,6 @@
 #ifndef IMAGE_H
 # define IMAGE_H
 
-# include "common.h"
 # include "deviceManager.h"
 
 class Image
@@ -52,14 +51,17 @@ class TextureImage : public Image
 {
 public:
 	static std::unique_ptr<TextureImage> create(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool);
+	static std::unique_ptr<TextureImage> createBlackTexture(DeviceManager* deviceManager, VkCommandPool commandPool);
 	virtual ~TextureImage() = default;
 	virtual void clear() override;
 	VkSampler getSampler();
 
 private:
 	void init(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool);
+	void init(DeviceManager* deviceManager, VkCommandPool commandPool);
 	TextureImage() = default;
 	void createTextureImage(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool);
+	void createBlackTextureImage(DeviceManager* deviceManager, VkCommandPool commandPool);
 	void createTextureImageView();
 	void createTextureSampler(VkPhysicalDevice physicalDevice);
 	void generateMipmaps(DeviceManager* deviceManager, VkCommandPool commandPool, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);

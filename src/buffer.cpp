@@ -20,6 +20,7 @@ void VertexBuffer::init(std::vector<Vertex> vertices, DeviceManager* deviceManag
 	device = deviceManager->getLogicalDevice();
 	VkPhysicalDevice physicalDevice	= deviceManager->getPhysicalDevice();
 	
+	vSize = vertices.size();
 	size = 1;
 	buffers.resize(size);
 	buffersMemory.resize(size);
@@ -67,6 +68,11 @@ void VertexBuffer::init(std::vector<Vertex> vertices, DeviceManager* deviceManag
 	vkFreeMemory(device, stagingBufferMemory, nullptr);	
 }
 
+uint32_t VertexBuffer::getVerticesSize()
+{
+	return vSize;
+}
+
 std::unique_ptr<IndexBuffer> IndexBuffer::create(std::vector<uint32_t> indices, DeviceManager* deviceManager, VkCommandPool commandPool)
 {
 	std::unique_ptr<IndexBuffer> indexBuffer(new IndexBuffer());
@@ -79,6 +85,7 @@ void IndexBuffer::init(std::vector<uint32_t> indices, DeviceManager* deviceManag
 	device = deviceManager->getLogicalDevice();
 	VkPhysicalDevice physicalDevice	= deviceManager->getPhysicalDevice();
 
+	iSize = indices.size();
 	size = 1;
 	buffers.resize(size);
 	buffersMemory.resize(size);
@@ -106,22 +113,24 @@ void IndexBuffer::init(std::vector<uint32_t> indices, DeviceManager* deviceManag
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-std::unique_ptr<UniformBuffer> UniformBuffer::create(DeviceManager* deviceManager)
+uint32_t IndexBuffer::getIndicesSize()
+{
+	return iSize;
+}
+
+std::unique_ptr<UniformBuffer> UniformBuffer::create(DeviceManager* deviceManager, VkDeviceSize bufferSize)
 {
 	std::unique_ptr<UniformBuffer> uniformBuffer(new UniformBuffer());
-	uniformBuffer->init(deviceManager);
+	uniformBuffer->init(deviceManager, bufferSize);
 	return uniformBuffer;
 }
 
-void UniformBuffer::init(DeviceManager* deviceManager)
+void UniformBuffer::init(DeviceManager* deviceManager, VkDeviceSize bufferSize)
 {
 	device = deviceManager->getLogicalDevice();
 	VkPhysicalDevice physicalDevice	= deviceManager->getPhysicalDevice();
 
 	size = MAX_FRAMES_IN_FLIGHT;
-
-	// 유니폼 버퍼에 저장 될 구조체의 크기
-	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
 	// 각 요소들을 동시에 처리 가능한 최대 프레임 수만큼 만들어 둔다.
 	buffers.resize(size);		// 유니폼 버퍼 객체

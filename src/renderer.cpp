@@ -140,14 +140,21 @@ void Renderer::createDescriptorSetLayout() {
 	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;							// 사용할 스테이지 지정 (현재는 vertex shader에서 사용하고 여러 스테이지 지정 가능)
 
 	// 디스크립터 셋에 바인딩할 샘플러 설정
-	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	samplerLayoutBinding.binding = 1;													// 바인딩 위치 지정
-	samplerLayoutBinding.descriptorCount = 1;											// 디스크립터 개수 지정
-	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;	// 디스크립터의 종류 (현재 Sampler) 
-	samplerLayoutBinding.pImmutableSamplers = nullptr;									// 샘플러 불변 설정 (현재 False)
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;						// 사용할 스테이지 지정 (Fragment Stage)
+	VkDescriptorSetLayoutBinding diffuseSamplerLayoutBinding{};
+	diffuseSamplerLayoutBinding.binding = 1;													// 바인딩 위치 지정
+	diffuseSamplerLayoutBinding.descriptorCount = 1;											// 디스크립터 개수 지정
+	diffuseSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;	// 디스크립터의 종류 (현재 Sampler) 
+	diffuseSamplerLayoutBinding.pImmutableSamplers = nullptr;									// 샘플러 불변 설정 (현재 False)
+	diffuseSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;						// 사용할 스테이지 지정 (Fragment Stage)
 
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};	// 바인딩 정보 2개
+	VkDescriptorSetLayoutBinding specularSamplerLayoutBinding{};
+	specularSamplerLayoutBinding.binding = 2;													// 바인딩 위치 지정
+	specularSamplerLayoutBinding.descriptorCount = 1;											// 디스크립터 개수 지정
+	specularSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;	// 디스크립터의 종류 (현재 Sampler) 
+	specularSamplerLayoutBinding.pImmutableSamplers = nullptr;									// 샘플러 불변 설정 (현재 False)
+	specularSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::array<VkDescriptorSetLayoutBinding, 3> bindings = {uboLayoutBinding, diffuseSamplerLayoutBinding, specularSamplerLayoutBinding};	// 바인딩 정보 2개
 	// 디스크립터 셋 레이아웃을 생성하기 위한 설정 정보를 포함한 구조체
 	VkDescriptorSetLayoutCreateInfo layoutInfo{};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;

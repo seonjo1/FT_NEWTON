@@ -165,9 +165,16 @@ void DepthImage::init(DeviceManager* deviceManager, VkFormat format, VkExtent2D 
 
 std::unique_ptr<TextureImage> TextureImage::create(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool)
 {
-	std::unique_ptr<TextureImage> colorImage(new TextureImage());
-	colorImage->init(path, deviceManager, commandPool);
-	return colorImage;
+	std::unique_ptr<TextureImage> textureImage(new TextureImage());
+	textureImage->init(path, deviceManager, commandPool);
+	return textureImage;
+}
+
+std::unique_ptr<TextureImage> TextureImage::createBlackTexture(DeviceManager* deviceManager, VkCommandPool commandPool)
+{
+	std::unique_ptr<TextureImage> blackTextureImage(new TextureImage());
+	blackTextureImage->init(deviceManager, commandPool);
+	return blackTextureImage;
 }
 
 void TextureImage::init(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool)
@@ -176,6 +183,56 @@ void TextureImage::init(const char* path, DeviceManager* deviceManager, VkComman
 	createTextureImage(path, deviceManager, commandPool);
 	createTextureImageView();
 	createTextureSampler(deviceManager->getPhysicalDevice());
+}
+
+void TextureImage::init(DeviceManager* deviceManager, VkCommandPool commandPool)
+{
+	device = deviceManager->getLogicalDevice();
+	createBlackTextureImage(deviceManager, commandPool);
+	createTextureImageView();
+	createTextureSampler(deviceManager->getPhysicalDevice());
+}
+
+void TextureImage::createBlackTextureImage(DeviceManager* deviceManager, VkCommandPool commandPool) {
+	VkQueue graphicsQueue = deviceManager->getGraphicsQueue();
+	imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
+
+
+	int texWidth = 256;  // 텍스처 너비
+	int texHeight = 256; // 텍스처 높이
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+	mipLevels = 1;
+	std::vector<uint8_t> blackImage(imageSize, 0);
+
+	// 스테이징 버퍼 생성
+	std::unique_ptr<StagingBuffer> stagingBuffer = StagingBuffer::create(deviceManager, imageSize);
+
+	// 스테이징 버퍼에 이미지 데이터 복사
+	void* data;
+	vkMapMemory(device, stagingBuffer->getBufferMemory(), 0, imageSize, 0, &data);
+	memcpy(data, blackImage.data(), static_cast<size_t>(imageSize));
+	vkUnmapMemory(device, stagingBuffer->getBufferMemory());
+
+	// 이미지 객체 생성
+	createImage(deviceManager, texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	// Top stage 끝나고 베리어를 이용한 이미지 전환 설정 
+	// (같은 작업 큐에서 Transfer 단계 들어가는 다른 작업들 해당 베리어 작업이 끝날때까지 stop)
+	transitionImageLayout(graphicsQueue, commandPool, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+	
+	// 커맨드 버퍼를 이용한 버퍼 -> 이미지 데이터 복사 실행
+	copyBufferToImage(graphicsQueue, commandPool, stagingBuffer->getBuffer(), static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+
+	// Transfer 끝나고 베리어를 이용한 이미지 전환 설정
+	// (같은 작업 큐에서 Fragment shader 단계 들어가는 다른 작업들 해당 베리어 작업이 끝날때까지 stop)
+	// mipmap 생성에서 하는걸로 변경
+	// transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);
+
+	// 스테이징 버퍼 삭제
+	stagingBuffer->clear();
+
+	// mipmap 생성
+	generateMipmaps(deviceManager, commandPool, texWidth, texHeight, mipLevels);
 }
 
 void TextureImage::createTextureImage(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool) {
