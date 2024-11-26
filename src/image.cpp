@@ -239,6 +239,8 @@ void TextureImage::createTextureImage(const char* path, DeviceManager* deviceMan
 	VkQueue graphicsQueue = deviceManager->getGraphicsQueue();
 	imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
 
+	stbi_set_flip_vertically_on_load(true);
+
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(path, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha); // 알파 채널을 포함하여 rgba 픽셀로 이미지 저장
 	VkDeviceSize imageSize = texWidth * texHeight * 4;  // 이미지 크기 (픽셀당 4byte)

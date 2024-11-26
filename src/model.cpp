@@ -60,7 +60,7 @@ void Model::processMesh(DeviceManager* deviceManager, VkCommandPool commandPool,
 		Vertex& v = vertices[i];
 		v.position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 		v.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-		v.texCoord = glm::vec2(mesh->mTextureCoords[0][i].x, -mesh->mTextureCoords[0][i].y);
+		v.texCoord = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 	}
 
 	std::vector<uint32_t> indices;

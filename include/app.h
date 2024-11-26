@@ -17,10 +17,15 @@ private:
 	void initVulkan();
 	void mainLoop();
 	void cleanup();
-	void drawFrame();
-	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-	void createDescriptorPool();
+	void drawFrame();
+	bool tryPrepareImage(uint32_t* imageIndex);
+	void updateUniformBuffer();
+	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+	void submitRenderingCommandBuffer();
+	void submitPresentationCommandBuffer(uint32_t imageIndex);
+
+
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 	
 	GLFWwindow* window;

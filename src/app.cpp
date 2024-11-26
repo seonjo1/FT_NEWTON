@@ -102,6 +102,31 @@ void App::cleanup() {
 	Frame 작업을 병렬로 실행 (최대 Frame 개수의 작업이 진행 중이면 다음 작업은 Fence의 signal을 기다리며 대기)
 */
 void App::drawFrame() {
+
+	// 이미지 준비
+
+	uint32_t imageIndex;
+	if (!tryPrepareImage(&imageIndex)) { return ; }
+
+	// 유니폼 버퍼 업데이트
+	updateUniformBuffer();
+	
+	// Command Buffer에 명령 기록
+	recordCommandBuffer(commandManager->getCommandBuffer(currentFrame), imageIndex); 
+
+	// Rendering Command Buffer 제출
+	submitRenderingCommandBuffer();
+
+	// Presentation Command Buffer 제출
+	submitPresentationCommandBuffer(imageIndex);
+
+	// [프레임 인덱스 증가]
+	// 다음 작업할 프레임 변경
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+bool App::tryPrepareImage(uint32_t* imageIndex)
+{
 	// [이전 GPU 작업 대기]
 	// 동시에 작업 가능한 최대 Frame 개수만큼 작업 중인 경우 대기 (가장 먼저 시작한 Frame 작업이 끝나서 Fence에 signal을 보내기를 기다림)
 	vkWaitForFences(device, 1, syncObject->getInFlightFencePointer(currentFrame), VK_TRUE, UINT64_MAX);
@@ -110,92 +135,32 @@ void App::drawFrame() {
 	// 이번 Frame 에서 사용할 이미지 준비 및 해당 이미지 index 받아오기 (준비가 끝나면 signal 보낼 세마포어 등록)
 	// vkAcquireNextImageKHR 함수는 CPU에서 swapChain과 surface의 호환성을 확인하고 GPU에 이미지 준비 명령을 내리는 함수
 	// 만약 image가 프레젠테이션 큐에 작업이 진행 중이거나 대기 중이면 해당 image는 사용하지 않고 대기한다.
-	uint32_t imageIndex;
-	VkResult result = vkAcquireNextImageKHR(device, swapChainManager->getSwapChain(), UINT64_MAX, syncObject->getImageAvailableSemaphore(currentFrame), VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(device, swapChainManager->getSwapChain(), UINT64_MAX, syncObject->getImageAvailableSemaphore(currentFrame), VK_NULL_HANDLE, imageIndex);
 
 	// image 준비 실패로 인한 오류 처리
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 		// 스왑 체인이 surface 크기와 호환되지 않는 경우로(창 크기 변경), 스왑 체인 재생성 후 다시 draw
 		swapChainManager->recreateSwapChain(window, deviceManager.get(), vulkanInstance->getSurface(), renderer->getRenderPass());
-		return;
+		return false;
 	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 		// 진짜 오류 gg
 		throw std::runtime_error("failed to acquire swap chain image!");
 	}
+	
+	// [Fence 초기화]
+	// Fence signal 상태 not signaled 로 초기화
+	vkResetFences(device, 1, syncObject->getInFlightFencePointer(currentFrame));
 
+	return true;
+}
+
+void App::updateUniformBuffer()
+{
 	// Uniform buffer 업데이트
 	for (std::unique_ptr<Model>& model : models)
 	{
 		model->updateUniformBuffer(swapChainManager->getSwapChainExtent(), currentFrame);
 	}
-
-	// [Fence 초기화]
-	// Fence signal 상태 not signaled 로 초기화
-	vkResetFences(device, 1, syncObject->getInFlightFencePointer(currentFrame));
-
-	// [Command Buffer에 명령 기록]
-	// 커맨드 버퍼 초기화 및 명령 기록
-	VkCommandBuffer commandBuffer = commandManager->getCommandBuffer(currentFrame);
-	vkResetCommandBuffer(commandBuffer, /*VkCommandBufferResetFlagBits*/ 0); // 두 번째 매개변수인 Flag 를 0으로 초기화하면 기본 초기화 진행
-	recordCommandBuffer(commandBuffer, imageIndex); // 현재 작업할 image의 index와 commandBuffer를 전송
-
-	// [렌더링 Command Buffer 제출]
-	// 렌더링 커맨드 버퍼 제출 정보 객체 생성
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-	// 작업 실행 신호를 받을 대기 세마포어 설정 (해당 세마포어가 signal 상태가 되기 전엔 대기)
-	VkSemaphore waitSemaphores[] = {syncObject->getImageAvailableSemaphore(currentFrame)};				
-	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}; 	
-	submitInfo.waitSemaphoreCount = 1;						// 대기 세마포어 개수
-	submitInfo.pWaitSemaphores = waitSemaphores;			// 대기 세마포어 등록
-	submitInfo.pWaitDstStageMask = waitStages;				// 대기할 시점 등록 (그 전까지는 세마포어 상관없이 그냥 진행)	
-
-	// 커맨드 버퍼 등록
-	submitInfo.commandBufferCount = 1;													 	// 커맨드 버퍼 개수 등록
-	submitInfo.pCommandBuffers = commandManager->getCommandBufferPointer(currentFrame);		// 커매드 버퍼 등록
-
-	// 작업이 완료된 후 신호를 보낼 세마포어 설정 (작업이 끝나면 해당 세마포어 signal 상태로 변경)
-	VkSemaphore signalSemaphores[] = {syncObject->getRenderFinishedSemaphore(currentFrame)};
-	submitInfo.signalSemaphoreCount = 1;								// 작업 끝나고 신호를 보낼 세마포어 개수
-	submitInfo.pSignalSemaphores = signalSemaphores;					// 작업 끝나고 신호를 보낼 세마포어 등록
-
-	// 커맨드 버퍼 제출
-	if (vkQueueSubmit(deviceManager->getGraphicsQueue(), 1, &submitInfo, syncObject->getInFlightFence(currentFrame)) != VK_SUCCESS) {
-		throw std::runtime_error("failed to submit draw command buffer!");
-	}
-
-	// [프레젠테이션 Command Buffer 제출]
-	// 프레젠테이션 커맨드 버퍼 제출 정보 객체 생성
-	VkPresentInfoKHR presentInfo{};
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-	// 작업 실행 신호를 받을 대기 세마포어 설정
-	presentInfo.waitSemaphoreCount = 1;														// 대기 세마포어 개수
-	presentInfo.pWaitSemaphores = signalSemaphores;											// 대기 세마포어 등록
-
-	// 제출할 스왑 체인 설정
-	VkSwapchainKHR swapChains[] = {swapChainManager->getSwapChain()};
-	presentInfo.swapchainCount = 1;															// 스왑체인 개수
-	presentInfo.pSwapchains = swapChains;													// 스왑체인 등록
-	presentInfo.pImageIndices = &imageIndex;												// 스왑체인에서 표시할 이미지 핸들 등록
-
-	// 프레젠테이션 큐에 이미지 제출
-	result = vkQueuePresentKHR(deviceManager->getPresentQueue(), &presentInfo);
-
-	// 프레젠테이션 실패 오류 발생 시
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
-		// 스왑 체인 크기와 surface의 크기가 호환되지 않는 경우
-		framebufferResized = false;
-		swapChainManager->recreateSwapChain(window, deviceManager.get(), vulkanInstance->getSurface(), renderer->getRenderPass()); // 변경된 surface에 맞는 SwapChain, ImageView, FrameBuffer 생성 
-	} else if (result != VK_SUCCESS) {
-		// 진짜 오류 gg
-		throw std::runtime_error("failed to present swap chain image!");
-	}
-
-	// [프레임 인덱스 증가]
-	// 다음 작업할 프레임 변경
-	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 /*
@@ -208,7 +173,9 @@ void App::drawFrame() {
 	6. 커맨드 버퍼 기록 종료
 */
 void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-	
+	// 커맨드 버퍼 초기화
+	vkResetCommandBuffer(commandBuffer, /*VkCommandBufferResetFlagBits*/ 0); // 두 번째 매개변수인 Flag 를 0으로 초기화하면 기본 초기화 진행
+
 	// 커맨드 버퍼 기록을 위한 정보 객체
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -282,3 +249,63 @@ void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
 	}
 }
 
+void App::submitRenderingCommandBuffer()
+{
+	// [렌더링 Command Buffer 제출]
+	// 렌더링 커맨드 버퍼 제출 정보 객체 생성
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	// 작업 실행 신호를 받을 대기 세마포어 설정 (해당 세마포어가 signal 상태가 되기 전엔 대기)
+	VkSemaphore waitSemaphores[] = {syncObject->getImageAvailableSemaphore(currentFrame)};				
+	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}; 	
+	submitInfo.waitSemaphoreCount = 1;						// 대기 세마포어 개수
+	submitInfo.pWaitSemaphores = waitSemaphores;			// 대기 세마포어 등록
+	submitInfo.pWaitDstStageMask = waitStages;				// 대기할 시점 등록 (그 전까지는 세마포어 상관없이 그냥 진행)	
+
+	// 커맨드 버퍼 등록
+	submitInfo.commandBufferCount = 1;													 	// 커맨드 버퍼 개수 등록
+	submitInfo.pCommandBuffers = commandManager->getCommandBufferPointer(currentFrame);		// 커매드 버퍼 등록
+
+	// 작업이 완료된 후 신호를 보낼 세마포어 설정 (작업이 끝나면 해당 세마포어 signal 상태로 변경)
+	VkSemaphore signalSemaphores[] = {syncObject->getRenderFinishedSemaphore(currentFrame)};
+	submitInfo.signalSemaphoreCount = 1;								// 작업 끝나고 신호를 보낼 세마포어 개수
+	submitInfo.pSignalSemaphores = signalSemaphores;					// 작업 끝나고 신호를 보낼 세마포어 등록
+
+	// 커맨드 버퍼 제출
+	if (vkQueueSubmit(deviceManager->getGraphicsQueue(), 1, &submitInfo, syncObject->getInFlightFence(currentFrame)) != VK_SUCCESS) {
+		throw std::runtime_error("failed to submit draw command buffer!");
+	}
+}
+
+
+void App::submitPresentationCommandBuffer(uint32_t imageIndex)
+{
+	// 프레젠테이션 커맨드 버퍼 제출 정보 객체 생성
+	VkPresentInfoKHR presentInfo{};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+	// 작업 실행 신호를 받을 대기 세마포어 설정
+	VkSemaphore signalSemaphores[] = {syncObject->getRenderFinishedSemaphore(currentFrame)};
+	presentInfo.waitSemaphoreCount = 1;														// 대기 세마포어 개수
+	presentInfo.pWaitSemaphores = signalSemaphores;											// 대기 세마포어 등록
+
+	// 제출할 스왑 체인 설정
+	VkSwapchainKHR swapChains[] = {swapChainManager->getSwapChain()};
+	presentInfo.swapchainCount = 1;															// 스왑체인 개수
+	presentInfo.pSwapchains = swapChains;													// 스왑체인 등록
+	presentInfo.pImageIndices = &imageIndex;												// 스왑체인에서 표시할 이미지 핸들 등록
+
+	// 프레젠테이션 큐에 이미지 제출
+	VkResult result = vkQueuePresentKHR(deviceManager->getPresentQueue(), &presentInfo);
+
+	// 프레젠테이션 실패 오류 발생 시
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+		// 스왑 체인 크기와 surface의 크기가 호환되지 않는 경우
+		framebufferResized = false;
+		swapChainManager->recreateSwapChain(window, deviceManager.get(), vulkanInstance->getSurface(), renderer->getRenderPass()); // 변경된 surface에 맞는 SwapChain, ImageView, FrameBuffer 생성 
+	} else if (result != VK_SUCCESS) {
+		// 진짜 오류 gg
+		throw std::runtime_error("failed to present swap chain image!");
+	}
+}
