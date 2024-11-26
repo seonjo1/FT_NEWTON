@@ -5,6 +5,7 @@
 # include "image.h"
 # include "renderer.h"
 # include "model.h"
+# include "syncObject.h"
 
 class App {
 public:
@@ -20,7 +21,6 @@ private:
 	void createCommandPool();
 	void createCommandBuffers();
 	void createDescriptorPool();
-	void createSyncObjects();
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 	
 	GLFWwindow* window;
@@ -33,9 +33,7 @@ private:
 	std::unique_ptr<Model> model;
 	VkDescriptorPool descriptorPool;
 	std::vector<VkCommandBuffer> commandBuffers;
-	std::vector<VkSemaphore> imageAvailableSemaphores;
-	std::vector<VkSemaphore> renderFinishedSemaphores;
-	std::vector<VkFence> inFlightFences;
+	std::unique_ptr<SyncObject> syncObject;
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
 };

@@ -24,7 +24,7 @@ void App::initWindow() {
 
 void App::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	// window에 바인딩된 객체 호출 및 framebufferResized = true 설정
-	auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+	App* app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
 	app->framebufferResized = true;
 }
 
@@ -60,7 +60,7 @@ void App::initVulkan() {
 	model->createDescriptorSets(device, descriptorPool, renderer->getDescriptorSetLayout());
 	
 	// 동기화 도구 생성
-	createSyncObjects();
+	syncObject = SyncObject::create(device);
 }
 
 /*
@@ -81,14 +81,9 @@ void App::cleanup() {
 	swapChainManager->cleanupSwapChain();
 	renderer->clear();
 	model->clear();
-	
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
-		vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-		vkDestroyFence(device, inFlightFences[i], nullptr);
-	}
+	syncObject->clear();
 
 	vkDestroyCommandPool(device, commandPool, nullptr);
 	
@@ -108,14 +103,14 @@ void App::cleanup() {
 void App::drawFrame() {
 	// [이전 GPU 작업 대기]
 	// 동시에 작업 가능한 최대 Frame 개수만큼 작업 중인 경우 대기 (가장 먼저 시작한 Frame 작업이 끝나서 Fence에 signal을 보내기를 기다림)
-	vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+	vkWaitForFences(device, 1, syncObject->getInFlightFencePointer(currentFrame), VK_TRUE, UINT64_MAX);
 
 	// [작업할 image 준비]
 	// 이번 Frame 에서 사용할 이미지 준비 및 해당 이미지 index 받아오기 (준비가 끝나면 signal 보낼 세마포어 등록)
 	// vkAcquireNextImageKHR 함수는 CPU에서 swapChain과 surface의 호환성을 확인하고 GPU에 이미지 준비 명령을 내리는 함수
 	// 만약 image가 프레젠테이션 큐에 작업이 진행 중이거나 대기 중이면 해당 image는 사용하지 않고 대기한다.
 	uint32_t imageIndex;
-	VkResult result = vkAcquireNextImageKHR(device, swapChainManager->getSwapChain(), UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(device, swapChainManager->getSwapChain(), UINT64_MAX, syncObject->getImageAvailableSemaphore(currentFrame), VK_NULL_HANDLE, &imageIndex);
 
 	// image 준비 실패로 인한 오류 처리
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -132,7 +127,7 @@ void App::drawFrame() {
 
 	// [Fence 초기화]
 	// Fence signal 상태 not signaled 로 초기화
-	vkResetFences(device, 1, &inFlightFences[currentFrame]);
+	vkResetFences(device, 1, syncObject->getInFlightFencePointer(currentFrame));
 
 	// [Command Buffer에 명령 기록]
 	// 커맨드 버퍼 초기화 및 명령 기록
@@ -145,7 +140,7 @@ void App::drawFrame() {
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 	// 작업 실행 신호를 받을 대기 세마포어 설정 (해당 세마포어가 signal 상태가 되기 전엔 대기)
-	VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};				
+	VkSemaphore waitSemaphores[] = {syncObject->getImageAvailableSemaphore(currentFrame)};				
 	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}; 	
 	submitInfo.waitSemaphoreCount = 1;														// 대기 세마포어 개수
 	submitInfo.pWaitSemaphores = waitSemaphores;											// 대기 세마포어 등록
@@ -156,12 +151,12 @@ void App::drawFrame() {
 	submitInfo.pCommandBuffers = &commandBuffers[currentFrame];								// 커매드 버퍼 등록
 
 	// 작업이 완료된 후 신호를 보낼 세마포어 설정 (작업이 끝나면 해당 세마포어 signal 상태로 변경)
-	VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+	VkSemaphore signalSemaphores[] = {syncObject->getRenderFinishedSemaphore(currentFrame)};
 	submitInfo.signalSemaphoreCount = 1;													// 작업 끝나고 신호를 보낼 세마포어 개수
 	submitInfo.pSignalSemaphores = signalSemaphores;										// 작업 끝나고 신호를 보낼 세마포어 등록
 
 	// 커맨드 버퍼 제출
-	if (vkQueueSubmit(deviceManager->getGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+	if (vkQueueSubmit(deviceManager->getGraphicsQueue(), 1, &submitInfo, syncObject->getInFlightFence(currentFrame)) != VK_SUCCESS) {
 		throw std::runtime_error("failed to submit draw command buffer!");
 	}
 
@@ -340,35 +335,5 @@ void App::createDescriptorPool() {
 	// 디스크립터 풀 생성
 	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor pool!");
-	}
-}
-
-/*
-	[동기화 오브젝트 생성]
-	세마포어 - GPU, GPU 작업간 동기화
-	펜스 - CPU, GPU 작업간 동기화
-*/
-void App::createSyncObjects() {
-	// 세마포어, 펜스 vector 동시에 처리할 최대 프레임 버퍼 수만큼 할당
-	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-	// 세마포어 생성 설정 값 준비
-	VkSemaphoreCreateInfo semaphoreInfo{};
-	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	// 펜스 생성 설정 값 준비
-	VkFenceCreateInfo fenceInfo{};
-	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;         // signal 등록된 상태로 생성 (시작하자마자 wait으로 시작하므로 필요한 FLAG)
-
-	// 세마포어, 펜스 생성
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create synchronization objects for a frame!");
-		}
 	}
 }
