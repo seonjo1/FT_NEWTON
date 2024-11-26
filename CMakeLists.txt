@@ -11,7 +11,7 @@ project(${PROJECT_NAME})
 set(SRC src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
 		src/swapChainManager.cpp src/image.cpp src/renderer.cpp
 		src/buffer.cpp src/mesh.cpp src/model.cpp src/main.cpp
-		src/syncObject.cpp)
+		src/syncObject.cpp src/commandManager.cpp src/descriptorPool.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC})
 

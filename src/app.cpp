@@ -44,20 +44,22 @@ void App::initVulkan() {
 	renderer = Renderer::create(deviceManager.get(), swapChainManager->getSwapChainImageFormat());
 	
 	// commandPool 생성
-	createCommandPool();
-	createCommandBuffers();
+	commandManager = CommandManager::create(deviceManager.get());
 	
 	// Framebuffer 생성
 	swapChainManager->createFramebuffers(deviceManager.get(), renderer->getRenderPass());
 	
 	// model 생성
-	model = Model::create("models/backpack/backpack.obj", deviceManager.get(), commandPool);	
+	models.push_back(Model::create("models/backpack/backpack.obj", deviceManager.get(), commandManager->getCommandPool()));	
 	
 	// descriptorPool 생성
-	createDescriptorPool();
+	descriptorPool = DescriptorPool::create(device, models);
 	
 	// descriptorSets 생성
-	model->createDescriptorSets(device, descriptorPool, renderer->getDescriptorSetLayout());
+	for (std::unique_ptr<Model>& model : models)
+	{
+		model->createDescriptorSets(device, descriptorPool->get(), renderer->getDescriptorSetLayout());
+	}
 	
 	// 동기화 도구 생성
 	syncObject = SyncObject::create(device);
@@ -78,18 +80,17 @@ void App::mainLoop() {
 	[사용한 자원들 정리]
 */
 void App::cleanup() {
+	for (std::unique_ptr<Model>& model : models)
+	{
+		model->clear();
+	}
 	swapChainManager->cleanupSwapChain();
 	renderer->clear();
-	model->clear();
-	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-
+	descriptorPool->clear();
 	syncObject->clear();
-
-	vkDestroyCommandPool(device, commandPool, nullptr);
-	
+	commandManager->clear();
 	deviceManager->clear();
 	vulkanInstance->clear();
-	
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -123,7 +124,10 @@ void App::drawFrame() {
 	}
 
 	// Uniform buffer 업데이트
-	model->updateUniformBuffer(swapChainManager->getSwapChainExtent(), currentFrame);
+	for (std::unique_ptr<Model>& model : models)
+	{
+		model->updateUniformBuffer(swapChainManager->getSwapChainExtent(), currentFrame);
+	}
 
 	// [Fence 초기화]
 	// Fence signal 상태 not signaled 로 초기화
@@ -131,8 +135,9 @@ void App::drawFrame() {
 
 	// [Command Buffer에 명령 기록]
 	// 커맨드 버퍼 초기화 및 명령 기록
-	vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0); // 두 번째 매개변수인 Flag 를 0으로 초기화하면 기본 초기화 진행
-	recordCommandBuffer(commandBuffers[currentFrame], imageIndex); // 현재 작업할 image의 index와 commandBuffer를 전송
+	VkCommandBuffer commandBuffer = commandManager->getCommandBuffer(currentFrame);
+	vkResetCommandBuffer(commandBuffer, /*VkCommandBufferResetFlagBits*/ 0); // 두 번째 매개변수인 Flag 를 0으로 초기화하면 기본 초기화 진행
+	recordCommandBuffer(commandBuffer, imageIndex); // 현재 작업할 image의 index와 commandBuffer를 전송
 
 	// [렌더링 Command Buffer 제출]
 	// 렌더링 커맨드 버퍼 제출 정보 객체 생성
@@ -142,18 +147,18 @@ void App::drawFrame() {
 	// 작업 실행 신호를 받을 대기 세마포어 설정 (해당 세마포어가 signal 상태가 되기 전엔 대기)
 	VkSemaphore waitSemaphores[] = {syncObject->getImageAvailableSemaphore(currentFrame)};				
 	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}; 	
-	submitInfo.waitSemaphoreCount = 1;														// 대기 세마포어 개수
-	submitInfo.pWaitSemaphores = waitSemaphores;											// 대기 세마포어 등록
-	submitInfo.pWaitDstStageMask = waitStages;												// 대기할 시점 등록 (그 전까지는 세마포어 상관없이 그냥 진행)	
+	submitInfo.waitSemaphoreCount = 1;						// 대기 세마포어 개수
+	submitInfo.pWaitSemaphores = waitSemaphores;			// 대기 세마포어 등록
+	submitInfo.pWaitDstStageMask = waitStages;				// 대기할 시점 등록 (그 전까지는 세마포어 상관없이 그냥 진행)	
 
 	// 커맨드 버퍼 등록
-	submitInfo.commandBufferCount = 1;														// 커맨드 버퍼 개수 등록
-	submitInfo.pCommandBuffers = &commandBuffers[currentFrame];								// 커매드 버퍼 등록
+	submitInfo.commandBufferCount = 1;													 	// 커맨드 버퍼 개수 등록
+	submitInfo.pCommandBuffers = commandManager->getCommandBufferPointer(currentFrame);		// 커매드 버퍼 등록
 
 	// 작업이 완료된 후 신호를 보낼 세마포어 설정 (작업이 끝나면 해당 세마포어 signal 상태로 변경)
 	VkSemaphore signalSemaphores[] = {syncObject->getRenderFinishedSemaphore(currentFrame)};
-	submitInfo.signalSemaphoreCount = 1;													// 작업 끝나고 신호를 보낼 세마포어 개수
-	submitInfo.pSignalSemaphores = signalSemaphores;										// 작업 끝나고 신호를 보낼 세마포어 등록
+	submitInfo.signalSemaphoreCount = 1;								// 작업 끝나고 신호를 보낼 세마포어 개수
+	submitInfo.pSignalSemaphores = signalSemaphores;					// 작업 끝나고 신호를 보낼 세마포어 등록
 
 	// 커맨드 버퍼 제출
 	if (vkQueueSubmit(deviceManager->getGraphicsQueue(), 1, &submitInfo, syncObject->getInFlightFence(currentFrame)) != VK_SUCCESS) {
@@ -258,7 +263,10 @@ void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
 	scissor.extent = swapChainExtent;					// 시저의 width, height
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);		// [커맨드 버퍼에 시저 설정 등록]
 
-	model->recordDrawCommand(commandBuffer, renderer->getPipelineLayout(), currentFrame);
+	for (std::unique_ptr<Model>& model : models)
+	{
+		model->recordDrawCommand(commandBuffer, renderer->getPipelineLayout(), currentFrame);
+	}
 
 	/*
 		[렌더 패스 종료]
@@ -274,66 +282,3 @@ void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
 	}
 }
 
-/*
-	[커맨드 풀 생성]
-	커맨드 풀이란?
-	1. 커맨드 버퍼들을 관리한다.
-	2. 큐 패밀리당 1개의 커맨드 풀이 필요하다.
-*/
-void App::createCommandPool() {
-	VkCommandPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; 		// 커맨드 버퍼를 개별적으로 재설정할 수 있도록 설정 
-																			// (이게 아니면 커맨드 풀의 모든 커맨드 버퍼 설정이 한 번에 이루어짐)
-	poolInfo.queueFamilyIndex = deviceManager->getQueueFamilyIndices().graphicsFamily.value(); 	// 그래픽스 큐 인덱스 등록 (대응시킬 큐 패밀리 등록)
-
-	// 커맨드 풀 생성
-	if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create command pool!");
-	}
-}
-
-/*
-	[커맨드 버퍼 생성]
-	커맨드 버퍼에 GPU에서 실행할 작업을 전부 기록한뒤 제출한다.
-	GPU는 해당 커맨드 버퍼의 작업을 알아서 실행하고, CPU는 다른 일을 할 수 있게 된다. (병렬 처리)
-*/
-void App::createCommandBuffers() {
-	// 동시에 처리할 프레임 버퍼 수만큼 커맨드 버퍼 생성
-	commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-	// 커맨드 버퍼 설정값 준비
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = commandPool; 								// 커맨드 풀 등록
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;					// 큐에 직접 제출할 수 있는 커맨드 버퍼 설정
-	allocInfo.commandBufferCount = (uint32_t) commandBuffers.size(); 	// 할당할 커맨드 버퍼의 개수
-
-	// 커맨드 버퍼 할당
-	if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate command buffers!");
-	}
-}
-
-// 디스크립터 풀 생성
-void App::createDescriptorPool() {
-	
-	// 디스크립터 풀의 타입별 디스크립터 개수를 설정하는 구조체
-	std::array<VkDescriptorPoolSize, 2> poolSizes{};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;											// 유니폼 버퍼 설정
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(model->getSize() * MAX_FRAMES_IN_FLIGHT);						// 유니폼 버퍼 디스크립터 최대 개수 설정
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;									// 샘플러 설정
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(2 * model->getSize() * MAX_FRAMES_IN_FLIGHT);		// 샘플러 디스크립터 최대 개수 설정
-
-	// 디스크립터 풀을 생성할 때 필요한 설정 정보를 담는 구조체
-	VkDescriptorPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());			// 디스크립터 poolSize 구조체 개수
-	poolInfo.pPoolSizes = poolSizes.data();										// 디스크립터 poolSize 구조체 배열
-	poolInfo.maxSets = static_cast<uint32_t>(model->getSize() * MAX_FRAMES_IN_FLIGHT);				// 풀에 존재할 수 있는 총 디스크립터 셋 개수
-
-	// 디스크립터 풀 생성
-	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create descriptor pool!");
-	}
-}

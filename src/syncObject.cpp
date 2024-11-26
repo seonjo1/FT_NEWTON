@@ -7,7 +7,6 @@ std::unique_ptr<SyncObject> SyncObject::create(VkDevice device)
 	return syncObject;
 }
 
-
 void SyncObject::init(VkDevice device)
 {
 	this->device = device;

@@ -7,6 +7,7 @@ class SyncObject
 {
 public:
 	static std::unique_ptr<SyncObject> create(VkDevice device);
+	~SyncObject() = default;
 	void clear();
 	VkSemaphore getImageAvailableSemaphore(uint32_t currentFrame);
 	VkSemaphore getRenderFinishedSemaphore(uint32_t currentFrame);
@@ -14,6 +15,7 @@ public:
 	VkFence* getInFlightFencePointer(uint32_t currentFrame);
 
 private:
+	SyncObject() = default;
 	void init(VkDevice device);
 	void createSyncObjects();
 

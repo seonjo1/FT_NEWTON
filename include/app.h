@@ -2,9 +2,10 @@
 # define APP_H
 
 # include "swapChainManager.h"
+# include "commandManager.h"
 # include "image.h"
 # include "renderer.h"
-# include "model.h"
+# include "descriptorPool.h"
 # include "syncObject.h"
 
 class App {
@@ -18,21 +19,20 @@ private:
 	void cleanup();
 	void drawFrame();
 	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-	void createCommandPool();
-	void createCommandBuffers();
+
 	void createDescriptorPool();
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 	
 	GLFWwindow* window;
 	VkDevice device;
+	
 	std::unique_ptr<VulkanInstance> vulkanInstance;
 	std::unique_ptr<DeviceManager> deviceManager;
 	std::unique_ptr<SwapChainManager> swapChainManager;
 	std::unique_ptr<Renderer> renderer;
-	VkCommandPool commandPool;
-	std::unique_ptr<Model> model;
-	VkDescriptorPool descriptorPool;
-	std::vector<VkCommandBuffer> commandBuffers;
+	std::unique_ptr<CommandManager> commandManager;
+	std::vector<std::unique_ptr<Model>> models;
+	std::unique_ptr<DescriptorPool> descriptorPool;
 	std::unique_ptr<SyncObject> syncObject;
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
