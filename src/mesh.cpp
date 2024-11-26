@@ -151,16 +151,27 @@ UniformBuffer* Mesh::getUniformBuffer()
 	return uniformBuffer.get();
 }
 
-VkDescriptorSet* Mesh::getDescriptor(uint32_t currentFrame)
-{
-	return &descriptorSets[currentFrame];
-}
-
 void Mesh::clear()
 {
 	vertexBuffer->clear();
 	indexBuffer->clear();
 	uniformBuffer->clear();
+}
+
+void Mesh::recordDrawCommand(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame)
+{
+	// 버텍스 정보 입력
+	VkDeviceSize offsets[] = {0};						// 버텍스 버퍼 메모리의 시작 위치 offset
+	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffer->getBuffers().data(), offsets); // 커맨드 버퍼에 버텍스 버퍼 바인딩
+
+	// 인덱스 정보 입력
+	vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32); // 커맨드 버퍼에 인덱스 버퍼 바인딩 (4번째 매개변수 index 데이터 타입 uint32 설정)
+
+	// 디스크립터 셋을 커맨드 버퍼에 바인딩
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+	// [Drawing 작업을 요청하는 명령 기록]
+	vkCmdDrawIndexed(commandBuffer, indexBuffer->getIndicesSize(), 1, 0, 0, 0); // index로 drawing 하는 명령 기록
 }
 
 

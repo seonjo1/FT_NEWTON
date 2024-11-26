@@ -5,7 +5,7 @@
 #include "../include/image.h"
 #include "../include/renderer.h"
 #include "../include/buffer.h"
-#include "../include/mesh.h"
+#include "../include/model.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -52,19 +52,7 @@ private:
 
 	VkCommandPool commandPool;
 	
-
-	std::vector<std::unique_ptr<Mesh>> meshes;
-	std::vector<std::unique_ptr<Material>> materials;
-		// std::vector<Vertex> vertices;
-		// std::vector<uint32_t> indices;
-		// std::unique_ptr<VertexBuffer> vertexBuffer;
-		// std::unique_ptr<IndexBuffer> indexBuffer;
-		// std::unique_ptr<UniformBuffer> uniformBuffer;
-		// std::unique_ptr<TextureImage> texture;
-		// 	std::vector<VkBuffer> uniformBuffers;
-		// 	std::vector<VkDeviceMemory> uniformBuffersMemory;
-		// 	std::vector<void*> uniformBuffersMapped;
-
+	std::unique_ptr<Model> model;
 
 	VkDescriptorPool descriptorPool;
 	
@@ -103,7 +91,6 @@ private:
 		vulkanInstance = VulkanInstance::create(window);
 			instance = vulkanInstance->getInstance();
 			surface = vulkanInstance->getSurface();
-
 		deviceManager = DeviceManager::create(vulkanInstance.get());
 			physicalDevice = deviceManager->getPhysicalDevice();
 			device = deviceManager->getLogicalDevice();
@@ -112,39 +99,21 @@ private:
 			presentQueue = deviceManager->getPresentQueue();
 			msaaSamples = deviceManager->getMsaaSamples();
 			swapChainSupport = deviceManager->getSwapChainSupport();
-		
-		// SwapChainManager 클래스
 		swapChainManager = SwapChainManager::create(window, deviceManager.get(), vulkanInstance->getSurface());
 			swapChain = swapChainManager->getSwapChain();
 			swapChainImageFormat = swapChainManager->getSwapChainImageFormat();
 			swapChainExtent = swapChainManager->getSwapChainExtent();
-
-		// Command 클래스
 		createCommandPool();
-
-		// Renderer 클래스
 		renderer = Renderer::create(deviceManager.get(), swapChainManager->getSwapChainImageFormat());
 			renderPass = renderer->getRenderPass();
 			pipelineLayout = renderer->getPipelineLayout();
 			graphicsPipeline = renderer->getGraphicsPipeline();
 			createCommandBuffers();
-
-
 		swapChainManager->createFramebuffers(deviceManager.get(), renderPass);
 		swapChainFramebuffers = swapChainManager->getFramebuffers();
-
-		// Model 클래스
-		loadModel("models/backpack/backpack.obj");	
-
-		// Descriptor 클래스		
+		model = Model::create("models/backpack/backpack.obj", deviceManager.get(), commandPool);	
 		createDescriptorPool();
-
-		for (std::unique_ptr<Mesh>& mesh : meshes)
-		{
-			mesh->createDescriptorSets(device, descriptorPool, renderer->getDescriptorSetLayout());
-		}
-
-		// 동기화 클래스
+		model->createDescriptorSets(device, descriptorPool, renderer->getDescriptorSetLayout());
 		createSyncObjects();
 	}
 
@@ -165,10 +134,7 @@ private:
 	void cleanup() {
 		swapChainManager->cleanupSwapChain();
 		renderer->clear();
-
-		for (std::unique_ptr<Mesh>& mesh : meshes) { mesh->clear(); }
-		for (std::unique_ptr<Material>& material : materials) { material->clear(); }
-		
+		model->clear();
 		vkDestroyDescriptorPool(device, descriptorPool, nullptr);			// 디스크립터 풀 삭제
 		// 세마포어, 펜스 파괴
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -202,96 +168,22 @@ private:
 		}
 	}
 
-	// .obj 파일을 읽고 vertices, indices 채우기
-	void loadModel(std::string filename) {
-		Assimp::Importer importer;
-		// scene 구조체 받아오기
-		const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
-		std::string dirname = filename.substr(0, filename.find_last_of("/"));
-		
-		// scene load 오류 처리
-		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-		{
-			throw std::runtime_error("failed to load obj file!");
-		}
-
-		// scene 안에있는 material 개수만큼 반복
-		for (uint32_t i = 0; i < scene->mNumMaterials; i++)
-		{
-			// scene의 i번째 material 정보 get
-			aiMaterial* materialInfo = scene->mMaterials[i];
-			materials.push_back(Material::create(materialInfo, deviceManager.get(), commandPool, dirname));
-		}
-		
-		// node 데이터 처리
-		processNode(scene->mRootNode, scene);
-	}
-
-	// node에 포함된 mesh들의 데이터 처리
-	void processNode(aiNode *node, const aiScene *scene)
-	{
-		// node에 포함된 mesh들 순회
-		for (uint32_t i = 0; i < node->mNumMeshes; i++)
-		{
-			// 현재 처리할 mesh 찾기
-			uint32_t meshIndex = node->mMeshes[i];
-			aiMesh* mesh = scene->mMeshes[meshIndex];
-			// 현재 mesh 데이터 처리
-			processMesh(mesh, scene);
-		}
-
-		// 자식 노드 처리
-		for (uint32_t i = 0; i < node->mNumChildren; i++)
-			processNode(node->mChildren[i], scene);
-	}
-
-	// mesh의 vetex, index 데이터 처리
-	void processMesh(aiMesh *mesh, const aiScene *scene)
-	{
-		std::vector<Vertex> vertices;
-		vertices.resize(mesh->mNumVertices);
-		for (uint32_t i = 0; i < mesh->mNumVertices; i++)
-		{
-			Vertex& v = vertices[i];
-			v.position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-			v.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-			v.texCoord = glm::vec2(mesh->mTextureCoords[0][i].x, -mesh->mTextureCoords[0][i].y);
-		}
-
-		std::vector<uint32_t> indices;
-		indices.resize(mesh->mNumFaces * 3);
-		// face의 개수 = triangle 개수
-		for (uint32_t i = 0; i < mesh->mNumFaces; i++)
-		{
-			indices[3 * i] = mesh->mFaces[i].mIndices[0];
-			indices[3 * i + 1] = mesh->mFaces[i].mIndices[1];
-			indices[3 * i + 2] = mesh->mFaces[i].mIndices[2];
-		}
-
-		std::unique_ptr<Mesh> newMesh = Mesh::create(deviceManager.get(), commandPool, vertices, indices);
-		// mesh의 mMaterialINdex가 0이상이면 이 mesh는 material을 갖고 있으므로
-		// 해당 material값을 setting 해준다. 
-		if (mesh->mMaterialIndex >= 0)
-			newMesh->setMaterial(materials[mesh->mMaterialIndex].get());
-		meshes.push_back(std::move(newMesh));
-	}
-
 	// 디스크립터 풀 생성
 	void createDescriptorPool() {
 		
 		// 디스크립터 풀의 타입별 디스크립터 개수를 설정하는 구조체
         std::array<VkDescriptorPoolSize, 2> poolSizes{};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;											// 유니폼 버퍼 설정
-        poolSizes[0].descriptorCount = static_cast<uint32_t>(meshes.size() * MAX_FRAMES_IN_FLIGHT);						// 유니폼 버퍼 디스크립터 최대 개수 설정
+        poolSizes[0].descriptorCount = static_cast<uint32_t>(model->getSize() * MAX_FRAMES_IN_FLIGHT);						// 유니폼 버퍼 디스크립터 최대 개수 설정
         poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;									// 샘플러 설정
-        poolSizes[1].descriptorCount = static_cast<uint32_t>(2 * meshes.size() * MAX_FRAMES_IN_FLIGHT);		// 샘플러 디스크립터 최대 개수 설정
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(2 * model->getSize() * MAX_FRAMES_IN_FLIGHT);		// 샘플러 디스크립터 최대 개수 설정
 
 		// 디스크립터 풀을 생성할 때 필요한 설정 정보를 담는 구조체
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());			// 디스크립터 poolSize 구조체 개수
         poolInfo.pPoolSizes = poolSizes.data();										// 디스크립터 poolSize 구조체 배열
-		poolInfo.maxSets = static_cast<uint32_t>(meshes.size() * MAX_FRAMES_IN_FLIGHT);				// 풀에 존재할 수 있는 총 디스크립터 셋 개수
+		poolInfo.maxSets = static_cast<uint32_t>(model->getSize() * MAX_FRAMES_IN_FLIGHT);				// 풀에 존재할 수 있는 총 디스크립터 셋 개수
 
 		// 디스크립터 풀 생성
 		if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
@@ -384,28 +276,14 @@ private:
 		scissor.extent = swapChainExtent;					// 시저의 width, height
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);		// [커맨드 버퍼에 시저 설정 등록]
 
-		for (std::unique_ptr<Mesh>& mesh : meshes)
-		{
-			// 버텍스 정보 입력
-			VkDeviceSize offsets[] = {0};						// 버텍스 버퍼 메모리의 시작 위치 offset
-			vkCmdBindVertexBuffers(commandBuffer, 0, 1, mesh->getVertexBuffer()->getBuffers().data(), offsets); // 커맨드 버퍼에 버텍스 버퍼 바인딩
+		model->recordDrawCommand(commandBuffer, pipelineLayout, currentFrame);
 
-			// 인덱스 정보 입력
-			vkCmdBindIndexBuffer(commandBuffer, mesh->getIndexBuffer()->getBuffer(), 0, VK_INDEX_TYPE_UINT32); // 커맨드 버퍼에 인덱스 버퍼 바인딩 (4번째 매개변수 index 데이터 타입 uint32 설정)
-
-			// 디스크립터 셋을 커맨드 버퍼에 바인딩
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, mesh->getDescriptor(currentFrame), 0, nullptr);
-
-			// [Drawing 작업을 요청하는 명령 기록]
-			vkCmdDrawIndexed(commandBuffer, mesh->getIndexBuffer()->getIndicesSize(), 1, 0, 0, 0); // index로 drawing 하는 명령 기록
-
-			/*
-				[렌더 패스 종료]
-				1. 자원의 정리 및 레이아웃 전환 (최종 작업을 위해 attachment에 정의된 finalLayout 설정)
-				2. Load, Store 작업 (각 attachment에 정해진 load, store 작업 실행)
-				3. 렌더 패스의 종료를 GPU에 알려 자원 재활용 등이 가능해짐
-			*/ 
-		}
+		/*
+			[렌더 패스 종료]
+			1. 자원의 정리 및 레이아웃 전환 (최종 작업을 위해 attachment에 정의된 finalLayout 설정)
+			2. Load, Store 작업 (각 attachment에 정해진 load, store 작업 실행)
+			3. 렌더 패스의 종료를 GPU에 알려 자원 재활용 등이 가능해짐
+		*/ 
 		vkCmdEndRenderPass(commandBuffer);
 
 		// [커맨드 버퍼 기록 종료]
@@ -474,10 +352,7 @@ private:
 		}
 
 		// Uniform buffer 업데이트
-		for (std::unique_ptr<Mesh>& mesh : meshes)
-		{
-			mesh->getUniformBuffer()->update(swapChainManager->getSwapChainExtent(), currentFrame);
-		}
+		model->updateUniformBuffer(swapChainManager->getSwapChainExtent(), currentFrame);
 
 		// [Fence 초기화]
 		// Fence signal 상태 not signaled 로 초기화

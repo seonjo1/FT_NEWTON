@@ -145,7 +145,7 @@ void UniformBuffer::init(DeviceManager* deviceManager, VkDeviceSize bufferSize)
 	}
 }
 
-void UniformBuffer::update(VkExtent2D swapChainExtent, uint32_t currentImage)
+void UniformBuffer::update(VkExtent2D swapChainExtent, uint32_t currentFrame)
 {
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -161,7 +161,7 @@ void UniformBuffer::update(VkExtent2D swapChainExtent, uint32_t currentImage)
 	ubo.proj[1][1] *= -1;
 
 	// 유니폼 변수를 매핑된 GPU 메모리에 복사
-	memcpy(buffersMapped[currentImage], &ubo, sizeof(ubo));
+	memcpy(buffersMapped[currentFrame], &ubo, sizeof(ubo));
 }
 
 std::unique_ptr<StagingBuffer> StagingBuffer::create(DeviceManager* deviceManager, VkDeviceSize imageSize)

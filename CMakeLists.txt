@@ -10,7 +10,7 @@ set(WINDOW_HEIGHT 1080)
 project(${PROJECT_NAME})
 set(SRC src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
 		src/swapChainManager.cpp src/image.cpp src/renderer.cpp
-		src/buffer.cpp src/mesh.cpp)
+		src/buffer.cpp src/mesh.cpp src/model.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC})
 

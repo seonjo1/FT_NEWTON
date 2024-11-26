@@ -35,8 +35,8 @@ protected:
 class VertexBuffer : public Buffer
 {
 public:
-	virtual ~VertexBuffer() = default;
 	static std::unique_ptr<VertexBuffer> create(std::vector<Vertex> vertices, DeviceManager* deviceManager, VkCommandPool commandPool);
+	virtual ~VertexBuffer() = default;
 	uint32_t getVerticesSize();
 
 private:
@@ -48,8 +48,8 @@ private:
 class IndexBuffer : public Buffer
 {
 public:
-	virtual ~IndexBuffer() = default;
 	static std::unique_ptr<IndexBuffer> create(std::vector<uint32_t> indices, DeviceManager* deviceManager, VkCommandPool commandPool);
+	virtual ~IndexBuffer() = default;
 	uint32_t getIndicesSize();
 	
 private:
@@ -62,9 +62,9 @@ private:
 class UniformBuffer : public Buffer
 {
 public:
-	void update(VkExtent2D swapChainExtent, uint32_t currentImage);
-	virtual ~UniformBuffer() = default;
 	static std::unique_ptr<UniformBuffer> create(DeviceManager* deviceManager, VkDeviceSize bufferSize);
+	void update(VkExtent2D swapChainExtent, uint32_t currentFrame);
+	virtual ~UniformBuffer() = default;
 
 private:
 	UniformBuffer() = default;

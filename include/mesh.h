@@ -4,7 +4,10 @@
 # include "vertex.h"
 # include "image.h"
 # include "buffer.h"
-# include "model.h"
+
+# include <assimp/Importer.hpp>
+# include <assimp/scene.h>
+# include <assimp/postprocess.h>
 
 # include <filesystem>
 # include <optional>
@@ -20,6 +23,7 @@ public:
 	static std::unique_ptr<Mesh> createBox(DeviceManager* deviceManager, VkCommandPool commandPool);
 	void setMaterial(Material* material);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout);
+	void recordDrawCommand(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame);
 	VertexBuffer* getVertexBuffer();
 	IndexBuffer* getIndexBuffer();
 	UniformBuffer* getUniformBuffer();
