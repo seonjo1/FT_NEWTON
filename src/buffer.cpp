@@ -155,6 +155,21 @@ void UniformBuffer::update(VkExtent2D swapChainExtent, uint32_t currentImage)
 	memcpy(buffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
+std::unique_ptr<StagingBuffer> StagingBuffer::create(DeviceManager* deviceManager, VkDeviceSize imageSize)
+{
+	std::unique_ptr<StagingBuffer> stagingBuffer(new StagingBuffer());
+	stagingBuffer->init(deviceManager, imageSize);
+	return stagingBuffer;
+}
+
+void StagingBuffer::init(DeviceManager* deviceManager, VkDeviceSize imageSize)
+{
+	device = deviceManager->getLogicalDevice();
+	size = 1;
+	buffers.resize(size);
+	buffersMemory.resize(size);
+	createBuffer(deviceManager->getPhysicalDevice(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffers[0], buffersMemory[0]);
+}
 
 /*
 	[버퍼 생성]
@@ -281,6 +296,16 @@ void Buffer::clear()
 		vkDestroyBuffer(device, buffers[i], nullptr);	// 유니폼 버퍼 객체 삭제
 		vkFreeMemory(device, buffersMemory[i], nullptr);	// 유니폼 버퍼에 할당된 메모리 삭제
 	}
+}
+
+VkBuffer Buffer::getBuffer()
+{
+	return buffers[0];
+}
+
+VkDeviceMemory Buffer::getBufferMemory()
+{
+	return buffersMemory[0];
 }
 
 std::vector<VkBuffer>& Buffer::getBuffers()

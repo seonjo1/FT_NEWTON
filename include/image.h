@@ -10,20 +10,21 @@ public:
 	static VkImageView createSwapChainImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 	Image() = default;
 	virtual ~Image() = default;
-	void clear(VkDevice device);
+	virtual void clear();
 	VkImageView getImageView();
 
 protected:
-	virtual void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) = 0;
 	void createImage(DeviceManager* deviceManager, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
-	void createImageView(VkDevice device, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+	void createImageView(VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 	uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+	VkDevice device;
 	VkImage image;
 	VkDeviceMemory imageMemory;
 	VkImageView imageView;
 	VkFormat imageFormat;
 };
+
 
 class ColorImage : public Image
 {
@@ -32,8 +33,9 @@ public:
 	ColorImage() = default;
 	virtual ~ColorImage() = default;
 private:
-	virtual void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) override;	
+	void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent);	
 };
+
 
 class DepthImage : public Image
 {
@@ -42,19 +44,32 @@ public:
 	DepthImage() = default;
 	virtual ~DepthImage() = default;
 private:
-	virtual void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent) override;
+	void init(DeviceManager* deviceManager, VkFormat format, VkExtent2D swapChainExtent);
 };
 
-// class Texture : public Image
-// {
-// public:
-// 	static std::unique_ptr<Texture> create();
-// 	virtual ~Texture() = default;
 
-// private:
-// 	Texture() = default;
-//     VkSampler textureSampler;
-// 	uint32_t mipLevels;
-// };
+class TextureImage : public Image
+{
+public:
+	static std::unique_ptr<TextureImage> create(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool);
+	virtual ~TextureImage() = default;
+	virtual void clear() override;
+	VkSampler getSampler();
+
+private:
+	void init(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool);
+	TextureImage() = default;
+	void createTextureImage(const char* path, DeviceManager* deviceManager, VkCommandPool commandPool);
+	void createTextureImageView();
+	void createTextureSampler(VkPhysicalDevice physicalDevice);
+	void generateMipmaps(DeviceManager* deviceManager, VkCommandPool commandPool, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+	void copyBufferToImage(VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer buffer, uint32_t width, uint32_t height);
+	void transitionImageLayout(VkQueue graphicsQueue, VkCommandPool commandPool, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+	VkCommandBuffer beginSingleTimeCommands(VkCommandPool commandPool);
+	void endSingleTimeCommands(VkQueue graphicsQueue, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
+
+	VkSampler sampler;
+	uint32_t mipLevels;
+};
 
 #endif

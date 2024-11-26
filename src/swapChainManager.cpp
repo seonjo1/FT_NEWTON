@@ -214,9 +214,9 @@ void SwapChainManager::createImageViews() {
 void SwapChainManager::cleanupSwapChain() {
 
 	// 컬러 버퍼 이미지, 이미지 뷰, 메모리 삭제
-	colorImage->clear(device);
+	colorImage->clear();
 	// 깊이 버퍼 이미지, 이미지 뷰, 메모리 삭제 
-	depthImage->clear(device);
+	depthImage->clear();
 
 	// 프레임 버퍼 배열 삭제
 	for (auto framebuffer : swapChainFramebuffers) {

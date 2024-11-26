@@ -13,6 +13,8 @@ class Buffer
 public:
 	virtual ~Buffer() = default;
 	void clear();
+	VkBuffer getBuffer();
+	VkDeviceMemory getBufferMemory();
 	std::vector<VkBuffer>& getBuffers();
 
 protected:
@@ -119,5 +121,19 @@ struct UniformBufferObject {
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
 };
+
+
+class StagingBuffer : public Buffer
+{
+public:
+	virtual ~StagingBuffer() = default;
+	static std::unique_ptr<StagingBuffer> create(DeviceManager* deviceManager, VkDeviceSize imageSize);
+	
+private:
+	StagingBuffer() = default;
+	void init(DeviceManager* deviceManager, VkDeviceSize imageSize);
+};
+
+
 
 #endif
