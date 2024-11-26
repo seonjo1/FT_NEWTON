@@ -1,7 +1,6 @@
 #ifndef MESH_H
 # define MESH_H
 
-# include "vertex.h"
 # include "image.h"
 # include "buffer.h"
 

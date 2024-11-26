@@ -6,7 +6,6 @@
 # include "deviceManager.h"
 
 # include <algorithm>
-# include <array>
 
 class ColorImage;
 class DepthImage;
