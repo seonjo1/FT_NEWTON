@@ -93,8 +93,6 @@ void App::processCameraControl()
 }
 
 
-
-
 // vulkan init start
 void App::initVulkan() {
 	// instance 생성
@@ -117,8 +115,9 @@ void App::initVulkan() {
 	swapChainManager->createFramebuffers(deviceManager.get(), renderer->getRenderPass());
 	
 	// model 생성
-	models.push_back(Model::create("models/backpack/backpack.obj", deviceManager.get(), commandManager->getCommandPool()));	
+	createModels();
 	
+
 	// descriptorPool 생성
 	descriptorPool = DescriptorPool::create(device, models);
 	
@@ -164,8 +163,6 @@ void App::cleanup() {
 }
 
 
-
-
 // rendering start
 /*
 	[다중 Frame 방식으로 그리기]
@@ -176,7 +173,6 @@ void App::cleanup() {
 void App::drawFrame() {
 
 	// 이미지 준비
-
 	uint32_t imageIndex;
 	if (!tryPrepareImage(&imageIndex)) { return ; }
 
@@ -196,6 +192,14 @@ void App::drawFrame() {
 	// 다음 작업할 프레임 변경
 	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
+
+void App::createModels()
+{
+	// models.push_back(Model::create("models/backpack/backpack.obj", deviceManager.get(), commandManager->getCommandPool()));	
+	// models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), "models/container.png", "models/container_specular.png"));
+	models.push_back(Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), "models/sphere.png"));
+}
+
 
 bool App::tryPrepareImage(uint32_t* imageIndex)
 {
@@ -233,7 +237,7 @@ void App::updateUniformBuffer()
 	UniformBufferObject ubo;
 	ubo.model = glm::mat4(1.0f);
 	ubo.view = camera.getViewMatrix();
-	ubo.proj = glm::perspective(glm::radians(45.0f), (float)extent.width / (float)extent.height, 0.01f, 60.0f);
+	ubo.proj = glm::perspective(glm::radians(45.0f), (float)extent.width / (float)extent.height, 0.01f, 100.0f);
 	ubo.proj[1][1] *= -1;
 	
 	// Uniform buffer 업데이트
@@ -252,7 +256,8 @@ void App::updateUniformBuffer()
 	5. 렌더 패스 종료 명령 기록
 	6. 커맨드 버퍼 기록 종료
 */
-void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
+{
 	// 커맨드 버퍼 초기화
 	vkResetCommandBuffer(commandBuffer, /*VkCommandBufferResetFlagBits*/ 0); // 두 번째 매개변수인 Flag 를 0으로 초기화하면 기본 초기화 진행
 

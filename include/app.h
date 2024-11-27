@@ -23,6 +23,8 @@ private:
 	void mainLoop();
 	void cleanup();
 
+	void createModels();
+
 	// draw 함수
 	void drawFrame();
 	bool tryPrepareImage(uint32_t* imageIndex);

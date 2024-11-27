@@ -20,6 +20,8 @@ public:
 	void clear();
 	static std::unique_ptr<Mesh> create(DeviceManager* deviceManager, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 	static std::unique_ptr<Mesh> createBox(DeviceManager* deviceManager, VkCommandPool commandPool);
+	static std::unique_ptr<Mesh> createSphere(DeviceManager* deviceManager, VkCommandPool commandPool);
+
 	void setMaterial(Material* material);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout);
 	void recordDrawCommand(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame);
@@ -44,6 +46,9 @@ class Material
 {
 public:
 	static std::unique_ptr<Material> create(aiMaterial* materialInfo, DeviceManager* deviceManager, VkCommandPool commandPool, std::string& dirname);
+	static std::unique_ptr<Material> create(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath);
+	
+
 	void clear();
 	std::unique_ptr<TextureImage> diffuse;
 	std::unique_ptr<TextureImage> specular;
@@ -52,6 +57,7 @@ public:
 private:
 	Material() = default;
 	void init(aiMaterial* materialInfo, DeviceManager* deviceManager, VkCommandPool commandPool, std::string& dirname);
+	void init(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath);
 	std::optional<std::string> getFilePath(aiMaterial* materialInfo, aiTextureType type, std::string& dirname); 
 };
 

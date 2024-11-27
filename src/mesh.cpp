@@ -1,50 +1,5 @@
 #include "../include/mesh.h"
 
-std::unique_ptr<Mesh> Mesh::createBox(DeviceManager* deviceManager, VkCommandPool commandPool) {
-	std::vector<Vertex> vertices = {
-		Vertex { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f) },
-		Vertex { glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f) },
-		Vertex { glm::vec3( 0.5f,  0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f) },
-		Vertex { glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f) },
-
-		Vertex { glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f) },
-		Vertex { glm::vec3( 0.5f, -0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f) },
-		Vertex { glm::vec3( 0.5f,  0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f) },
-		Vertex { glm::vec3(-0.5f,  0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f) },
-
-		Vertex { glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
-		Vertex { glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
-		Vertex { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
-		Vertex { glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
-
-		Vertex { glm::vec3( 0.5f,  0.5f,  0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
-		Vertex { glm::vec3( 0.5f,  0.5f, -0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
-		Vertex { glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
-		Vertex { glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
-
-		Vertex { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
-		Vertex { glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
-		Vertex { glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
-		Vertex { glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
-
-		Vertex { glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
-		Vertex { glm::vec3( 0.5f, 0.5f, -0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
-		Vertex { glm::vec3( 0.5f, 0.5f,	 0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
-		Vertex { glm::vec3(-0.5f, 0.5f,	 0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
-	};
-
-	std::vector<uint32_t> indices = {
-			0,	2,	1,	2,	0,	3,
-			4,	5,	6,	6,	7,	4,
-			8,	9, 10, 10, 11,	8,
-		12, 14, 13, 14, 12, 15,
-		16, 17, 18, 18, 19, 16,
-		20, 22, 21, 22, 20, 23,
-	};
-
-	return create(deviceManager, commandPool, vertices, indices);
-}
-
 std::unique_ptr<Mesh> Mesh::create(DeviceManager* deviceManager, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
 {
 	std::unique_ptr<Mesh> mesh(new Mesh());
@@ -182,6 +137,13 @@ std::unique_ptr<Material> Material::create(aiMaterial* materialInfo, DeviceManag
 	return material;
 }
 
+std::unique_ptr<Material> Material::create(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath)
+{
+	std::unique_ptr<Material> material(new Material());
+	material->init(deviceManager, commandPool, diffusePath, specularPath);
+	return material;
+}
+
 void Material::init(aiMaterial* materialInfo, DeviceManager* deviceManager, VkCommandPool commandPool, std::string& dirname)
 {
 	std::optional<std::string> diffusePath = getFilePath(materialInfo, aiTextureType_DIFFUSE, dirname); 
@@ -196,6 +158,19 @@ void Material::init(aiMaterial* materialInfo, DeviceManager* deviceManager, VkCo
 		specular = TextureImage::create(specularPath.value().c_str(), deviceManager, commandPool);
 	else 
 		specular = TextureImage::createBlackTexture(deviceManager, commandPool);
+}
+
+void Material::init(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath)
+{
+	if (diffusePath == "black")
+		diffuse = TextureImage::createBlackTexture(deviceManager, commandPool);
+	else 
+		diffuse = TextureImage::create(diffusePath.c_str(), deviceManager, commandPool);
+
+	if (specularPath == "black")
+		specular = TextureImage::createBlackTexture(deviceManager, commandPool);
+	else 
+		specular = TextureImage::create(specularPath.c_str(), deviceManager, commandPool);
 }
 
 std::optional<std::string> Material::getFilePath(aiMaterial* materialInfo, aiTextureType type, std::string& dirname)
@@ -214,4 +189,93 @@ void Material::clear()
 {
 	diffuse->clear();
 	specular->clear();
+}
+
+std::unique_ptr<Mesh> Mesh::createBox(DeviceManager* deviceManager, VkCommandPool commandPool) {
+	std::vector<Vertex> vertices = {
+		Vertex { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f) },
+		Vertex { glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f) },
+		Vertex { glm::vec3( 0.5f,  0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f) },
+		Vertex { glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3( 0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f) },
+
+		Vertex { glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f) },
+		Vertex { glm::vec3( 0.5f, -0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f) },
+		Vertex { glm::vec3( 0.5f,  0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f) },
+		Vertex { glm::vec3(-0.5f,  0.5f, 0.5f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f) },
+
+		Vertex { glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
+		Vertex { glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
+		Vertex { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
+		Vertex { glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
+
+		Vertex { glm::vec3( 0.5f,  0.5f,  0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
+		Vertex { glm::vec3( 0.5f,  0.5f, -0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
+		Vertex { glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
+		Vertex { glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
+
+		Vertex { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
+		Vertex { glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
+		Vertex { glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
+		Vertex { glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
+
+		Vertex { glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f) },
+		Vertex { glm::vec3( 0.5f, 0.5f, -0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },
+		Vertex { glm::vec3( 0.5f, 0.5f,	 0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },
+		Vertex { glm::vec3(-0.5f, 0.5f,	 0.5f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f) },
+	};
+
+	std::vector<uint32_t> indices = {
+			0,	2,	1,	2,	0,	3,
+			4,	5,	6,	6,	7,	4,
+			8,	9, 10, 10, 11,	8,
+		12, 14, 13, 14, 12, 15,
+		16, 17, 18, 18, 19, 16,
+		20, 22, 21, 22, 20, 23,
+	};
+
+	return create(deviceManager, commandPool, vertices, indices);
+}
+
+std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager* deviceManager, VkCommandPool commandPool) {
+	std::vector<Vertex> vertices;
+	std::vector<uint32_t> indices;
+	uint32_t latiSegmentCount = 16;
+	uint32_t longiSegmentCount = 32;
+	
+	uint32_t circleVertCount = longiSegmentCount + 1;
+	vertices.resize((latiSegmentCount + 1) * circleVertCount);
+	for (uint32_t i = 0; i <= latiSegmentCount; i++) {
+		float v = (float)i / (float)latiSegmentCount;
+		float phi = (v - 0.5f) * glm::pi<float>();
+		auto cosPhi = cosf(phi);
+		auto sinPhi = sinf(phi);
+		for (uint32_t j = 0; j <= longiSegmentCount; j++) {
+			float u = (float)j / (float)longiSegmentCount;
+			float theta = u * glm::pi<float>() * 2.0f;
+			auto cosTheta = cosf(theta);
+			auto sinTheta = sinf(theta);
+			auto point = glm::vec3(
+				cosPhi * cosTheta, sinPhi, -cosPhi * sinTheta);
+
+			vertices[i * circleVertCount + j] = Vertex {
+				point * 0.5f, point, glm::vec2(u, v)
+			};
+		}
+	}
+
+	indices.resize(latiSegmentCount * longiSegmentCount * 6);
+	for (uint32_t i = 0; i < latiSegmentCount; i++) {
+		for (uint32_t j = 0; j < longiSegmentCount; j++) {
+			uint32_t vertexOffset = i * circleVertCount + j;
+			uint32_t indexOffset = (i * longiSegmentCount + j) * 6;
+			indices[indexOffset    ] = vertexOffset;
+			indices[indexOffset + 1] = vertexOffset + 1;
+			indices[indexOffset + 2] = vertexOffset + 1 + circleVertCount;
+			indices[indexOffset + 3] = vertexOffset;
+			indices[indexOffset + 4] = vertexOffset + 1 + circleVertCount;
+			indices[indexOffset + 5] = vertexOffset + circleVertCount;
+		}
+	}
+
+	return create(deviceManager, commandPool, vertices, indices);
 }

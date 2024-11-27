@@ -32,7 +32,6 @@ private:
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkSurfaceKHR surface;
-
 };
 
 #endif

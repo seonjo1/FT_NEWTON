@@ -7,6 +7,36 @@ std::unique_ptr<Model> Model::create(std::string filename, DeviceManager* device
 	return model;
 }
 
+std::unique_ptr<Model> Model::createBox(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath)
+{
+	std::unique_ptr<Model> box(new Model());
+	box->createBoxMesh(deviceManager, commandPool, diffusePath, specularPath);
+	return box;
+}
+
+void Model::createBoxMesh(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath)
+{
+	size = 1;
+	materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
+	meshes.push_back(Mesh::createBox(deviceManager, commandPool));
+	meshes[0]->setMaterial(materials[0].get());
+}
+
+std::unique_ptr<Model> Model::createSphere(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath)
+{
+	std::unique_ptr<Model> sphere(new Model());
+	sphere->createSphereMesh(deviceManager, commandPool, diffusePath, specularPath);
+	return sphere;
+}
+
+void Model::createSphereMesh(DeviceManager* deviceManager, VkCommandPool commandPool, std::string diffusePath, std::string specularPath)
+{
+	size = 1;
+	materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
+	meshes.push_back(Mesh::createSphere(deviceManager, commandPool));
+	meshes[0]->setMaterial(materials[0].get());
+}
+
 void Model::load(std::string filename, DeviceManager* deviceManager, VkCommandPool commandPool)
 {		
 	Assimp::Importer importer;
