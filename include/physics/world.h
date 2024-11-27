@@ -4,7 +4,9 @@
 class World
 {
 public:
-
+    World();
+    void startFrame();
+    void runPhysics();
 private:
 
 };
