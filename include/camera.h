@@ -20,7 +20,7 @@ private:
 	glm::vec3 cameraFront {0.0f, 0.0f, -1.0f};
 	glm::vec3 cameraUp {0.0f, 1.0f, 0.0f};
 	const float cameraSpeed { 0.005f };
-	const float cameraRotSpeed { 0.2f };
+	const float cameraRotSpeed { 0.15f };
 };
 
 #endif
