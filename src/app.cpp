@@ -117,6 +117,7 @@ void App::initVulkan() {
 	// model 생성
 	createModels();
 	
+	// world 생성
 
 	// descriptorPool 생성
 	descriptorPool = DescriptorPool::create(device, models);
@@ -138,6 +139,8 @@ void App::mainLoop() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		processCameraControl();
+		// calculate positions
+
 		drawFrame();
 	}
 	vkDeviceWaitIdle(device);  // 종료시 실행 중인 GPU 작업을 전부 기다림
