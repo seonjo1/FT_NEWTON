@@ -145,21 +145,8 @@ void UniformBuffer::init(DeviceManager* deviceManager, VkDeviceSize bufferSize)
 	}
 }
 
-void UniformBuffer::update(VkExtent2D swapChainExtent, uint32_t currentFrame)
+void UniformBuffer::update(UniformBufferObject& ubo, uint32_t currentFrame)
 {
-	static auto startTime = std::chrono::high_resolution_clock::now();
-
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-	// 이번 프레임의 유니폼 변수 값 구하기
-	// 1초에 90도씩 회전하는 model view projection 변환 생성
-	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
-	ubo.proj[1][1] *= -1;
-
 	// 유니폼 변수를 매핑된 GPU 메모리에 복사
 	memcpy(buffersMapped[currentFrame], &ubo, sizeof(ubo));
 }

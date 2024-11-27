@@ -16,11 +16,18 @@ void App::initWindow() {
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Vulkan", nullptr, nullptr);
+	
 	// window에 현재 App 객체를 바인딩
 	glfwSetWindowUserPointer(window, this);
-	// 프레임버퍼 사이즈 변경 콜백 함수 등록
+	
+	// 콜백 함수 등록
 	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+	glfwSetKeyCallback(window, keyEventCallback);
+	glfwSetCursorPosCallback(window, cursorPosCallback);
+	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 }
+
+// callback 함수 start
 
 void App::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	// window에 바인딩된 객체 호출 및 framebufferResized = true 설정
@@ -28,7 +35,67 @@ void App::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	app->framebufferResized = true;
 }
 
-// 렌더링을 위한 초기 setting
+
+void App::cursorPosCallback(GLFWwindow *window, double x, double y)
+{
+	App* app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+	app->mouseMove(x, y);
+}
+
+void App::mouseButtonCallback(GLFWwindow *window, int button, int action, int modifier)
+{
+	App* app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
+	app->mouseButton(button, action, x, y); 
+}
+
+void App::keyEventCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+}
+
+// camera control process start
+
+void App::mouseButton(int button, int action, double x, double y) {
+	if (button == GLFW_MOUSE_BUTTON_RIGHT)
+	{
+		if (action == GLFW_PRESS)
+		{
+			camera.saveCurrentPos((float)x, (float)y);
+			cameraControl = true;
+		}
+		else if (action == GLFW_RELEASE)
+			cameraControl = false;
+	}
+}
+
+void App::mouseMove(double x, double y) 
+{
+	if (!cameraControl) { return ; }
+	glm::vec2 pos ((float)x, (float)y);
+	camera.rotate(pos);
+}
+
+void App::processCameraControl() 
+{
+	if (!cameraControl) { return ; }
+
+	bool pressW = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
+	bool pressS = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
+	bool pressD = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
+	bool pressA = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
+	bool pressE = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
+	bool pressQ = glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS;
+
+	camera.move(pressW, pressS, pressD, pressA, pressE, pressQ);
+}
+
+
+
+
+// vulkan init start
 void App::initVulkan() {
 	// instance 생성
 	vulkanInstance = VulkanInstance::create(window);
@@ -71,6 +138,7 @@ void App::initVulkan() {
 void App::mainLoop() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+		processCameraControl();
 		drawFrame();
 	}
 	vkDeviceWaitIdle(device);  // 종료시 실행 중인 GPU 작업을 전부 기다림
@@ -95,6 +163,10 @@ void App::cleanup() {
 	glfwTerminate();
 }
 
+
+
+
+// rendering start
 /*
 	[다중 Frame 방식으로 그리기]
 	동시에 작업 가능한 최대 Frame 개수만큼 자원을 생성하여 사용 (semaphore, fence, commandBuffer)
@@ -156,10 +228,18 @@ bool App::tryPrepareImage(uint32_t* imageIndex)
 
 void App::updateUniformBuffer()
 {
+	VkExtent2D extent = swapChainManager->getSwapChainExtent();
+	
+	UniformBufferObject ubo;
+	ubo.model = glm::mat4(1.0f);
+	ubo.view = camera.getViewMatrix();
+	ubo.proj = glm::perspective(glm::radians(45.0f), (float)extent.width / (float)extent.height, 0.01f, 60.0f);
+	ubo.proj[1][1] *= -1;
+	
 	// Uniform buffer 업데이트
 	for (std::unique_ptr<Model>& model : models)
 	{
-		model->updateUniformBuffer(swapChainManager->getSwapChainExtent(), currentFrame);
+		model->updateUniformBuffer(ubo, currentFrame);
 	}
 }
 

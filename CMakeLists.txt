@@ -8,10 +8,10 @@ set(WINDOW_WIDTH 1920)
 set(WINDOW_HEIGHT 1080)
 
 project(${PROJECT_NAME})
-set(SRC src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
+set(SRC src/main.cpp src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
 		src/swapChainManager.cpp src/image.cpp src/renderer.cpp
-		src/buffer.cpp src/mesh.cpp src/model.cpp src/main.cpp
-		src/syncObject.cpp src/commandManager.cpp src/descriptorPool.cpp)
+		src/buffer.cpp src/mesh.cpp src/model.cpp src/syncObject.cpp 
+		src/commandManager.cpp src/descriptorPool.cpp src/camera.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC})
 

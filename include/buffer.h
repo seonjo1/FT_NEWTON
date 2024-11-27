@@ -64,7 +64,7 @@ class UniformBuffer : public Buffer
 {
 public:
 	static std::unique_ptr<UniformBuffer> create(DeviceManager* deviceManager, VkDeviceSize bufferSize);
-	void update(VkExtent2D swapChainExtent, uint32_t currentFrame);
+	void update(UniformBufferObject& ubo, uint32_t currentFrame);
 	virtual ~UniformBuffer() = default;
 
 private:

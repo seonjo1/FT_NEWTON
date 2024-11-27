@@ -102,11 +102,11 @@ void Model::recordDrawCommand(VkCommandBuffer commandBuffer, VkPipelineLayout pi
 	}
 }
 
-void Model::updateUniformBuffer(VkExtent2D swapChainExtent, uint32_t currentFrame)
+void Model::updateUniformBuffer(UniformBufferObject& ubo, uint32_t currentFrame)
 {
 	for (std::unique_ptr<Mesh>& mesh : meshes)
 	{
-		mesh->getUniformBuffer()->update(swapChainExtent, currentFrame);
+		mesh->getUniformBuffer()->update(ubo, currentFrame);
 	}
 }
 

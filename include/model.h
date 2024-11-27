@@ -9,7 +9,7 @@ public:
 	static std::unique_ptr<Model> create(std::string filename, DeviceManager* deviceManager, VkCommandPool commandPool);
 	void clear();
 	void recordDrawCommand(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame);
-	void updateUniformBuffer(VkExtent2D swapChainExtent,  uint32_t currentFrame);
+	void updateUniformBuffer(UniformBufferObject& ubo, uint32_t currentFrame);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout);
 	uint32_t getSize();
 
