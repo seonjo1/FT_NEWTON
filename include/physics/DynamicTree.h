@@ -1,6 +1,8 @@
 #ifndef DYNAMICTREE_H
 #define DYNAMICTREE_H
 
+namespace ale
+{
 struct TreeNode
 {
 	bool IsLeaf() const;
@@ -60,6 +62,6 @@ private:
 	int nodeCapacity;
 
 };
-
+}
 
 #endif

@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 
+namespace ale
+{
+
 class Shape;
 class BroadPhase;
 class Rigidbody;
@@ -53,5 +56,5 @@ protected:
 private:
 
 };
-
+}
 #endif

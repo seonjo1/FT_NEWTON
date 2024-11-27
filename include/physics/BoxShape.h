@@ -3,9 +3,13 @@
 
 #include "Shape.h"
 
+namespace ale
+{
 class BoxShape : public Shape
 {
     
 };
+}
+
 
 #endif

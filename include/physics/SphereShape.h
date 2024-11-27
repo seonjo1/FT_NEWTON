@@ -3,9 +3,11 @@
 
 #include "Shape.h"
 
+namespace ale
+{
 class SphereShape : public Shape
 {
-    
-};
 
+};
+}
 #endif

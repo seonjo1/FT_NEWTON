@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 
+namespace ale
+{
 struct MassData
 {
     glm::vec3 center;
@@ -26,5 +28,6 @@ public:
     virtual void ComputeAABB() const = 0;
     virtual void ComputeMass() const= 0;
 };
+}
 
 #endif

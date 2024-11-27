@@ -4,6 +4,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+namespace ale
+{
+
 class Fixture;
 
 class Rigidbody
@@ -36,5 +39,5 @@ protected:
 private:
 
 };
-
+}
 #endif

@@ -1,6 +1,9 @@
 #ifndef BROADPHASE_H
 #define BROADPHASE_H
 
+
+namespace ale
+{
 class DynamicTree;
 
 class BroadPhase
@@ -42,5 +45,5 @@ private:
 	std::vector<int> moveBuffer;
 
 };
-
+}
 #endif

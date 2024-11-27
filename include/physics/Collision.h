@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 
+namespace ale
+{
 struct AABB
 {
 	bool IsValid() const;
@@ -15,5 +17,5 @@ struct AABB
 	glm::vec3 lowerBound;
 	glm::vec3 upperBound;
 };
-
+}
 #endif

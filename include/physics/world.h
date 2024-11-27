@@ -1,6 +1,8 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+namespace ale
+{
 class World
 {
 public:
@@ -10,5 +12,5 @@ public:
 private:
 
 };
-
+}
 #endif
