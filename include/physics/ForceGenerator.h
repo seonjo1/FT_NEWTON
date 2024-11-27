@@ -7,8 +7,8 @@ class Rigidbody;
 
 class ForceGenerator
 {
-public:
-    virtual void updateForce(Rigidbody* body, float duration) = 0;
+  public:
+	virtual void updateForce(Rigidbody *body, float duration) = 0;
 };
-}
+} // namespace ale
 #endif

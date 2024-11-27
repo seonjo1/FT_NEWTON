@@ -11,11 +11,11 @@ struct AABB
 	glm::vec3 GetCneter() const;
 	glm::vec3 GetExtents() const;
 	float GetPerimieter() const;
-	void Combine(const AABB& aabb);
-	void Combine(const AABB& aabb1, const AABB& aabb2);
-	bool Contains(const AABB& aabb) const;
+	void Combine(const AABB &aabb);
+	void Combine(const AABB &aabb1, const AABB &aabb2);
+	bool Contains(const AABB &aabb) const;
 	glm::vec3 lowerBound;
 	glm::vec3 upperBound;
 };
-}
+} // namespace ale
 #endif

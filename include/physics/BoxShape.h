@@ -7,9 +7,7 @@ namespace ale
 {
 class BoxShape : public Shape
 {
-    
 };
-}
-
+} // namespace ale
 
 #endif

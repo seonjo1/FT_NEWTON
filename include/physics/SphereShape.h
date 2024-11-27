@@ -7,7 +7,6 @@ namespace ale
 {
 class SphereShape : public Shape
 {
-
 };
-}
+} // namespace ale
 #endif

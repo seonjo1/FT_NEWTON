@@ -5,12 +5,12 @@ namespace ale
 {
 class World
 {
-public:
-    World();
-    void startFrame();
-    void runPhysics();
-private:
+  public:
+	World();
+	void startFrame();
+	void runPhysics();
 
+  private:
 };
-}
+} // namespace ale
 #endif
