@@ -16,12 +16,6 @@ struct MassData
 class Shape
 {
   public:
-	enum class Type
-	{
-		e_sphere = 0,
-		e_box = 1
-	};
-
 	virtual ~Shape();
 	virtual Shape *clone() const = 0;
 	virtual int GetChildCount() const = 0;
