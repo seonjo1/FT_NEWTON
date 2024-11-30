@@ -8,15 +8,28 @@ World::World()
 
 void World::startFrame()
 {
+	for (std::unique_ptr<Rigidbody> &body : rigidbodies)
+	{
+		body->clearAccumulators();
+		body->calculateDerivedData();
+	}
 }
 
 void World::runPhysics()
 {
+	for (std::unique_ptr<Rigidbody> &body : rigidbodies)
+	{
+		body->integrate(0.1);
+
+		// update Dynamic Tree if Body moved more than fat AABB
+		// update Possible Contact Pairs - BroadPhase
+	}
+	// Process Contacts
 }
 
-void World::createBody(std::unique<Model> &model)
+void World::createBody(std::unique_ptr<Model> &model)
 {
-	switch (type)
+	switch (model->getShapeType())
 	{
 	case e_box:
 		createBox();
