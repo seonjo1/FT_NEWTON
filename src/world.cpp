@@ -42,17 +42,32 @@ void World::createBody(std::unique_ptr<Model> &model)
 	}
 }
 
-void World::createBox()
+void World::createBox(std::unique_ptr<Model> &model)
 {
 	BodyDef bd;
 	// set box definition
+	// type
+	// position
+	// angle
+	// linearVelocity
+	// angularVelocity
+	// linearDamping
+	// angularDamping
+	// canSleep
+	// isAwake
+	// gravityScale
+
 	std::unique_ptr<Rigidbody> body = new Rigidbody(&bd);
+
 	// create fixture of body
+	std::unique_ptr<Shape> shape;
+	body->createFixture(shape);
+
 	rigidbodies.push_back(body);
 	// set model->body
 }
 
-void World::createSphere()
+void World::createSphere(std::unique_ptr<Model> &model)
 {
 	BodyDef bd;
 	// set sphere definition

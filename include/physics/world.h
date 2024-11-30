@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include "Rigidbody.h"
+#include "Shape.h"
 #include "common.h"
 #include "model.h"
 
@@ -16,8 +17,8 @@ class World
 	void startFrame();
 	void runPhysics();
 	void createBody(std::unique_ptr<Model> &model);
-	void createBox();
-	void createSphere();
+	void createBox(std::unique_ptr<Model> &model);
+	void createSphere(std::unique_ptr<Model> &model);
 
   private:
 	std::vector<std::unique_ptr<Rigidbody>> rigidbodies;
