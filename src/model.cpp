@@ -164,3 +164,8 @@ uint32_t Model::getSize()
 {
 	return size;
 }
+
+ale::Type Model::getShapeType() const
+{
+	return type;
+}

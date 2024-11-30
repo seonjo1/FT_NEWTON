@@ -1,6 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include "Shape.h"
 #include "mesh.h"
 
 class Rigidbody;
@@ -20,7 +21,7 @@ class Model
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
 							  VkDescriptorSetLayout descriptorSetLayout);
 	uint32_t getSize();
-	Type getShapeType() const;
+	ale::Type getShapeType() const;
 
   private:
 	void load(std::string filename, DeviceManager *deviceManager, VkCommandPool commandPool);
@@ -34,8 +35,8 @@ class Model
 
 	std::vector<std::unique_ptr<Mesh>> meshes;
 	std::vector<std::unique_ptr<Material>> materials;
-	Rigidbody *body;
-	Type type;
+	ale::Rigidbody *body;
+	ale::Type type;
 	uint32_t size;
 };
 

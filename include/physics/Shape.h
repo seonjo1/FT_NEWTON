@@ -5,6 +5,12 @@
 
 namespace ale
 {
+enum class Type
+{
+	e_sphere = 0,
+	e_box = 1
+};
+
 struct MassData
 {
 	glm::vec3 center;

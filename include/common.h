@@ -66,10 +66,4 @@ struct UniformBufferObject
 	alignas(16) glm::mat4 proj;
 };
 
-enum class Type
-{
-	e_sphere = 0,
-	e_box = 1
-};
-
 #endif
