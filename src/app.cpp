@@ -222,7 +222,7 @@ void App::createModels()
 	models.push_back(Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), "models/sphere.png"));
 }
 
-void App::initWorld()
+void App::createWorld()
 {
 	world = new ale::World(static_cast<uint32_t>(models.size()));
 
