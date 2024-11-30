@@ -25,7 +25,7 @@ class App
 	void cleanup();
 
 	void createModels();
-	void initWorld();
+	void createWorld();
 
 	// draw 함수
 	void drawFrame();
