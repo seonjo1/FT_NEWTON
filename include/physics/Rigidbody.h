@@ -1,6 +1,8 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
+#include "Fixture.h"
+#include "Shape.h"
 #include "common.h"
 
 namespace ale
@@ -74,6 +76,9 @@ class Rigidbody
 	void setLinearVelocity(const glm::vec3 &linearVelocity);
 	void setAngularVelocity(const glm::vec3 &angularVelocity);
 	void setAcceleration(const glm::vec3 &acceleration);
+
+	void createFixture(const std::unique_ptr<Shape> &shape);
+	void createFixture(const FixtureDef *fd);
 
   protected:
 	glm::vec3 position;

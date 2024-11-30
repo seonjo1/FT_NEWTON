@@ -95,4 +95,16 @@ glm::vec3 Rigidbody::getPointInWorldSpace(const glm::vec3 &point)
 	return (transformMatrix * point);
 }
 
+void Rigidbody::createFixture(const std::unique_ptr<Shape> &shape)
+{
+	FixtureDef fd;
+	fd.shape = shape;
+
+	createFixture(&fd);
+}
+
+void Rigidbody::createFixture(const FixtureDef *fd)
+{
+}
+
 } // namespace ale
