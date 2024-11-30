@@ -15,7 +15,7 @@ class World
 	World(uint32_t size);
 	void startFrame();
 	void runPhysics();
-	void createBody(std::unique<Model> &model);
+	void createBody(std::unique_ptr<Model> &model);
 	void createBox();
 	void createSphere();
 
