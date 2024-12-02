@@ -20,7 +20,7 @@ struct FixtureDef
 		restitution = 0.0f;
 		density = 0.0f;
 	}
-	const Shape *shape;
+	const std::unique_ptr<Shape> shape;
 	void *userData;
 	float friction;
 	float restitution;
