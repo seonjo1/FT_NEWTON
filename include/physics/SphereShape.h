@@ -2,7 +2,6 @@
 #define SPHERESHAPE_H
 
 #include "Shape.h"
-#include "Vertex.h"
 
 namespace ale
 {
@@ -14,9 +13,8 @@ class SphereShape : public Shape
 	int32_t GetChildCount() const;
 	void ComputeAABB(AABB *aabb) const;
 	void ComputeMass(MassData *massData, float density) const;
-	void SetVertices(const std::vector<Vertex> &v);
+	void SetCenter(const glm::vec3 &center);
 
-	std::set<Vertex> vertices;
 	glm::vec3 center;
 	float radius;
 };
