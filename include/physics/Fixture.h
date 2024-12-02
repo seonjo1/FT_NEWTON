@@ -1,12 +1,12 @@
 #ifndef FIXTURE_H
 #define FIXTURE_H
 
-#include <glm/glm.hpp>
+#include "Rigidbody.h"
+#include "common.h"
 
 namespace ale
 {
 
-class Shape;
 class BroadPhase;
 class Rigidbody;
 
@@ -31,17 +31,18 @@ struct FixtureProxy
 {
 	AABB aabb;
 	Fixture *fixture;
-	int childIndex;
-	int proxyId;
+	int32_t childIndex;
+	int32_t proxyId;
 };
 
 class Fixture
 {
   public:
-	void Create(FixtureDef *def);
+	Fixture();
+	void Create(const FixtureDef *fd);
 	void Destroy();
 
-	void CreateProxies(BroadPhase *broadPhase, const Transform &xf);
+	void CreateProxies(BroadPhase *broadPhase);
 	void DestroyProxies(BroadPhase *broadPhase);
 
   protected:
@@ -50,8 +51,8 @@ class Fixture
 	float density;
 	float friction;
 	float restitution;
-	// std::vector<FixtureProxy> proxies;
-	void *userData;
+	std::vector<std::unique_ptr<FixtureProxy>> proxies;
+	// void *userData;
 
   private:
 };
