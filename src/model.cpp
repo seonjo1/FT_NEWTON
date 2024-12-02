@@ -11,8 +11,9 @@ std::unique_ptr<Model> Model::createBox(DeviceManager *deviceManager, VkCommandP
 										std::string diffusePath, std::string specularPath)
 {
 	std::unique_ptr<Model> box(new Model());
+	shape = new ale::BoxShape();
 	box->createBoxMesh(deviceManager, commandPool, diffusePath, specularPath);
-	setShapeType(e_box);
+
 	return box;
 }
 
@@ -21,7 +22,7 @@ void Model::createBoxMesh(DeviceManager *deviceManager, VkCommandPool commandPoo
 {
 	size = 1;
 	materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
-	meshes.push_back(Mesh::createBox(deviceManager, commandPool));
+	meshes.push_back(Mesh::createBox(deviceManager, commandPool, shape));
 	meshes[0]->setMaterial(materials[0].get());
 }
 
@@ -39,7 +40,7 @@ void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool command
 {
 	size = 1;
 	materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
-	meshes.push_back(Mesh::createSphere(deviceManager, commandPool));
+	meshes.push_back(Mesh::createSphere(deviceManager, commandPool, shape));
 	meshes[0]->setMaterial(materials[0].get());
 }
 
@@ -165,7 +166,7 @@ uint32_t Model::getSize()
 	return size;
 }
 
-ale::Type Model::getShapeType() const
+const std::unique_ptr<ale::Shape> Model::getShape() const
 {
-	return type;
+	return shape;
 }
