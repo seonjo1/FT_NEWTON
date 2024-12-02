@@ -1,14 +1,14 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include "Fixture.h"
-#include "Shape.h"
-#include "common.h"
+#include "BoxShape.h"
+#include "Collision.h"
 
 namespace ale
 {
 
 class Fixture;
+class World;
 
 enum class BodyType
 {
@@ -24,14 +24,16 @@ struct BodyDef
 		// userData = nullptr;
 		// set position
 		// position()
+		position = glm::vec3(0.0f);
 		angle = 0.0f;
-		linearVelocity = 0.0f;
-		angularVelocity = 0.0f;
+		linearVelocity = glm::vec3(0.0f);
+		angularVelocity = glm::vec3(0.0f);
 		linearDamping = 0.0f;
 		angularDamping = 0.0f;
 		canSleep = true;
 		isAwake = true;
 		type = e_static;
+		gravityScale = 1.0f;
 	}
 
 	BodyType type;
@@ -50,7 +52,7 @@ struct BodyDef
 class Rigidbody
 {
   public:
-	Rigidbody(const BodyDef *bd);
+	Rigidbody(const BodyDef *bd, World *world);
 	void integrate(float duration);
 	void calculateDerivedData();
 	void addForce(const glm::vec3 &force);
@@ -81,8 +83,8 @@ class Rigidbody
 	void createFixture(const FixtureDef *fd);
 
   protected:
-	glm::vec3 position;
-	glm::quat orientation;
+	World *world;
+	Transform xf;
 	glm::vec3 linearVelocity;
 	glm::vec3 angularVelocity;
 	glm::mat3 inverseInertiaTensorWorld;
@@ -94,7 +96,7 @@ class Rigidbody
 	glm::vec3 torqueAccum;
 	glm::vec3 acceleration;
 	glm::vec3 lastFrameAcceleration;
-	// std::vector<Fixture*> fixtures;
+	std::vector<std::unique_ptr<Fixture>> fixtures;
 
 	float inverseMass;
 	float linearDamping;

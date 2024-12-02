@@ -1,14 +1,17 @@
 #include "Rigidbody.h"
+#include "Fixture.h"
+#include "Shape.h"
+#include "world.h"
 
 namespace ale
 {
-Rigidbody::Rigidbody(const BodyDef *bd)
+Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {
+	this->world = world;
 	type = bd->type;
 
 	// Transform struct needed
-	position = bd->position;
-	orientation = bd->angle;
+	xf.Set(bd->position, bd->angle);
 
 	linearVelocity = bd->linearVelocity;
 	angularVelocity = bd->angularVelocity;
@@ -105,6 +108,10 @@ void Rigidbody::createFixture(const std::unique_ptr<Shape> &shape)
 
 void Rigidbody::createFixture(const FixtureDef *fd)
 {
+	std::unique_ptr<Fixture> fixture = new Fixture();
+
+	fixture->Create(&fd);
+	fixture->CreateProxies(&world->contactManager.broadPhase);
 }
 
 } // namespace ale
