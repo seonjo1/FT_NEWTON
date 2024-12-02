@@ -2,6 +2,7 @@
 #define SHAPE_H
 
 #include "Collision.h"
+#include "Vertex.h"
 #include "common.h"
 
 namespace ale
@@ -31,8 +32,16 @@ class Shape
 	Type getType() const;
 
 	Type type;
-	std::set<Vertex> vertices;
 };
+
+bool operator<(const glm::vec3 &v1, const glm::vec3 &v2)
+{
+	if (a.x != b.x)
+		return a.x < b.x;
+	if (a.y != b.y)
+		return a.y < b.y;
+	return a.z < b.z;
+}
 
 Type Shape::getType() const
 {
