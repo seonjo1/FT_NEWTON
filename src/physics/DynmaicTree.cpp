@@ -66,6 +66,7 @@ int32_t DynamicTree::CreateProxy(const AABB &aabb, void *userData)
 	nodes[proxyId].height = 0;
 
 	// insert leaf
+	// InsertLeaf(proxyId);
 
 	return proxyId;
 }

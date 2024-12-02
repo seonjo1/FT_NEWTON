@@ -1,14 +1,35 @@
 #include "Rigidbody.h"
+#include "Fixture.h"
+#include "Shape.h"
+#include "world.h"
 
 namespace ale
 {
-Rigidbody::Rigidbody(const BodyDef *bd)
+static inline glm::mat4 _calculateTransformMatrix(glm::mat4 &transformMatrix, const glm::vec3 &position,
+												  const glm::quat &orientation)
 {
+	glm::mat4 rotationMatrix = glm::toMat4(orientation);
+
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
+
+	transformMatrix = translationMatrix * rotationMatrix;
+}
+
+static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::quat &q, const glm::mat3 &iitBody,
+										   const glm::mat4 &rotmat)
+{
+	glm::mat3 rotationMatrix = glm::mat3(rotmat);
+
+	iitWorld = rotationMatrix * iitBody * glm::transpose(rotationMatrix);
+}
+
+Rigidbody::Rigidbody(const BodyDef *bd, World *world)
+{
+	this->world = world;
 	type = bd->type;
 
 	// Transform struct needed
-	position = bd->position;
-	orientation = bd->angle;
+	xf.Set(bd->position, bd->angle);
 
 	linearVelocity = bd->linearVelocity;
 	angularVelocity = bd->angularVelocity;
@@ -51,6 +72,10 @@ void Rigidbody::integrate(float duration)
 
 void Rigidbody::calculateDerivedData()
 {
+	glm::quat q = glm::normalize(xf.orientation);
+
+	_calculateTransformMatrix(transformMatrix, xf.position, q);
+	_transformInertiaTensor(inverseInertiaTensorWorld, q, inverseInertiaTensor, transformMatrix);
 }
 
 void Rigidbody::addForce(const glm::vec3 &force)
@@ -105,6 +130,11 @@ void Rigidbody::createFixture(const std::unique_ptr<Shape> &shape)
 
 void Rigidbody::createFixture(const FixtureDef *fd)
 {
+	std::unique_ptr<Fixture> fixture = new Fixture();
+
+	fixture->Create(&fd);
+	fixture->CreateProxies(&world->contactManager.broadPhase);
+	fixtures.push_back(fixture);
 }
 
 } // namespace ale

@@ -1,7 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "Shape.h"
+#include "Physics/BoxShape.h"
+#include "Physics/SphereShape.h"
 #include "mesh.h"
 
 class Rigidbody;
@@ -21,7 +22,7 @@ class Model
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
 							  VkDescriptorSetLayout descriptorSetLayout);
 	uint32_t getSize();
-	ale::Type getShapeType() const;
+	const std::unique_ptr<ale::Shape> &getShape() const;
 
   private:
 	void load(std::string filename, DeviceManager *deviceManager, VkCommandPool commandPool);
@@ -31,12 +32,11 @@ class Model
 						  std::string specularPath);
 	void processNode(DeviceManager *deviceManager, VkCommandPool commandPool, aiNode *node, const aiScene *scene);
 	void processMesh(DeviceManager *deviceManager, VkCommandPool commandPool, aiMesh *mesh, const aiScene *scene);
-	void setShapeType(Type type);
 
 	std::vector<std::unique_ptr<Mesh>> meshes;
 	std::vector<std::unique_ptr<Material>> materials;
 	ale::Rigidbody *body;
-	ale::Type type;
+	std::unique_ptr<ale::Shape> shape;
 	uint32_t size;
 };
 

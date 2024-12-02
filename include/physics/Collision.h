@@ -43,5 +43,24 @@ struct AABB
 	glm::vec3 lowerBound;
 	glm::vec3 upperBound;
 };
+
+// translation, rotation
+struct Transform
+{
+	Transform()
+	{
+	}
+	Transform(const glm::vec3 &p, const glm::quat &r) : position(p), orientation(r)
+	{
+	}
+	void Set(const glm::vec3 &p, float angle)
+	{
+		position = p;
+		// set orientation by angle
+	}
+
+	glm::vec3 position;
+	glm::quat orientation;
+};
 } // namespace ale
 #endif
