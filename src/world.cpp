@@ -1,8 +1,11 @@
 #include "world.h"
+#include "BoxShape.h"
+#include "Rigidbody.h"
+#include "model.h"
 
 namespace ale
 {
-World::World()
+World::World(uint32_t size)
 {
 }
 
@@ -29,50 +32,55 @@ void World::runPhysics()
 
 void World::createBody(std::unique_ptr<Model> &model)
 {
-	switch (model->getShapeType())
+	std::unique_ptr<Shape> shape = model->getShape();
+	Type type = shape->getType();
+
+	switch (type)
 	{
-	case e_box:
-		createBox();
+	case Type::e_box:
+		createBox(shape);
 		break;
-	case e_sphere:
-		createSphere();
+	case Type::e_sphere:
+		createSphere(shape);
 		break;
 	default:
 		break;
 	}
 }
 
-void World::createBox(std::unique_ptr<Model> &model)
+void World::createBox(std::unique_ptr<Shape> &shape)
 {
 	BodyDef bd;
+
 	// set box definition
-	// type
-	// position
-	// angle
-	// linearVelocity
-	// angularVelocity
-	// linearDamping
-	// angularDamping
-	// canSleep
-	// isAwake
-	// gravityScale
+	bd.type = BodyType::e_dynamic;
+	bd.position;
+	bd.linearDamping = 0.01f;
+	bd.angularDamping = 0.01f;
 
-	std::unique_ptr<Rigidbody> body = new Rigidbody(&bd);
+	std::unique_ptr<Rigidbody> body = new Rigidbody(&bd, this);
 
-	// create fixture of body
-	std::unique_ptr<Shape> shape;
-	body->createFixture(shape);
-
+	// create fixture of body - shape needs vertex info
+	std::unique_ptr<Shape> box = shape->clone();
+	body->createFixture(box);
 	rigidbodies.push_back(body);
 	// set model->body
 }
 
-void World::createSphere(std::unique_ptr<Model> &model)
+void World::createSphere(std::unique_ptr<Shape> &shape)
 {
 	BodyDef bd;
 	// set sphere definition
+	bd.type = BodyType::e_dynamic;
+	bd.position;
+	bd.linearDamping = 0.01f;
+	bd.angularDamping = 0.01f;
+
 	std::unique_ptr<Rigidbody> body = new Rigidbody(&bd);
+
 	// create fixture of body
+	std::unique_ptr<Shape> sphere = shape->clone();
+	body->createFixture(sphere);
 	rigidbodies.push_back(body);
 	// set model->body
 }

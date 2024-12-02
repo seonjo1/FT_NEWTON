@@ -1,14 +1,14 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include "Rigidbody.h"
-#include "Shape.h"
+#include "ContactManager.h"
 #include "common.h"
-#include "model.h"
 
 namespace ale
 {
+class Model;
 class Rigidbody;
+class ContactManager;
 
 class World
 {
@@ -19,6 +19,8 @@ class World
 	void createBody(std::unique_ptr<Model> &model);
 	void createBox(std::unique_ptr<Model> &model);
 	void createSphere(std::unique_ptr<Model> &model);
+
+	ContactManager contactManager;
 
   private:
 	std::vector<std::unique_ptr<Rigidbody>> rigidbodies;
