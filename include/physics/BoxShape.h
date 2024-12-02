@@ -2,7 +2,6 @@
 #define BOXSHAPE_H
 
 #include "Shape.h"
-#include "Vertex.h"
 
 namespace ale
 {
@@ -17,7 +16,7 @@ class BoxShape : public Shape
 	void SetVertices(const std::vector<Vertex> &v);
 
 	// Vertex Info needed
-	std::set<Vertex> vertices;
+	std::set<glm::vec3> vertices;
 };
 } // namespace ale
 
