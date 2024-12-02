@@ -54,13 +54,17 @@ void World::createBox(std::unique_ptr<Shape> &shape)
 
 	// set box definition
 	bd.type = BodyType::e_dynamic;
-	bd.position;
+
+	glm::vec3 upper = *std::prev(shape->vertices.end());
+	glm::vec3 lower = shape->vertices.begin();
+	glm::vec3 position = (upper + lower) * 0.5;
+
+	bd.position = position;
 	bd.linearDamping = 0.01f;
 	bd.angularDamping = 0.01f;
 
 	std::unique_ptr<Rigidbody> body = new Rigidbody(&bd, this);
 
-	// create fixture of body - shape needs vertex info
 	std::unique_ptr<Shape> box = shape->clone();
 	body->createFixture(box);
 	rigidbodies.push_back(body);
@@ -72,13 +76,12 @@ void World::createSphere(std::unique_ptr<Shape> &shape)
 	BodyDef bd;
 	// set sphere definition
 	bd.type = BodyType::e_dynamic;
-	bd.position;
+	bd.position = shape->center;
 	bd.linearDamping = 0.01f;
 	bd.angularDamping = 0.01f;
 
 	std::unique_ptr<Rigidbody> body = new Rigidbody(&bd);
 
-	// create fixture of body
 	std::unique_ptr<Shape> sphere = shape->clone();
 	body->createFixture(sphere);
 	rigidbodies.push_back(body);
