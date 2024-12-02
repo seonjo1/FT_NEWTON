@@ -129,7 +129,7 @@ void App::initVulkan()
 	createModels();
 
 	// physics world 생성
-	createWorld();
+	// createWorld();
 
 	// descriptorPool 생성
 	descriptorPool = DescriptorPool::create(device, models);
