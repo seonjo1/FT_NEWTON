@@ -284,7 +284,8 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 			vertices[i * circleVertCount + j] = Vertex{point * 0.5f, point, glm::vec2(u, v)};
 		}
 	}
-	shape->SetVertices(vertices);
+	// where is center value?
+	shape->SetCenter();
 
 	indices.resize(latiSegmentCount * longiSegmentCount * 6);
 	for (uint32_t i = 0; i < latiSegmentCount; i++)
