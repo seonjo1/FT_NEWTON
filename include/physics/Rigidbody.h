@@ -99,6 +99,7 @@ class Rigidbody
 	std::vector<std::unique_ptr<Fixture>> fixtures;
 
 	float inverseMass;
+	glm::mat3 inverseInertiaTensor;
 	float linearDamping;
 	float angularDamping;
 	float gravityScale;
