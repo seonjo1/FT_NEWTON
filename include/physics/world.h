@@ -4,9 +4,10 @@
 #include "ContactManager.h"
 #include "common.h"
 
+class Model;
+
 namespace ale
 {
-class Model;
 class Rigidbody;
 class ContactManager;
 
