@@ -1,6 +1,10 @@
 #ifndef BROADPHASE_H
 #define BROADPHASE_H
 
+#include "Collision.h"
+#include "DynamicTree.h"
+#include "common.h"
+
 namespace ale
 {
 class DynamicTree;
@@ -8,22 +12,26 @@ class DynamicTree;
 class BroadPhase
 {
   public:
+	BroadPhase();
+
 	// AABB에 해당하는 proxy 생성 - DynamicTree의 nodeId를 반환한다
-	int CreateProxy(const AABB &aabb, void *userData);
+	int32_t CreateProxy(const AABB &aabb, void *userData);
 
 	// proxyId에 해당하는 node Destroy
-	void DestroyProxy(int proxyId);
+	void DestroyProxy(int32_t proxyId);
 
-	void MoveProxy(int proxyId, const AABB &aabb, const Vec3 &displacement);
+	void MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement);
+
+	void BufferMove(int32_t proxyId);
 
 	// proxyId에 해당하는 FatAABB 반환
-	const AABB &GetFatAABB(int proxyId) const;
+	const AABB &GetFatAABB(int32_t proxyId) const;
 
 	// proxyId pair끼리 겹치는지 확인
-	bool TestOverlap(int proxyIdA, int proxyIdB) const;
+	bool TestOverlap(int32_t proxyIdA, int32_t proxyIdB) const;
 
 	// proxyId에 해당하는 data get
-	void *GetUserData(int proxyId) const;
+	void *GetUserData(int32_t proxyId) const;
 
 	// moved proxy buffer를 순회하며, 가능성 있는 충돌 쌍 검색
 	// callback을 사용해 ContactManager의 AddPair 호출
@@ -36,9 +44,11 @@ class BroadPhase
 	// Dynamic tree
 	DynamicTree tree;
 	// proxyA, proxyB pair set
-	std::set<pair<int, int>> proxySet;
+	std::set<pair<int32_t, int32_t>> proxySet;
 	// moved proxy buffer
-	std::vector<int> moveBuffer;
+	std::vector<int32_t> moveBuffer;
+	int32_t moveCapacity;
+	int32_t moveCount;
 };
 } // namespace ale
 #endif
