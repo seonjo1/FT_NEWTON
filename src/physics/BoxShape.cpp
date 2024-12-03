@@ -1,4 +1,4 @@
-#include "BoxShape.h"
+#include "physics/BoxShape.h"
 
 namespace ale
 {
@@ -20,7 +20,7 @@ void BoxShape::ComputeAABB(AABB *aabb) const
 {
 	// get min, max vertex
 	glm::vec3 upper = *std::prev(vertices.end());
-	glm::vec3 lower = vertices.begin();
+	glm::vec3 lower = *vertices.begin();
 
 	aabb->upperBound = upper;
 	aabb->lowerBound = lower;
