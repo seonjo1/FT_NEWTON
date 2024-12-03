@@ -1,11 +1,12 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "Physics/BoxShape.h"
-#include "Physics/SphereShape.h"
 #include "mesh.h"
+#include "physics/BoxShape.h"
+#include "physics/Rigidbody.h"
+#include "physics/SphereShape.h"
 
-class Rigidbody;
+class ale::Rigidbody;
 
 class Model
 {
@@ -22,7 +23,10 @@ class Model
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
 							  VkDescriptorSetLayout descriptorSetLayout);
 	uint32_t getSize();
-	const std::unique_ptr<ale::Shape> &getShape() const;
+	ale::Shape *getShape() const;
+	ale::Rigidbody *getBody() const;
+
+	void setBody(ale::Rigidbody *body);
 
   private:
 	void load(std::string filename, DeviceManager *deviceManager, VkCommandPool commandPool);
@@ -36,7 +40,7 @@ class Model
 	std::vector<std::unique_ptr<Mesh>> meshes;
 	std::vector<std::unique_ptr<Material>> materials;
 	ale::Rigidbody *body;
-	std::unique_ptr<ale::Shape> shape;
+	ale::Shape *shape;
 	uint32_t size;
 };
 
