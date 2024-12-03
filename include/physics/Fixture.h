@@ -20,7 +20,7 @@ struct FixtureDef
 		restitution = 0.0f;
 		density = 0.0f;
 	}
-	const std::unique_ptr<Shape> shape;
+	Shape *shape;
 	void *userData;
 	float friction;
 	float restitution;
@@ -51,7 +51,7 @@ class Fixture
 	float density;
 	float friction;
 	float restitution;
-	std::vector<std::unique_ptr<FixtureProxy>> proxies;
+	std::vector<FixtureProxy *> proxies;
 	// void *userData;
 
   private:
