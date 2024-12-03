@@ -11,7 +11,10 @@ project(${PROJECT_NAME})
 set(SRC src/main.cpp src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
 		src/swapChainManager.cpp src/image.cpp src/renderer.cpp
 		src/buffer.cpp src/mesh.cpp src/model.cpp src/syncObject.cpp 
-		src/commandManager.cpp src/descriptorPool.cpp src/camera.cpp)
+		src/commandManager.cpp src/descriptorPool.cpp src/camera.cpp
+		src/physics/BoxShape.cpp src/physics/BroadPhase.cpp src/physics/ContactManager.cpp
+		src/physics/DynamicTree.cpp src/physics/Fixture.cpp src/physics/Rigidbody.cpp
+		src/physics/SphereShape.cpp src/physics/world.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
@@ -23,6 +26,8 @@ set(CMAKE_PREFIX_PATH "C:/VulkanSDK/1.3.296.0")
 find_package(Vulkan REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)
 
+set(INCLUDE_DIR include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${DEP_INCLUDE_DIR})
 target_link_directories(${PROJECT_NAME} PUBLIC ${DEP_LIB_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
