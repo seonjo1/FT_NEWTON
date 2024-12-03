@@ -115,11 +115,6 @@ UniformBuffer *Mesh::getUniformBuffer()
 	return uniformBuffer.get();
 }
 
-const std::set<Vertex> &getVertexSet() const
-{
-	return vertexSet;
-}
-
 void Mesh::clear()
 {
 	vertexBuffer->clear();
@@ -212,8 +207,7 @@ void Material::clear()
 	specular->clear();
 }
 
-std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPool commandPool,
-									  std::unique_ptr<ale::BoxShape> &shape)
+std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPool commandPool, ale::BoxShape *shape)
 {
 	std::vector<Vertex> vertices = {
 		Vertex{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
@@ -258,7 +252,7 @@ std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPoo
 }
 
 std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommandPool commandPool,
-										 std::unique_ptr<ale::SphereShape> &shape)
+										 ale::SphereShape *shape)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -285,7 +279,7 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 		}
 	}
 	// where is center value?
-	shape->SetCenter();
+	shape->SetCenter(glm::vec3(0.0));
 
 	indices.resize(latiSegmentCount * longiSegmentCount * 6);
 	for (uint32_t i = 0; i < latiSegmentCount; i++)
