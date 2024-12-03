@@ -5,10 +5,10 @@
 #include "commandManager.h"
 #include "descriptorPool.h"
 #include "image.h"
+#include "physics/world.h"
 #include "renderer.h"
 #include "swapChainManager.h"
 #include "syncObject.h"
-#include "world.h"
 
 class App
 {
@@ -62,7 +62,7 @@ class App
 	Camera camera;
 	bool cameraControl{false};
 
-	std::unique_ptr<ale::World> *world;
+	ale::World *world;
 
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;

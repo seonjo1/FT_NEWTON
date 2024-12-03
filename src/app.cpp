@@ -129,7 +129,7 @@ void App::initVulkan()
 	createModels();
 
 	// physics world 생성
-	// createWorld();
+	createWorld();
 
 	// descriptorPool 생성
 	descriptorPool = DescriptorPool::create(device, models);
@@ -154,7 +154,8 @@ void App::mainLoop()
 		glfwPollEvents();
 		processCameraControl();
 		// calculate positions
-
+		world->startFrame();
+		world->runPhysics();
 		drawFrame();
 	}
 	vkDeviceWaitIdle(device); // 종료시 실행 중인 GPU 작업을 전부 기다림
@@ -226,6 +227,7 @@ void App::createWorld()
 {
 	world = new ale::World(static_cast<uint32_t>(models.size()));
 
+	std::cout << "App::Create World\n";
 	for (std::unique_ptr<Model> &model : models)
 	{
 		world->createBody(model);
@@ -281,6 +283,19 @@ void App::updateUniformBuffer()
 	// Uniform buffer 업데이트
 	for (std::unique_ptr<Model> &model : models)
 	{
+		glm::mat4 transform = glm::mat4(1.0f);
+		glm::quat orientation = model->getBody()->getTransform().orientation;
+		glm::vec3 position = model->getBody()->getTransform().position;
+
+		// 회전 행렬 생성 (쿼터니언 -> 3x3 회전 행렬)
+		glm::mat3 rotationMatrix = glm::toMat3(orientation);
+
+		// 상위 3x3 부분에 회전 행렬 적용
+		transform = glm::mat4(rotationMatrix);
+
+		// 위치 적용 (4번째 열에 위치값 설정)
+		transform[3] = glm::vec4(position, 1.0f);
+		ubo.model = transform;
 		model->updateUniformBuffer(ubo, currentFrame);
 	}
 }
