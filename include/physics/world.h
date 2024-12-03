@@ -10,6 +10,8 @@ namespace ale
 {
 class Rigidbody;
 class ContactManager;
+class BoxShape;
+class SphereShape;
 
 class World
 {
@@ -24,7 +26,7 @@ class World
 	ContactManager contactManager;
 
   private:
-	std::vector<std::unique_ptr<Rigidbody>> rigidbodies;
+	std::vector<Rigidbody *> rigidbodies;
 };
 } // namespace ale
 #endif
