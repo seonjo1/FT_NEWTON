@@ -1,4 +1,4 @@
-#include "SphereShape.h"
+#include "physics/SphereShape.h"
 
 namespace ale
 {
@@ -19,7 +19,7 @@ int32_t SphereShape::GetChildCount() const
 	return 1;
 }
 
-void SphereShape::ComputeAABB(AABB *aabb, const Transform &xf, int32_t childIndex) const
+void SphereShape::ComputeAABB(AABB *aabb) const
 {
 }
 void SphereShape::ComputeMass(MassData *massData, float density) const
