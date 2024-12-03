@@ -39,7 +39,7 @@ class DynamicTree
 	void DestroyProxy(int32_t proxyId);
 
 	// proxyId에 해당하는 node 삭제 후, 적당한 위치로 다시 Insert
-	bool MoveProxy(int32_t proxyId, const AABB &aabb1, const glm::vec3 &displacement);
+	// bool MoveProxy(int32_t proxyId, const AABB &aabb1, const glm::vec3 &displacement);
 
 	//
 	void *GetUserData(int32_t proxyId) const;
@@ -62,9 +62,9 @@ class DynamicTree
 	// 트리가 쏠리지 않게 Balance 맞춰줌
 	int32_t Balance(int32_t index);
 
-	float GetInsertionCostForLeaf(const AABB &leafAABB, int32_t child);
+	float GetInsertionCostForLeaf(const AABB &leafAABB, int32_t child, float inheritedCost);
 
-	float GetInsertionCost(const AABB &leafAABB, int32_t child);
+	float GetInsertionCost(const AABB &leafAABB, int32_t child, float inheritedCost);
 
 	// tree의 height 계산
 	int32_t ComputeHeight() const;
