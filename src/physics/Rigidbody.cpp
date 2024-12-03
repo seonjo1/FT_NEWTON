@@ -1,12 +1,12 @@
-#include "Rigidbody.h"
-#include "Fixture.h"
-#include "Shape.h"
-#include "world.h"
+#include "physics/Rigidbody.h"
+#include "physics/Fixture.h"
+#include "physics/Shape.h"
+#include "physics/world.h"
 
 namespace ale
 {
-static inline glm::mat4 _calculateTransformMatrix(glm::mat4 &transformMatrix, const glm::vec3 &position,
-												  const glm::quat &orientation)
+static inline void _calculateTransformMatrix(glm::mat4 &transformMatrix, const glm::vec3 &position,
+											 const glm::quat &orientation)
 {
 	glm::mat4 rotationMatrix = glm::toMat4(orientation);
 
@@ -15,8 +15,7 @@ static inline glm::mat4 _calculateTransformMatrix(glm::mat4 &transformMatrix, co
 	transformMatrix = translationMatrix * rotationMatrix;
 }
 
-static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::quat &q, const glm::mat3 &iitBody,
-										   const glm::mat4 &rotmat)
+static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::mat3 &iitBody, const glm::mat4 &rotmat)
 {
 	glm::mat3 rotationMatrix = glm::mat3(rotmat);
 
@@ -40,6 +39,7 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 
 	canSleep = bd->canSleep;
 	isAwake = bd->isAwake;
+	acceleration = glm::vec3(0.0f);
 }
 
 // Update acceleration by Adding force to Body
@@ -61,8 +61,11 @@ void Rigidbody::integrate(float duration)
 	// angularDamping
 
 	// set position
-	position += (linearVelocity * duration);
-	orientation += (angularVelocity * duration);
+	xf.position += (linearVelocity * duration);
+	// set orientation
+	glm::quat angularVelocityQuat = glm::quat(0.0f, angularVelocity * duration); // 각속도를 쿼터니언으로 변환
+	xf.orientation += 0.5f * angularVelocityQuat * xf.orientation;				 // 쿼터니언 미분 공식
+	xf.orientation = glm::normalize(xf.orientation);							 // 정규화하여 안정성 유지
 
 	calculateDerivedData();
 	clearAccumulators();
@@ -75,7 +78,7 @@ void Rigidbody::calculateDerivedData()
 	glm::quat q = glm::normalize(xf.orientation);
 
 	_calculateTransformMatrix(transformMatrix, xf.position, q);
-	_transformInertiaTensor(inverseInertiaTensorWorld, q, inverseInertiaTensor, transformMatrix);
+	_transformInertiaTensor(inverseInertiaTensorWorld, inverseInertiaTensor, transformMatrix);
 }
 
 void Rigidbody::addForce(const glm::vec3 &force)
@@ -86,7 +89,7 @@ void Rigidbody::addForce(const glm::vec3 &force)
 void Rigidbody::addForceAtPoint(const glm::vec3 &force, const glm::vec3 &point)
 {
 	glm::vec3 pt = point;
-	pt -= position;
+	pt -= xf.position;
 
 	forceAccum += force;
 	torqueAccum += glm::cross(pt, force);
@@ -95,7 +98,7 @@ void Rigidbody::addForceAtPoint(const glm::vec3 &force, const glm::vec3 &point)
 void Rigidbody::addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &point)
 {
 	glm::vec3 pt = getPointInWorldSpace(point);
-	addForceAtPoint(pt);
+	addForceAtPoint(force, pt);
 }
 
 void Rigidbody::addTorque(const glm::vec3 &torque)
@@ -115,26 +118,49 @@ void Rigidbody::clearAccumulators()
 	torqueAccum.z = 0;
 }
 
-glm::vec3 Rigidbody::getPointInWorldSpace(const glm::vec3 &point)
+glm::vec3 Rigidbody::getPointInWorldSpace(const glm::vec3 &point) const
 {
-	return (transformMatrix * point);
+	glm::vec4 ret = transformMatrix * glm::vec4(point, 1.0f);
+	return glm::vec3(ret);
 }
 
-void Rigidbody::createFixture(const std::unique_ptr<Shape> &shape)
+const Transform &Rigidbody::getTransform() const
 {
+	return xf;
+}
+
+void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
+{
+	// 추후 예외처리
+	if (mass == 0)
+		return;
+	inverseMass = 1 / mass;
+
+	// 역행렬 존재 가능한지 예외처리
+	inverseInertiaTensor = inertiaTensor;
+	inverseInertiaTensor = glm::inverse(inverseInertiaTensor);
+}
+
+void Rigidbody::createFixture(Shape *shape)
+{
+	std::cout << "Rigidbody::Create Fixture(Shape)\n";
 	FixtureDef fd;
 	fd.shape = shape;
 
 	createFixture(&fd);
+	std::cout << "Rigidbody::Create Fixture(Shape) end\n";
 }
 
 void Rigidbody::createFixture(const FixtureDef *fd)
 {
-	std::unique_ptr<Fixture> fixture = new Fixture();
+	std::cout << "Rigidbody::Create Fixture(FixtureDef)\n";
 
-	fixture->Create(&fd);
-	fixture->CreateProxies(&world->contactManager.broadPhase);
+	Fixture *fixture = new Fixture();
+
+	fixture->Create(fd);
+	// fixture->CreateProxies(&world->contactManager.broadPhase);
 	fixtures.push_back(fixture);
+	std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
 }
 
 } // namespace ale

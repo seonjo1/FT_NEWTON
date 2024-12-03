@@ -1,14 +1,15 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include "BoxShape.h"
-#include "Collision.h"
+#include "physics/BoxShape.h"
+#include "physics/Collision.h"
+#include "physics/SphereShape.h"
 
 namespace ale
 {
-
-class Fixture;
 class World;
+class Fixture;
+struct FixtureDef;
 
 enum class BodyType
 {
@@ -32,7 +33,7 @@ struct BodyDef
 		angularDamping = 0.0f;
 		canSleep = true;
 		isAwake = true;
-		type = e_static;
+		type = BodyType::e_static;
 		gravityScale = 1.0f;
 	}
 
@@ -69,6 +70,7 @@ class Rigidbody
 	// getter function
 	const glm::vec3 &getPosition() const;
 	const glm::vec3 &getOrientation() const;
+	const Transform &getTransform() const;
 	const glm::vec3 &getLinearVelocity() const;
 	const glm::vec3 &getAngularVelocity() const;
 	const glm::vec3 &getAcceleration() const;
@@ -78,8 +80,9 @@ class Rigidbody
 	void setLinearVelocity(const glm::vec3 &linearVelocity);
 	void setAngularVelocity(const glm::vec3 &angularVelocity);
 	void setAcceleration(const glm::vec3 &acceleration);
+	void setMassData(float mass, const glm::mat3 &inertiaTensor);
 
-	void createFixture(const std::unique_ptr<Shape> &shape);
+	void createFixture(Shape *shape);
 	void createFixture(const FixtureDef *fd);
 
   protected:
@@ -96,7 +99,8 @@ class Rigidbody
 	glm::vec3 torqueAccum;
 	glm::vec3 acceleration;
 	glm::vec3 lastFrameAcceleration;
-	std::vector<std::unique_ptr<Fixture>> fixtures;
+	std::vector<Fixture *> fixtures;
+	BodyType type;
 
 	float inverseMass;
 	glm::mat3 inverseInertiaTensor;
