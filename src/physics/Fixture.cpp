@@ -1,5 +1,5 @@
-#include "Fixture.h"
-#include "BroadPhase.h"
+#include "physics/Fixture.h"
+#include "physics/BroadPhase.h"
 
 namespace ale
 {
@@ -14,15 +14,19 @@ Fixture::Fixture()
 
 void Fixture::Create(const FixtureDef *fd)
 {
-	shape = def->shape;
-	density = def->density;
-	friction = def->friction;
-	restitution = def->restitution;
+	std::cout << "Fixture::Create\n";
+	shape = fd->shape;
+	density = fd->density;
+	friction = fd->friction;
+	restitution = fd->restitution;
 
 	int32_t childCount = shape->GetChildCount();
 	proxies.resize(childCount);
+	std::cout << "Fixture::Create - child count: " << childCount << '\n';
 	for (int32_t i = 0; i < childCount; ++i)
 	{
+		if (!proxies[i])
+			proxies[i] = new FixtureProxy();
 		proxies[i]->fixture = nullptr;
 		proxies[i]->proxyId = -1;
 	}
@@ -34,6 +38,7 @@ void Fixture::Destroy()
 
 void Fixture::CreateProxies(BroadPhase *broadPhase)
 {
+	std::cout << "Fixture::Create Proxies\n";
 	for (int32_t i = 0; i < proxies.size(); ++i)
 	{
 		shape->ComputeAABB(&proxies[i]->aabb);
