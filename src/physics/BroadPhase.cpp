@@ -1,4 +1,4 @@
-#include "BroadPhase.h"
+#include "physics/BroadPhase.h"
 
 namespace ale
 {
@@ -35,16 +35,16 @@ void BroadPhase::BufferMove(int32_t proxyId)
 	++moveCount;
 }
 
-const BroadPhase::AABB &GetFatAABB(int32_t proxyId) const
-{
-}
+// const AABB &BroadPhase::GetFatAABB(int32_t proxyId) const
+// {
+// }
 
-bool BroadPhase::TestOverlap(int32_t proxyIdA, int32_t proxyIdB) const
-{
-}
+// bool BroadPhase::TestOverlap(int32_t proxyIdA, int32_t proxyIdB) const
+// {
+// }
 
-void *BroadPhase::GetUserData(int32_t proxyId) const
-{
-}
+// void *BroadPhase::GetUserData(int32_t proxyId) const
+// {
+// }
 
 } // namespace ale
