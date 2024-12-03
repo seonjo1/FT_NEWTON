@@ -1,4 +1,4 @@
-#include "ContactManager.h"
+#include "physics/ContactManager.h"
 
 namespace ale
 {
@@ -6,7 +6,7 @@ ContactManager::ContactManager()
 {
 }
 
-void ContactManager::AddPair(void proxyA, void proxyB)
+void ContactManager::AddPair(int32_t proxyA, int32_t proxyB)
 {
 }
 } // namespace ale

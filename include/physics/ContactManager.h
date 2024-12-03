@@ -10,7 +10,7 @@ class ContactManager
 {
   public:
 	ContactManager();
-	void AddPair(void proxyA, void proxyB);
+	void AddPair(int32_t proxyA, int32_t proxyB);
 
 	BroadPhase broadPhase;
 };
