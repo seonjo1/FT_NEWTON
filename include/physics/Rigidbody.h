@@ -71,6 +71,7 @@ class Rigidbody
 	const glm::vec3 &getPosition() const;
 	const glm::vec3 &getOrientation() const;
 	const Transform &getTransform() const;
+	const glm::mat4 &getTransformMatrix() const;
 	const glm::vec3 &getLinearVelocity() const;
 	const glm::vec3 &getAngularVelocity() const;
 	const glm::vec3 &getAcceleration() const;

@@ -129,6 +129,11 @@ const Transform &Rigidbody::getTransform() const
 	return xf;
 }
 
+const glm::mat4 &Rigidbody::getTransformMatrix() const
+{
+	return transformMatrix;
+}
+
 void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
 {
 	// 추후 예외처리
