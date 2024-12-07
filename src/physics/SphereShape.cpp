@@ -28,8 +28,8 @@ void SphereShape::ComputeAABB(AABB *aabb) const
 	std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
 	std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
 
-	aabb->upperBound = upper;
-	aabb->lowerBound = lower;
+	aabb->upperBound = upper + glm::vec3(0.1f);
+	aabb->lowerBound = lower - glm::vec3(0.1f);
 }
 void SphereShape::ComputeMass(MassData *massData, float density) const
 {
