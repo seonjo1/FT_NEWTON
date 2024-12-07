@@ -178,7 +178,7 @@ void Rigidbody::createFixture(const FixtureDef *fd)
 
 	Fixture *fixture = new Fixture();
 
-	fixture->Create(fd);
+	fixture->Create(this, fd);
 	fixture->CreateProxies(&world->contactManager.broadPhase);
 	fixtures.push_back(fixture);
 	std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
