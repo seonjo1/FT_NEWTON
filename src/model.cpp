@@ -8,16 +8,16 @@ std::unique_ptr<Model> Model::create(std::string filename, DeviceManager *device
 }
 
 std::unique_ptr<Model> Model::createBox(DeviceManager *deviceManager, VkCommandPool commandPool,
-										std::string diffusePath, std::string specularPath)
+										const ale::Transform &xf, std::string diffusePath, std::string specularPath)
 {
 	std::unique_ptr<Model> box(new Model());
-	box->createBoxMesh(deviceManager, commandPool, diffusePath, specularPath);
+	box->createBoxMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
 
 	return box;
 }
 
 void Model::createBoxMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
-						  std::string specularPath)
+						  std::string specularPath, const ale::Transform &xf)
 {
 	shape = new ale::BoxShape();
 	ale::BoxShape *boxShape = dynamic_cast<ale::BoxShape *>(shape);
@@ -26,21 +26,21 @@ void Model::createBoxMesh(DeviceManager *deviceManager, VkCommandPool commandPoo
 	{
 		size = 1;
 		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
-		meshes.push_back(Mesh::createBox(deviceManager, commandPool, boxShape));
+		meshes.push_back(Mesh::createBox(deviceManager, commandPool, boxShape, xf));
 		meshes[0]->setMaterial(materials[0].get());
 	}
 }
 
 std::unique_ptr<Model> Model::createSphere(DeviceManager *deviceManager, VkCommandPool commandPool,
-										   std::string diffusePath, std::string specularPath)
+										   const ale::Transform &xf, std::string diffusePath, std::string specularPath)
 {
 	std::unique_ptr<Model> sphere(new Model());
-	sphere->createSphereMesh(deviceManager, commandPool, diffusePath, specularPath);
+	sphere->createSphereMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
 	return sphere;
 }
 
 void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
-							 std::string specularPath)
+							 std::string specularPath, const ale::Transform &xf)
 {
 	shape = new ale::SphereShape();
 	ale::SphereShape *sphereShape = dynamic_cast<ale::SphereShape *>(shape);
@@ -49,7 +49,7 @@ void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool command
 	{
 		size = 1;
 		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
-		meshes.push_back(Mesh::createSphere(deviceManager, commandPool, sphereShape));
+		meshes.push_back(Mesh::createSphere(deviceManager, commandPool, sphereShape, xf));
 		meshes[0]->setMaterial(materials[0].get());
 	}
 }
@@ -174,14 +174,4 @@ uint32_t Model::getSize()
 ale::Shape *Model::getShape() const
 {
 	return shape;
-}
-
-ale::Rigidbody *Model::getBody() const
-{
-	return body;
-}
-
-void Model::setBody(ale::Rigidbody *body)
-{
-	this->body = body;
 }
