@@ -229,6 +229,21 @@ void App::createModels()
 	models.push_back(
 		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf2, "models/container.png"));
 	transforms.push_back(xf2);
+
+	ale::Transform xf3(glm::vec3(3.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf3, "models/container.png"));
+	transforms.push_back(xf3);
+
+	ale::Transform xf4(glm::vec3(3.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf4, "models/container.png"));
+	transforms.push_back(xf4);
+
+	ale::Transform xf5(glm::vec3(4.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf5, "models/container.png"));
+	transforms.push_back(xf5);
 }
 
 void App::createWorld()
@@ -240,6 +255,7 @@ void App::createWorld()
 	{
 		world->createBody(models[i], static_cast<int32_t>(i));
 	}
+	std::cout << "App::Create World end\n";
 }
 
 bool App::tryPrepareImage(uint32_t *imageIndex)
