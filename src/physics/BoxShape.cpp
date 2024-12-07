@@ -19,8 +19,11 @@ int32_t BoxShape::GetChildCount() const
 void BoxShape::ComputeAABB(AABB *aabb) const
 {
 	// get min, max vertex
-	glm::vec3 upper = *std::prev(vertices.end());
-	glm::vec3 lower = *vertices.begin();
+	glm::vec3 upper = *std::prev(vertices.end()) + center;
+	glm::vec3 lower = *vertices.begin() + center;
+
+	std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
+	std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
 
 	aabb->upperBound = upper;
 	aabb->lowerBound = lower;
