@@ -11,6 +11,7 @@ BroadPhase::BroadPhase()
 
 int32_t BroadPhase::CreateProxy(const AABB &aabb, void *userData)
 {
+	std::cout << "BroadPhase::CreateProxy\n";
 	int32_t proxyId = tree.CreateProxy(aabb, userData);
 	BufferMove(proxyId);
 	return proxyId;
@@ -33,6 +34,19 @@ void BroadPhase::BufferMove(int32_t proxyId)
 	}
 	moveBuffer[moveCount] = proxyId;
 	++moveCount;
+}
+
+bool BroadPhase::queryCallback(int32_t proxyId)
+{
+	// std::cout << "BroadPhase::queryCallback\n";
+	if (proxyId == queryProxyId)
+	{
+		return true;
+	}
+
+	proxySet.insert({std::min(proxyId, queryProxyId), std::max(proxyId, queryProxyId)});
+	std::cout << "proxyset insert: " << proxyId << ", " << queryProxyId << '\n';
+	return true;
 }
 
 // const AABB &BroadPhase::GetFatAABB(int32_t proxyId) const

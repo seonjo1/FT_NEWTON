@@ -12,6 +12,11 @@ class DynamicTree;
 class BroadPhase
 {
   public:
+	enum
+	{
+		NULL_PROXY = -1
+	};
+
 	BroadPhase();
 
 	// AABB에 해당하는 proxy 생성 - DynamicTree의 nodeId를 반환한다
@@ -41,6 +46,9 @@ class BroadPhase
 	template <typename T> void Query(T *callback, const AABB &aabb) const;
 
   private:
+	friend class DynamicTree;
+	bool queryCallback(int32_t proxyId);
+
 	// Dynamic tree
 	DynamicTree tree;
 	// proxyA, proxyB pair set
@@ -49,6 +57,49 @@ class BroadPhase
 	std::vector<int32_t> moveBuffer;
 	int32_t moveCapacity;
 	int32_t moveCount;
+	int32_t queryProxyId;
 };
+
+template <typename T> void BroadPhase::UpdatePairs(T *callback)
+{
+	std::cout << "BroadPhase::UpdatePairs\n";
+	std::cout << "movecount: " << moveCount << '\n';
+	for (int32_t i = 0; i < moveCount; ++i)
+	{
+		queryProxyId = moveBuffer[i];
+		std::cout << "queryProxyId: " << queryProxyId << '\n';
+		if (queryProxyId == NULL_PROXY)
+		{
+			continue;
+		}
+
+		const AABB &fatAABB = tree.GetFatAABB(queryProxyId);
+
+		tree.Query(this, fatAABB);
+	}
+
+	moveCount = 0;
+	moveBuffer.clear();
+	for (auto &it = proxySet.begin(); it != proxySet.end();)
+	{
+		auto primaryPair = it;
+		std::cout << "proxyIdA: " << primaryPair->first << " proxyIdB: " << primaryPair->second << '\n';
+		void *userDataA = tree.GetUserData(primaryPair->first);
+		void *userDataB = tree.GetUserData(primaryPair->second);
+
+		callback->AddPair(userDataA, userDataB);
+		++it;
+		while (it != proxySet.end())
+		{
+			auto pair = it;
+
+			if (pair->first != primaryPair->first || pair->second != primaryPair->second)
+			{
+				break;
+			}
+			++it;
+		}
+	}
+}
 } // namespace ale
 #endif
