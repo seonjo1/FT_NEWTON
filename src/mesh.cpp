@@ -284,7 +284,7 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 	}
 
 	shape->center = xf.position;
-	shape->SetRadius(1.0f);
+	shape->SetRadius(0.5f);
 
 	indices.resize(latiSegmentCount * longiSegmentCount * 6);
 	for (uint32_t i = 0; i < latiSegmentCount; i++)
