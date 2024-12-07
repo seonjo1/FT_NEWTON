@@ -1,4 +1,5 @@
 #include "physics/world.h"
+#include "app.h"
 #include "model.h"
 #include "physics/BoxShape.h"
 #include "physics/Rigidbody.h"
@@ -6,7 +7,7 @@
 
 namespace ale
 {
-World::World(uint32_t size)
+World::World(uint32_t size, App &app) : app(app)
 {
 }
 
@@ -23,15 +24,15 @@ void World::runPhysics()
 {
 	for (Rigidbody *body : rigidbodies)
 	{
-		body->addForce(glm::vec3(0.0f, 0.01f, 0.0f));
 		body->integrate(0.001f);
+		app.setTransformById(body->getTransformId(), body->getTransform());
 		// update Dynamic Tree if Body moved more than fat AABB
 		// update Possible Contact Pairs - BroadPhase
 	}
 	// Process Contacts
 }
 
-void World::createBody(std::unique_ptr<Model> &model)
+void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 {
 	std::cout << "World::Create Body\n";
 	Shape *shape = model->getShape();
@@ -40,17 +41,17 @@ void World::createBody(std::unique_ptr<Model> &model)
 	switch (type)
 	{
 	case Type::e_box:
-		createBox(model);
+		createBox(model, xfId);
 		break;
 	case Type::e_sphere:
-		createSphere(model);
+		createSphere(model, xfId);
 		break;
 	default:
 		break;
 	}
 }
 
-void World::createBox(std::unique_ptr<Model> &model)
+void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 {
 	std::cout << "World::Create Box\n";
 	Shape *s = model->getShape();
@@ -60,19 +61,16 @@ void World::createBox(std::unique_ptr<Model> &model)
 	// set box definition
 	bd.type = BodyType::e_dynamic;
 
-	glm::vec3 upper = *std::prev(shape->vertices.end());
-	glm::vec3 lower = *shape->vertices.begin();
-	glm::vec3 tmp = upper + lower;
-
-	glm::vec3 position = glm::vec3(tmp.x * 0.5, tmp.y * 0.5, tmp.z * 0.5);
-
-	bd.position = position;
+	bd.position = app.getTransformById(xfId).position;
+	bd.xfId = xfId;
 	bd.linearDamping = 0.01f;
 	bd.angularDamping = 0.01f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
+	glm::vec3 upper = *std::prev(shape->vertices.end());
+	glm::vec3 lower = *shape->vertices.begin();
 	glm::vec3 diff = upper - lower;
 	float h = abs(diff.y);
 	float w = abs(diff.x);
@@ -86,12 +84,10 @@ void World::createBox(std::unique_ptr<Model> &model)
 
 	BoxShape *box = shape->clone();
 	body->createFixture(box);
-	// set model->body
-	model->setBody(body);
 	rigidbodies.push_back(body);
 }
 
-void World::createSphere(std::unique_ptr<Model> &model)
+void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 {
 	std::cout << "World::Create Sphere\n";
 	Shape *s = model->getShape();
@@ -100,7 +96,8 @@ void World::createSphere(std::unique_ptr<Model> &model)
 	BodyDef bd;
 	// set sphere definition
 	bd.type = BodyType::e_dynamic;
-	bd.position = shape->center;
+	bd.position = app.getTransformById(xfId).position;
+	bd.xfId = xfId;
 	bd.linearDamping = 0.01f;
 	bd.angularDamping = 0.01f;
 
@@ -114,8 +111,6 @@ void World::createSphere(std::unique_ptr<Model> &model)
 	SphereShape *sphere = shape->clone();
 	body->createFixture(sphere);
 	rigidbodies.push_back(body);
-	// set model->body
-	model->setBody(body);
-	std::cout << "World:: Create Sphenre end\n";
+	std::cout << "World:: Create Sphere end\n";
 }
 } // namespace ale
