@@ -220,17 +220,25 @@ void App::createModels()
 	// models.push_back(Model::create("models/backpack/backpack.obj", deviceManager.get(),
 	// commandManager->getCommandPool())); models.push_back(Model::createBox(deviceManager.get(),
 	// commandManager->getCommandPool(), "models/container.png", "models/container_specular.png"));
-	models.push_back(Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), "models/sphere.png"));
+	ale::Transform xf1(glm::vec3(0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), xf1, "models/sphere.png"));
+	transforms.push_back(xf1);
+
+	ale::Transform xf2(glm::vec3(2.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf2, "models/container.png"));
+	transforms.push_back(xf2);
 }
 
 void App::createWorld()
 {
-	world = new ale::World(static_cast<uint32_t>(models.size()));
+	world = new ale::World(static_cast<uint32_t>(models.size()), *this);
 
 	std::cout << "App::Create World\n";
-	for (std::unique_ptr<Model> &model : models)
+	for (size_t i = 0; i < models.size(); ++i)
 	{
-		world->createBody(model);
+		world->createBody(models[i], static_cast<int32_t>(i));
 	}
 }
 
@@ -281,19 +289,27 @@ void App::updateUniformBuffer()
 	ubo.proj[1][1] *= -1;
 
 	// Uniform buffer 업데이트
-	for (std::unique_ptr<Model> &model : models)
+	// for (std::unique_ptr<Model> &model : models)
+	// {
+	// 	// glm::mat4 transform = glm::mat4(1.0f);
+	// 	// glm::quat orientation = model->getBody()->getTransform().orientation;
+	// 	// glm::vec3 position = model->getBody()->getTransform().position;
+
+	// 	// glm::mat3 rotationMatrix = glm::toMat3(orientation);
+
+	// 	// transform = glm::mat4(rotationMatrix);
+
+	// 	// transform[3] = glm::vec4(position, 1.0f);
+	// 	ubo.model = calculateTransformMatrix();
+	// 	model->updateUniformBuffer(ubo, currentFrame);
+	// }
+
+	for (size_t i = 0; i < models.size(); ++i)
 	{
-		// glm::mat4 transform = glm::mat4(1.0f);
-		// glm::quat orientation = model->getBody()->getTransform().orientation;
-		// glm::vec3 position = model->getBody()->getTransform().position;
-
-		// glm::mat3 rotationMatrix = glm::toMat3(orientation);
-
-		// transform = glm::mat4(rotationMatrix);
-
-		// transform[3] = glm::vec4(position, 1.0f);
-		ubo.model = model->getBody()->getTransformMatrix();
-		model->updateUniformBuffer(ubo, currentFrame);
+		glm::mat4 transform;
+		calculateTransformMatrix(static_cast<int32_t>(i), transform);
+		ubo.model = transform;
+		models[i]->updateUniformBuffer(ubo, currentFrame);
 	}
 }
 
@@ -455,4 +471,26 @@ void App::submitPresentationCommandBuffer(uint32_t imageIndex)
 		// 진짜 오류 gg
 		throw std::runtime_error("failed to present swap chain image!");
 	}
+}
+
+const ale::Transform &App::getTransformById(int32_t xfId) const
+{
+	// check xfId range
+	return transforms[xfId];
+}
+
+void App::setTransformById(int32_t xfId, const ale::Transform &xf)
+{
+	// check xfId range
+	transforms[xfId] = xf;
+}
+
+void App::calculateTransformMatrix(int32_t xfId, glm::mat4 &transformMatrix)
+{
+	ale::Transform xf = transforms[xfId];
+
+	glm::mat4 rotationMatrix = glm::toMat4(xf.orientation);
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), xf.position);
+
+	transformMatrix = translationMatrix * rotationMatrix;
 }

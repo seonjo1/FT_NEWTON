@@ -18,6 +18,11 @@ class App
 	App() = default;
 	~App() = default;
 
+  public:
+	const ale::Transform &getTransformById(int32_t xfId) const;
+	void setTransformById(int32_t xfId, const ale::Transform &xf);
+	void calculateTransformMatrix(int32_t xfId, glm::mat4 &transformMatrix);
+
   private:
 	void initWindow();
 	void initVulkan();
@@ -58,6 +63,7 @@ class App
 	std::unique_ptr<Renderer> renderer;
 
 	std::vector<std::unique_ptr<Model>> models;
+	std::vector<ale::Transform> transforms;
 
 	Camera camera;
 	bool cameraControl{false};
