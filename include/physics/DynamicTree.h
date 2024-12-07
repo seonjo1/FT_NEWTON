@@ -3,6 +3,7 @@
 
 #include "Collision.h"
 #include "common.h"
+#include <stack>
 
 #define nullNode (-1)
 
@@ -77,6 +78,44 @@ class DynamicTree
 	int32_t nodeCapacity;
 	int32_t nodeCount;
 };
+
+template <typename T> inline void DynamicTree::Query(T *callback, const AABB &aabb) const
+{
+	// std::cout << "DynamicTree::Query\n";
+	std::stack<int32_t> stack;
+	stack.push(root);
+
+	while (!stack.empty())
+	{
+		int32_t nodeId = stack.top();
+		stack.pop();
+		std::cout << "nodeId: " << nodeId << '\n';
+		if (nodeId == nullNode)
+		{
+			continue;
+		}
+
+		const TreeNode node = nodes[nodeId];
+		if (testOverlap(node.aabb, aabb))
+		{
+			if (node.IsLeaf())
+			{
+				bool proceed = callback->queryCallback(nodeId);
+				if (proceed == false)
+				{
+					return;
+				}
+			}
+			else
+			{
+				std::cout << "stack push: " << node.child1 << '\n';
+				stack.push(node.child1);
+				std::cout << "stack push: " << node.child2 << '\n';
+				stack.push(node.child2);
+			}
+		}
+	}
+}
 } // namespace ale
 
 #endif
