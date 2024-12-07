@@ -15,8 +15,8 @@ class SphereShape : public Shape
 	void ComputeAABB(AABB *aabb) const;
 	void ComputeMass(MassData *massData, float density) const;
 	void SetCenter(const glm::vec3 &center);
+	void SetRadius(float radius);
 
-	glm::vec3 center;
 	float radius;
 };
 } // namespace ale
