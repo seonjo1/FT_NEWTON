@@ -1,5 +1,6 @@
 #include "physics/Fixture.h"
 #include "physics/BroadPhase.h"
+#include "physics/Rigidbody.h"
 
 namespace ale
 {
@@ -12,13 +13,14 @@ Fixture::Fixture()
 	restitution = 0.0f;
 }
 
-void Fixture::Create(const FixtureDef *fd)
+void Fixture::Create(Rigidbody *body, const FixtureDef *fd)
 {
 	std::cout << "Fixture::Create\n";
 	shape = fd->shape;
 	density = fd->density;
 	friction = fd->friction;
 	restitution = fd->restitution;
+	this->body = body;
 
 	int32_t childCount = shape->GetChildCount();
 	proxies.resize(childCount);
@@ -50,6 +52,11 @@ void Fixture::CreateProxies(BroadPhase *broadPhase)
 
 void Fixture::DestroyProxies(BroadPhase *broadPhase)
 {
+}
+
+Rigidbody *Fixture::getBody() const
+{
+	return body;
 }
 
 } // namespace ale

@@ -1,8 +1,8 @@
 #ifndef FIXTURE_H
 #define FIXTURE_H
 
-#include "Rigidbody.h"
 #include "common.h"
+#include "physics/Rigidbody.h"
 
 namespace ale
 {
@@ -39,11 +39,13 @@ class Fixture
 {
   public:
 	Fixture();
-	void Create(const FixtureDef *fd);
+	void Create(Rigidbody *body, const FixtureDef *fd);
 	void Destroy();
 
 	void CreateProxies(BroadPhase *broadPhase);
 	void DestroyProxies(BroadPhase *broadPhase);
+
+	Rigidbody *getBody() const;
 
   protected:
 	Rigidbody *body;
