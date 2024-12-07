@@ -1,10 +1,10 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "Physics/BoxShape.h"
-#include "Physics/SphereShape.h"
 #include "buffer.h"
 #include "image.h"
+#include "physics/BoxShape.h"
+#include "physics/SphereShape.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -23,9 +23,9 @@ class Mesh
 	static std::unique_ptr<Mesh> create(DeviceManager *deviceManager, VkCommandPool commandPool,
 										const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
 	static std::unique_ptr<Mesh> createBox(DeviceManager *deviceManager, VkCommandPool commandPool,
-										   ale::BoxShape *shape);
+										   ale::BoxShape *shape, const ale::Transform &xf);
 	static std::unique_ptr<Mesh> createSphere(DeviceManager *deviceManager, VkCommandPool commandPool,
-											  ale::SphereShape *shape);
+											  ale::SphereShape *shape, const ale::Transform &xf);
 
 	void setMaterial(Material *material);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,

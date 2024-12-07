@@ -207,8 +207,10 @@ void Material::clear()
 	specular->clear();
 }
 
-std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPool commandPool, ale::BoxShape *shape)
+std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPool commandPool, ale::BoxShape *shape,
+									  const ale::Transform &xf)
 {
+	// 인자로 받은 transform에 따라 vertex 다르게 생성해야 함
 	std::vector<Vertex> vertices = {
 		Vertex{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
 		Vertex{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
@@ -241,6 +243,7 @@ std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPoo
 		Vertex{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 	};
 
+	shape->center = xf.position;
 	shape->SetVertices(vertices);
 
 	std::vector<uint32_t> indices = {
@@ -252,7 +255,7 @@ std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPoo
 }
 
 std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommandPool commandPool,
-										 ale::SphereShape *shape)
+										 ale::SphereShape *shape, const ale::Transform &xf)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -261,6 +264,7 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 
 	uint32_t circleVertCount = longiSegmentCount + 1;
 	vertices.resize((latiSegmentCount + 1) * circleVertCount);
+	// vertex 위치 수정 필요
 	for (uint32_t i = 0; i <= latiSegmentCount; i++)
 	{
 		float v = (float)i / (float)latiSegmentCount;
@@ -278,8 +282,9 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 			vertices[i * circleVertCount + j] = Vertex{point * 0.5f, point, glm::vec2(u, v)};
 		}
 	}
-	// where is center value?
-	shape->SetCenter(glm::vec3(0.0));
+
+	shape->center = xf.position;
+	shape->SetRadius(1.0f);
 
 	indices.resize(latiSegmentCount * longiSegmentCount * 6);
 	for (uint32_t i = 0; i < latiSegmentCount; i++)
