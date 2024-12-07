@@ -34,6 +34,7 @@ class Shape
 		return type;
 	}
 
+	glm::vec3 center;
 	Type type;
 };
 
