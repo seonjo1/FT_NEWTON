@@ -62,5 +62,19 @@ struct Transform
 	glm::vec3 position;
 	glm::quat orientation;
 };
+
+inline bool testOverlap(const AABB &a, const AABB &b)
+{
+	glm::vec3 d1, d2;
+
+	d1 = b.lowerBound - a.upperBound;
+	d2 = a.lowerBound - b.upperBound;
+
+	if (d1.x > 0 || d1.y > 0 || d1.z > 0)
+		return false;
+	if (d2.x > 0 || d2.y > 0 || d2.z > 0)
+		return false;
+	return true;
+}
 } // namespace ale
 #endif
