@@ -26,6 +26,7 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {
 	this->world = world;
 	type = bd->type;
+	xfId = bd->xfId;
 
 	// Transform struct needed
 	xf.Set(bd->position, bd->angle);
@@ -129,9 +130,24 @@ const Transform &Rigidbody::getTransform() const
 	return xf;
 }
 
+const glm::vec3 &Rigidbody::getPosition() const
+{
+	return xf.position;
+}
+
 const glm::mat4 &Rigidbody::getTransformMatrix() const
 {
 	return transformMatrix;
+}
+
+int32_t Rigidbody::getTransformId() const
+{
+	return xfId;
+}
+
+void Rigidbody::setPosition(const glm::vec3 &position)
+{
+	this->xf.position = position;
 }
 
 void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
@@ -163,7 +179,7 @@ void Rigidbody::createFixture(const FixtureDef *fd)
 	Fixture *fixture = new Fixture();
 
 	fixture->Create(fd);
-	// fixture->CreateProxies(&world->contactManager.broadPhase);
+	fixture->CreateProxies(&world->contactManager.broadPhase);
 	fixtures.push_back(fixture);
 	std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
 }

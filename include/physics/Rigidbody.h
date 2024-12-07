@@ -48,6 +48,7 @@ struct BodyDef
 	bool isAwake;
 	// void *userData;
 	float gravityScale;
+	int32_t xfId;
 };
 
 class Rigidbody
@@ -75,6 +76,7 @@ class Rigidbody
 	const glm::vec3 &getLinearVelocity() const;
 	const glm::vec3 &getAngularVelocity() const;
 	const glm::vec3 &getAcceleration() const;
+	int32_t getTransformId() const;
 
 	void setPosition(const glm::vec3 &position);
 	void setOrientation(const glm::quat &orientation);
@@ -108,6 +110,7 @@ class Rigidbody
 	float linearDamping;
 	float angularDamping;
 	float gravityScale;
+	int32_t xfId;
 
   private:
 };
