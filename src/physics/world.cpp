@@ -26,9 +26,10 @@ void World::runPhysics()
 	{
 		body->integrate(0.001f);
 		app.setTransformById(body->getTransformId(), body->getTransform());
-		// update Dynamic Tree if Body moved more than fat AABB
-		// update Possible Contact Pairs - BroadPhase
 	}
+	// update Dynamic Tree if Body moved more than fat AABB
+	// update Possible Contact Pairs - BroadPhase
+	contactManager.findNewContacts();
 	// Process Contacts
 }
 
