@@ -1,7 +1,6 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include "Contact.h"
 #include "physics/BoxShape.h"
 #include "physics/Collision.h"
 #include "physics/SphereShape.h"
@@ -11,6 +10,7 @@ namespace ale
 class World;
 class Fixture;
 struct FixtureDef;
+struct ContactLink;
 
 enum class BodyType
 {
@@ -50,6 +50,11 @@ struct BodyDef
 	// void *userData;
 	float gravityScale;
 	int32_t xfId;
+};
+
+enum class EBodyFlag
+{
+	ISLAND,
 };
 
 class Rigidbody
