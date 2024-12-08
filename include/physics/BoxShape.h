@@ -30,6 +30,7 @@ class BoxShape : public Shape
 
 	// Vertex Info needed
 	std::set<glm::vec3, Vec3Comparator> vertices;
+	glm::vec3 halfSize;
 };
 } // namespace ale
 
