@@ -38,6 +38,14 @@ struct AABB
 
 	bool Contains(const AABB &aabb) const
 	{
+		bool result = true;
+
+		result = result && lowerBound.x <= aabb.lowerBound.x;
+		result = result && lowerBound.y <= aabb.lowerBound.y;
+		result = result && aabb.upperBound.x <= upperBound.x;
+		result = result && aabb.upperBound.y <= upperBound.y;
+
+		return result;
 	}
 
 	glm::vec3 lowerBound;
@@ -61,6 +69,13 @@ struct Transform
 
 	glm::vec3 position;
 	glm::quat orientation;
+};
+
+struct Sweep
+{
+	glm::vec3 p;
+	glm::quat q;
+	float alpha;
 };
 
 inline bool testOverlap(const AABB &a, const AABB &b)
