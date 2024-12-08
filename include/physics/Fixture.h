@@ -45,6 +45,8 @@ class Fixture
 	void CreateProxies(BroadPhase *broadPhase);
 	void DestroyProxies(BroadPhase *broadPhase);
 
+	void synchronize(BroadPhase *broadPhase, const Transform &xf1, const Transform &xf2);
+
 	Rigidbody *getBody() const;
 
   protected:
