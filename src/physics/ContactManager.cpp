@@ -28,7 +28,7 @@ bool ContactManager::isSameContact(ContactLink *link, Fixture *fixtureA, Fixture
 	return false;
 }
 
-void ContactManager::AddPair(void *proxyUserDataA, void *proxyUserDataB)
+void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 {
 	FixtureProxy *proxyA = static_cast<FixtureProxy *>(proxyUserDataA);
 	FixtureProxy *proxyB = static_cast<FixtureProxy *>(proxyUserDataB);
