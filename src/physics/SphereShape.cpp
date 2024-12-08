@@ -19,7 +19,7 @@ int32_t SphereShape::GetChildCount() const
 	return 1;
 }
 
-void SphereShape::ComputeAABB(AABB *aabb) const
+void SphereShape::ComputeAABB(AABB *aabb, const Transform &xf) const
 {
 	// get min, max vertex
 	glm::vec3 upper = center + glm::vec3(radius);
