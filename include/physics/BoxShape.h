@@ -23,13 +23,13 @@ class BoxShape : public Shape
 	BoxShape();
 	virtual ~BoxShape() = default;
 	BoxShape *clone() const;
-	int32_t GetChildCount() const;
-	void ComputeAABB(AABB *aabb, const Transform &xf) const;
-	void ComputeMass(MassData *massData, float density) const;
-	void SetVertices(const std::vector<Vertex> &v);
+	int32_t getChildCount() const;
+	void computeAABB(AABB *aabb, const Transform &xf) const;
+	void computeMass(MassData *massData, float density) const;
+	void setVertices(const std::vector<Vertex> &v);
 
 	// Vertex Info needed
-	std::set<glm::vec3, Vec3Comparator> vertices;
+	std::set<glm::vec3, Vec3Comparator> m_vertices;
 };
 } // namespace ale
 

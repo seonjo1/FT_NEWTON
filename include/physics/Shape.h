@@ -10,8 +10,8 @@ namespace ale
 {
 enum class Type
 {
-	e_sphere = 0,
-	e_box = 1
+	SPHERE = 0,
+	BOX = 1
 };
 
 struct MassData
@@ -27,16 +27,16 @@ class Shape
   public:
 	virtual ~Shape() = default;
 	virtual Shape *clone() const = 0;
-	virtual int32_t GetChildCount() const = 0;
-	virtual void ComputeAABB(AABB *aabb, const Transform &xf) const = 0;
-	virtual void ComputeMass(MassData *massData, float density) const = 0;
+	virtual int32_t getChildCount() const = 0;
+	virtual void computeAABB(AABB *aabb, const Transform &xf) const = 0;
+	virtual void computeMass(MassData *massData, float density) const = 0;
 	Type getType() const
 	{
-		return type;
+		return m_type;
 	}
 
-	glm::vec3 center;
-	Type type;
+	glm::vec3 m_center;
+	Type m_type;
 };
 
 } // namespace ale

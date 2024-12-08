@@ -4,7 +4,7 @@ namespace ale
 {
 SphereShape::SphereShape()
 {
-	type = Type::e_sphere;
+	m_type = Type::SPHERE;
 }
 
 SphereShape *SphereShape::clone() const
@@ -14,16 +14,16 @@ SphereShape *SphereShape::clone() const
 	return clone;
 }
 
-int32_t SphereShape::GetChildCount() const
+int32_t SphereShape::getChildCount() const
 {
 	return 1;
 }
 
-void SphereShape::ComputeAABB(AABB *aabb, const Transform &xf) const
+void SphereShape::computeAABB(AABB *aabb, const Transform &xf) const
 {
 	// get min, max vertex
-	glm::vec3 upper = center + glm::vec3(radius);
-	glm::vec3 lower = center - glm::vec3(radius);
+	glm::vec3 upper = m_center + glm::vec3(m_radius);
+	glm::vec3 lower = m_center - glm::vec3(m_radius);
 
 	std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
 	std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
@@ -31,18 +31,18 @@ void SphereShape::ComputeAABB(AABB *aabb, const Transform &xf) const
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
 }
-void SphereShape::ComputeMass(MassData *massData, float density) const
+void SphereShape::computeMass(MassData *massData, float density) const
 {
 }
 
-void SphereShape::SetCenter(const glm::vec3 &center)
+void SphereShape::setCenter(const glm::vec3 &center)
 {
-	this->center = center;
+	m_center = center;
 }
 
-void SphereShape::SetRadius(float radius)
+void SphereShape::setRadius(float radius)
 {
-	this->radius = radius;
+	m_radius = radius;
 }
 
 } // namespace ale

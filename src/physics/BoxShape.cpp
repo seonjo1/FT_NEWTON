@@ -4,7 +4,7 @@ namespace ale
 {
 BoxShape::BoxShape()
 {
-	type = Type::e_box;
+	m_type = Type::BOX;
 }
 BoxShape *BoxShape::clone() const
 {
@@ -12,14 +12,14 @@ BoxShape *BoxShape::clone() const
 	*clone = *this;
 	return clone;
 }
-int32_t BoxShape::GetChildCount() const
+int32_t BoxShape::getChildCount() const
 {
 	return 1;
 }
-void BoxShape::ComputeAABB(AABB *aabb, const Transform &xf) const
+void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 {
 	// update vertices
-	std::vector<glm::vec3> vertexVector(vertices.begin(), vertices.end());
+	std::vector<glm::vec3> vertexVector(m_vertices.begin(), m_vertices.end());
 	glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(xf.orientation));
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), xf.position);
 	glm::mat4 transformMatrix = translationMatrix * rotationMatrix;
@@ -42,15 +42,15 @@ void BoxShape::ComputeAABB(AABB *aabb, const Transform &xf) const
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
 }
-void BoxShape::ComputeMass(MassData *massData, float density) const
+void BoxShape::computeMass(MassData *massData, float density) const
 {
 }
 
-void BoxShape::SetVertices(const std::vector<Vertex> &vertices)
+void BoxShape::setVertices(const std::vector<Vertex> &vertices)
 {
 	for (const Vertex &vertex : vertices)
 	{
-		this->vertices.insert(vertex.position);
+		m_vertices.insert(vertex.position);
 	}
 }
 

@@ -243,8 +243,8 @@ std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPoo
 		Vertex{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 	};
 
-	shape->center = xf.position;
-	shape->SetVertices(vertices);
+	shape->m_center = xf.position;
+	shape->setVertices(vertices);
 
 	std::vector<uint32_t> indices = {
 		0,	2,	1,	2,	0,	3,	4,	5,	6,	6,	7,	4,	8,	9,	10, 10, 11, 8,
@@ -283,8 +283,8 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 		}
 	}
 
-	shape->center = xf.position;
-	shape->SetRadius(0.5f);
+	shape->m_center = xf.position;
+	shape->setRadius(0.5f);
 
 	indices.resize(latiSegmentCount * longiSegmentCount * 6);
 	for (uint32_t i = 0; i < latiSegmentCount; i++)
@@ -341,8 +341,8 @@ std::unique_ptr<Mesh> Mesh::createGround(DeviceManager *deviceManager, VkCommand
 		Vertex{glm::vec3(-100.0f, 0.01f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 	};
 
-	shape->center = xf.position;
-	shape->SetVertices(vertices);
+	shape->m_center = xf.position;
+	shape->setVertices(vertices);
 
 	std::vector<uint32_t> indices = {
 		0,	2,	1,	2,	0,	3,	4,	5,	6,	6,	7,	4,	8,	9,	10, 10, 11, 8,

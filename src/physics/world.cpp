@@ -42,10 +42,10 @@ void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 
 	switch (type)
 	{
-	case Type::e_box:
+	case Type::BOX:
 		createBox(model, xfId);
 		break;
-	case Type::e_sphere:
+	case Type::SPHERE:
 		createSphere(model, xfId);
 		break;
 	default:
@@ -72,8 +72,8 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
-	glm::vec3 upper = *std::prev(shape->vertices.end());
-	glm::vec3 lower = *shape->vertices.begin();
+	glm::vec3 upper = *std::prev(shape->m_vertices.end());
+	glm::vec3 lower = *shape->m_vertices.begin();
 	glm::vec3 diff = upper - lower;
 	float h = abs(diff.y);
 	float w = abs(diff.x);
