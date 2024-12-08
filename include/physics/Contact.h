@@ -20,8 +20,7 @@ struct ContactLink
 enum class EContactFlag
 {
 	ISLAND = 0x0001,
-
-	// e_touchingFlag		= 0x0002,
+	TOUCHING = 0x0002,
 
 	// e_enabledFlag		= 0x0004,
 
@@ -39,11 +38,14 @@ class Contact
 {
   public:
 	Contact *create(Fixture *fixtureA, int32_t indexA, Fixture *fixtureB, int32_t indexB);
-	Fixture* getFixtureA() const;
-	Fixture* getFixtureB() const;
+	void update();
+	virtual void evaluate(Manifold* manifold, const Transform& transformA, const Transform& transformB) = 0;
+
+	Contact *getNext();
+	Fixture *getFixtureA() const;
+	Fixture *getFixtureB() const;
 	int32_t getChildIndexA() const;
 	int32_t getChildIndexB() const;
-
 
   protected:
 	uint32_t m_flags;
