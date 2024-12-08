@@ -24,7 +24,7 @@ class BoxShape : public Shape
 	virtual ~BoxShape() = default;
 	BoxShape *clone() const;
 	int32_t GetChildCount() const;
-	void ComputeAABB(AABB *aabb) const;
+	void ComputeAABB(AABB *aabb, const Transform &xf) const;
 	void ComputeMass(MassData *massData, float density) const;
 	void SetVertices(const std::vector<Vertex> &v);
 
