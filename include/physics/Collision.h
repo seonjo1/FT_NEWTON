@@ -76,5 +76,53 @@ inline bool testOverlap(const AABB &a, const AABB &b)
 		return false;
 	return true;
 }
+
+enum class EManifoldType
+{
+	FACE_A_TO_POINT_B,
+	POINT_A_TO_FACE_B,
+	EDGE_A_TO_FACE_B,
+	FACE_A_TO_EDGE_B,
+	EDGE_A_TO_EDGE_B,
+	FACE_A_TO_FACE_B,
+};
+
+// struct ContactFeature
+// {
+// 	enum Type
+// 	{
+// 		e_vertex = 0,
+// 		e_face = 1
+// 	};
+
+// 	uint8_t indexA;		///< Feature index on shapeA
+// 	uint8_t indexB;		///< Feature index on shapeB
+// 	uint8_t typeA;		///< The feature type on shapeA
+// 	uint8_t typeB;		///< The feature type on shapeB
+// };
+
+union ContactID
+{
+	// ContactFeature cf;
+	uint32_t key;					///< Used to quickly compare contact ids.
+};
+
+struct ManifoldPoint
+{
+	glm::vec2 localPoint;		// 충돌 지점의 위치
+	float normalImpulse;	// 법선 방향 충격량
+	float tangentImpulse;	// 접촉면 충격량
+	ContactID id;			// 충돌 지점의 고유 id
+};
+
+struct Manifold
+{
+	ManifoldPoint points[b2_maxManifoldPoints];	// 접촉점, 충격량, 충돌 지점의 고유 id
+	glm::vec2 localNormal;						// Local 좌표계에서의 법선 벡터
+	glm::vec2 localPoint;						// Local 좌표계에서 충돌 면을 특정하기 위한 좌표
+	EManifoldType type;							// 타입
+	int32_t pointCount;							// 접촉점 개수
+};
+
 } // namespace ale
 #endif
