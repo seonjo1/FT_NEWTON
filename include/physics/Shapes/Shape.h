@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+namespace ale
+{
 enum class EShapeType
 {
 	SHPERE = 0,
@@ -12,9 +14,9 @@ enum class EShapeType
 
 class Shape
 {
-public:
+  public:
 	EShapeType m_type;
 	glm::vec3 pos;
 };
-
+} // namespace ale
 #endif
