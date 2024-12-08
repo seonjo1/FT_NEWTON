@@ -15,10 +15,10 @@ void Contact::update()
 	bool wasTouching = (m_flags & EContactFlag::TOUCHING) == EContactFlag::TOUCHING;
 
 	// bodyA, bodyB의 Transform 가져오기
-	Rigidbody* bodyA = m_fixtureA->getBody();
-	Rigidbody* bodyB = m_fixtureB->getBody();
-	const Transform& transformA = bodyA->getTransform();
-	const Transform& transformB = bodyB->getTransform();
+	Rigidbody *bodyA = m_fixtureA->getBody();
+	Rigidbody *bodyB = m_fixtureB->getBody();
+	const Transform &transformA = bodyA->getTransform();
+	const Transform &transformB = bodyB->getTransform();
 
 	// Evaluate
 	// 두 shape의 변환 상태를 적용해 world space에서의 충돌 정보를 계산
@@ -34,14 +34,14 @@ void Contact::update()
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 	for (int32_t i = 0; i < m_manifold.pointCount; ++i)
 	{
-		ManifoldPoint* manifoldPoint = m_manifold.points + i;
+		ManifoldPoint *manifoldPoint = m_manifold.points + i;
 		manifoldPoint->normalImpulse = 0.0f;
 		manifoldPoint->tangentImpulse = 0.0f;
 		uint32_t manifoldId = manifoldPoint->id;
 
 		for (int32_t j = 0; j < oldManifold.pointCount; ++j)
 		{
-			ManifoldPoint* oldManifoldPoint = oldManifold.points + j;
+			ManifoldPoint *oldManifoldPoint = oldManifold.points + j;
 
 			// oldmanifold에 똑같은 manifold가 존재하는 경우 impulse 덮어쓰기
 			if (oldManifoldPoint->id == manifoldId)

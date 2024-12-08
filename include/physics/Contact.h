@@ -39,7 +39,7 @@ class Contact
   public:
 	Contact *create(Fixture *fixtureA, int32_t indexA, Fixture *fixtureB, int32_t indexB);
 	void update();
-	virtual void evaluate(Manifold* manifold, const Transform& transformA, const Transform& transformB) = 0;
+	virtual void evaluate(Manifold *manifold, const Transform &transformA, const Transform &transformB) = 0;
 
 	Contact *getNext();
 	Fixture *getFixtureA() const;
