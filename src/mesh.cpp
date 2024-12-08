@@ -304,3 +304,50 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 
 	return create(deviceManager, commandPool, vertices, indices);
 }
+
+std::unique_ptr<Mesh> Mesh::createGround(DeviceManager *deviceManager, VkCommandPool commandPool, ale::BoxShape *shape,
+										 const ale::Transform &xf)
+{
+	// 인자로 받은 transform에 따라 vertex 다르게 생성해야 함
+	std::vector<Vertex> vertices = {
+		Vertex{glm::vec3(-100.0f, -0.01f, -100.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+		Vertex{glm::vec3(100.0f, -0.01f, -100.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+		Vertex{glm::vec3(100.0f, 0.01f, -100.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+		Vertex{glm::vec3(-100.0f, 0.01f, -100.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+
+		Vertex{glm::vec3(-100.0f, -0.01f, 100.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		Vertex{glm::vec3(100.0f, -0.01f, 100.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		Vertex{glm::vec3(100.0f, 0.01f, 100.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		Vertex{glm::vec3(-100.0f, 0.01f, 100.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+
+		Vertex{glm::vec3(-100.0f, 0.01f, 100.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
+		Vertex{glm::vec3(-100.0f, 0.01f, -100.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
+		Vertex{glm::vec3(-100.0f, -0.01f, -100.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
+		Vertex{glm::vec3(-100.0f, -0.01f, 100.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
+
+		Vertex{glm::vec3(100.0f, 0.01f, 100.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
+		Vertex{glm::vec3(100.0f, 0.01f, -100.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
+		Vertex{glm::vec3(100.0f, -0.01f, -100.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
+		Vertex{glm::vec3(100.0f, -0.01f, 100.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
+
+		Vertex{glm::vec3(-100.0f, -0.01f, -100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
+		Vertex{glm::vec3(100.0f, -0.01f, -100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
+		Vertex{glm::vec3(100.0f, -0.01f, 100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
+		Vertex{glm::vec3(-100.0f, -0.01f, 100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
+
+		Vertex{glm::vec3(-100.0f, 0.01f, -100.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
+		Vertex{glm::vec3(100.0f, 0.01f, -100.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
+		Vertex{glm::vec3(100.0f, 0.01f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
+		Vertex{glm::vec3(-100.0f, 0.01f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
+	};
+
+	shape->center = xf.position;
+	shape->SetVertices(vertices);
+
+	std::vector<uint32_t> indices = {
+		0,	2,	1,	2,	0,	3,	4,	5,	6,	6,	7,	4,	8,	9,	10, 10, 11, 8,
+		12, 14, 13, 14, 12, 15, 16, 17, 18, 18, 19, 16, 20, 22, 21, 22, 20, 23,
+	};
+
+	return create(deviceManager, commandPool, vertices, indices);
+}
