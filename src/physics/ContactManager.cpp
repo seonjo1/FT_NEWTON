@@ -127,4 +127,19 @@ void ContactManager::findNewContacts()
 	// std::cout << "ContactManager::findNewContacts\n";
 	broadPhase.UpdatePairs(this);
 }
+
+void ContactManager::collide()
+{
+	Contact* contact = m_contactList;
+
+	// contactList 순회
+	while (contact)
+	{
+		// 실제 충돌 여부를 검사하고 해당 충돌 정보인 manifold 생성 
+		contact->Update();
+		contact = contact->GetNext();
+	}
+}
+
 } // namespace ale
+
