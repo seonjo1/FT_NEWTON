@@ -149,6 +149,9 @@ void App::initVulkan()
 */
 void App::mainLoop()
 {
+	// // 힘 등록
+	world->registerBodyForce(0, glm::vec3(500.0f, 0.0f, 0.0f));
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
@@ -220,9 +223,13 @@ void App::createModels()
 	// models.push_back(Model::create("models/backpack/backpack.obj", deviceManager.get(),
 	// commandManager->getCommandPool())); models.push_back(Model::createBox(deviceManager.get(),
 	// commandManager->getCommandPool(), "models/container.png", "models/container_specular.png"));
-	ale::Transform xf1(glm::vec3(0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	ale::Transform xf1(glm::vec3(0.0f), glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)));
+	// models.push_back(
+	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), xf1, "models/sphere.png"));
+	// transforms.push_back(xf1);
+
 	models.push_back(
-		Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), xf1, "models/sphere.png"));
+		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf1, "models/container.png"));
 	transforms.push_back(xf1);
 
 	ale::Transform xf2(glm::vec3(2.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
@@ -230,20 +237,20 @@ void App::createModels()
 		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf2, "models/container.png"));
 	transforms.push_back(xf2);
 
-	ale::Transform xf3(glm::vec3(3.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	models.push_back(
-		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf3, "models/container.png"));
-	transforms.push_back(xf3);
+	// ale::Transform xf3(glm::vec3(3.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	// models.push_back(
+	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf3, "models/container.png"));
+	// transforms.push_back(xf3);
 
-	ale::Transform xf4(glm::vec3(3.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	models.push_back(
-		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf4, "models/container.png"));
-	transforms.push_back(xf4);
+	// ale::Transform xf4(glm::vec3(3.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	// models.push_back(
+	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf4, "models/container.png"));
+	// transforms.push_back(xf4);
 
-	ale::Transform xf5(glm::vec3(4.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	models.push_back(
-		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf5, "models/container.png"));
-	transforms.push_back(xf5);
+	// ale::Transform xf5(glm::vec3(4.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	// models.push_back(
+	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), xf5, "models/container.png"));
+	// transforms.push_back(xf5);
 }
 
 void App::createWorld()
@@ -505,7 +512,7 @@ void App::calculateTransformMatrix(int32_t xfId, glm::mat4 &transformMatrix)
 {
 	ale::Transform xf = transforms[xfId];
 
-	glm::mat4 rotationMatrix = glm::toMat4(xf.orientation);
+	glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(xf.orientation));
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), xf.position);
 
 	transformMatrix = translationMatrix * rotationMatrix;

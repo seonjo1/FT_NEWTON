@@ -24,6 +24,7 @@ void World::runPhysics()
 {
 	for (Rigidbody *body : rigidbodies)
 	{
+		body->calculateForceAccum();
 		body->integrate(0.001f);
 		app.setTransformById(body->getTransformId(), body->getTransform());
 	}
@@ -63,6 +64,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.type = BodyType::e_dynamic;
 
 	bd.position = app.getTransformById(xfId).position;
+	bd.orientation = app.getTransformById(xfId).orientation;
 	bd.xfId = xfId;
 	bd.linearDamping = 0.01f;
 	bd.angularDamping = 0.01f;
@@ -98,6 +100,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	// set sphere definition
 	bd.type = BodyType::e_dynamic;
 	bd.position = app.getTransformById(xfId).position;
+	bd.orientation = app.getTransformById(xfId).orientation;
 	bd.xfId = xfId;
 	bd.linearDamping = 0.01f;
 	bd.angularDamping = 0.01f;
@@ -114,4 +117,11 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	rigidbodies.push_back(body);
 	std::cout << "World:: Create Sphere end\n";
 }
+
+void World::registerBodyForce(int32_t idx, const glm::vec3 &force)
+{
+	// check idx
+	rigidbodies[idx]->registerForce(force);
+}
+
 } // namespace ale
