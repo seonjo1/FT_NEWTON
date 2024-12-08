@@ -90,7 +90,7 @@ class Rigidbody
 	void createFixture(const FixtureDef *fd);
 
 	ContactLink *GetContactLinks();
-	bool ShouldCollide(const Body* other) const;
+	bool ShouldCollide(const Body *other) const;
 
   protected:
 	World *world;
