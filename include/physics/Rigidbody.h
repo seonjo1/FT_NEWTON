@@ -1,6 +1,7 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
+#include "Contact.h"
 #include "physics/BoxShape.h"
 #include "physics/Collision.h"
 #include "physics/SphereShape.h"
@@ -88,6 +89,9 @@ class Rigidbody
 	void createFixture(Shape *shape);
 	void createFixture(const FixtureDef *fd);
 
+	ContactLink *GetContactLinks();
+	bool ShouldCollide(const Body* other) const;
+
   protected:
 	World *world;
 	Transform xf;
@@ -111,6 +115,8 @@ class Rigidbody
 	float angularDamping;
 	float gravityScale;
 	int32_t xfId;
+
+	ContactLink *contactLinks;
 
   private:
 };
