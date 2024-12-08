@@ -26,12 +26,12 @@ void World::runPhysics()
 	{
 		body->calculateForceAccum();
 		body->integrate(0.001f);
+		body->synchronizeFixtures();
 		app.setTransformById(body->getTransformId(), body->getTransform());
 	}
-	// update Dynamic Tree if Body moved more than fat AABB
 	// update Possible Contact Pairs - BroadPhase
 	contactManager.findNewContacts();
-	// Process Contacts
+	// Process Contacts - NarrowPhase
 }
 
 void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
