@@ -35,7 +35,7 @@ std::unique_ptr<Model> Model::createSphere(DeviceManager *deviceManager, VkComma
 										   const ale::Transform &xf, std::string diffusePath, std::string specularPath)
 {
 	std::unique_ptr<Model> sphere(new Model());
-	sphere->createGroundMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
+	sphere->createSphereMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
 	return sphere;
 }
 
