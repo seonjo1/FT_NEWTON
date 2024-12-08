@@ -35,8 +35,16 @@ std::unique_ptr<Model> Model::createSphere(DeviceManager *deviceManager, VkComma
 										   const ale::Transform &xf, std::string diffusePath, std::string specularPath)
 {
 	std::unique_ptr<Model> sphere(new Model());
-	sphere->createSphereMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
+	sphere->createGroundMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
 	return sphere;
+}
+
+std::unique_ptr<Model> Model::createGround(DeviceManager *deviceManager, VkCommandPool commandPool,
+										   const ale::Transform &xf, std::string diffusePath, std::string specularPath)
+{
+	std::unique_ptr<Model> ground(new Model());
+	ground->createGroundMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
+	return ground;
 }
 
 void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
@@ -50,6 +58,21 @@ void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool command
 		size = 1;
 		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
 		meshes.push_back(Mesh::createSphere(deviceManager, commandPool, sphereShape, xf));
+		meshes[0]->setMaterial(materials[0].get());
+	}
+}
+
+void Model::createGroundMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
+							 std::string specularPath, const ale::Transform &xf)
+{
+	shape = new ale::BoxShape();
+	ale::BoxShape *groundShape = dynamic_cast<ale::BoxShape *>(shape);
+
+	if (groundShape)
+	{
+		size = 1;
+		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
+		meshes.push_back(Mesh::createGround(deviceManager, commandPool, groundShape, xf));
 		meshes[0]->setMaterial(materials[0].get());
 	}
 }
