@@ -62,8 +62,8 @@ class BroadPhase
 
 template <typename T> void BroadPhase::UpdatePairs(T *callback)
 {
-	std::cout << "BroadPhase::UpdatePairs\n";
-	std::cout << "movecount: " << moveCount << '\n';
+	// std::cout << "BroadPhase::UpdatePairs\n";
+	// std::cout << "movecount: " << moveCount << '\n';
 	for (int32_t i = 0; i < moveCount; ++i)
 	{
 		queryProxyId = moveBuffer[i];
