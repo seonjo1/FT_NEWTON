@@ -23,10 +23,16 @@ void BroadPhase::DestroyProxy(int32_t proxyId)
 
 void BroadPhase::MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement)
 {
+	bool buffer = tree.MoveProxy(proxyId, aabb, displacement);
+	if (buffer)
+	{
+		BufferMove(proxyId);
+	}
 }
 
 void BroadPhase::BufferMove(int32_t proxyId)
 {
+	std::cout << "BroadPhase::BufferMove\n";
 	if (moveCount == moveCapacity)
 	{
 		moveCapacity *= 2;
@@ -34,6 +40,7 @@ void BroadPhase::BufferMove(int32_t proxyId)
 	}
 	moveBuffer[moveCount] = proxyId;
 	++moveCount;
+	std::cout << "BroadPhase::BufferMove end\n";
 }
 
 bool BroadPhase::queryCallback(int32_t proxyId)

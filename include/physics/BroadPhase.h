@@ -79,7 +79,7 @@ template <typename T> void BroadPhase::UpdatePairs(T *callback)
 	}
 
 	moveCount = 0;
-	moveBuffer.clear();
+	// moveBuffer.clear();
 	for (auto &it = proxySet.begin(); it != proxySet.end();)
 	{
 		auto primaryPair = it;
