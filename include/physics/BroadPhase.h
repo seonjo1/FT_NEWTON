@@ -1,8 +1,8 @@
 #ifndef BROADPHASE_H
 #define BROADPHASE_H
 
-#include "DynamicTree.h"
 #include "common.h"
+#include "physics/DynamicTree.h"
 #include <utility>
 
 namespace ale
@@ -20,14 +20,14 @@ class BroadPhase
 	BroadPhase();
 
 	// AABB에 해당하는 proxy 생성 - DynamicTree의 nodeId를 반환한다
-	int32_t CreateProxy(const AABB &aabb, void *userData);
+	int32_t createProxy(const AABB &aabb, void *userData);
 
 	// proxyId에 해당하는 node Destroy
-	void DestroyProxy(int32_t proxyId);
+	void destroyProxy(int32_t proxyId);
 
-	void MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement);
+	void moveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement);
 
-	void BufferMove(int32_t proxyId);
+	void bufferMove(int32_t proxyId);
 
 	// proxyId에 해당하는 FatAABB 반환
 	// const AABB &GetFatAABB(int32_t proxyId) const;
@@ -40,56 +40,50 @@ class BroadPhase
 
 	// moved proxy buffer를 순회하며, 가능성 있는 충돌 쌍 검색
 	// callback을 사용해 ContactManager의 AddPair 호출
-	template <typename T> void UpdatePairs(T *callback);
+	template <typename T> void updatePairs(T *callback);
 
 	// 추후 필요에 따라 수정
-	template <typename T> void Query(T *callback, const AABB &aabb) const;
+	template <typename T> void query(T *callback, const AABB &aabb) const;
 
   private:
 	friend class DynamicTree;
 	bool queryCallback(int32_t proxyId);
 
-	// Dynamic tree
-	DynamicTree tree;
-	// proxyA, proxyB pair set
-	std::set<std::pair<int32_t, int32_t>> proxySet;
-	// moved proxy buffer
-	std::vector<int32_t> moveBuffer;
-	int32_t moveCapacity;
-	int32_t moveCount;
-	int32_t queryProxyId;
+	DynamicTree m_tree;
+	std::set<std::pair<int32_t, int32_t>> m_proxySet;
+	std::vector<int32_t> m_moveBuffer;
+
+	int32_t m_moveCapacity;
+	int32_t m_moveCount;
+	int32_t m_queryProxyId;
 };
 
-template <typename T> void BroadPhase::UpdatePairs(T *callback)
+template <typename T> void BroadPhase::updatePairs(T *callback)
 {
-	// std::cout << "BroadPhase::UpdatePairs\n";
-	// std::cout << "movecount: " << moveCount << '\n';
-	for (int32_t i = 0; i < moveCount; ++i)
+	for (int32_t i = 0; i < m_moveCount; ++i)
 	{
-		queryProxyId = moveBuffer[i];
-		std::cout << "queryProxyId: " << queryProxyId << '\n';
-		if (queryProxyId == NULL_PROXY)
+		m_queryProxyId = m_moveBuffer[i];
+		if (m_queryProxyId == NULL_PROXY)
 		{
 			continue;
 		}
 
-		const AABB &fatAABB = tree.GetFatAABB(queryProxyId);
+		const AABB &fatAABB = m_tree.GetFatAABB(m_queryProxyId);
 
-		tree.Query(this, fatAABB);
+		m_tree.Query(this, fatAABB);
 	}
 
-	moveCount = 0;
-	// moveBuffer.clear();
-	for (auto &it = proxySet.begin(); it != proxySet.end();)
+	m_moveCount = 0;
+	for (auto &it = m_proxySet.begin(); it != m_proxySet.end();)
 	{
 		auto primaryPair = it;
 		std::cout << "proxyIdA: " << primaryPair->first << " proxyIdB: " << primaryPair->second << '\n';
-		void *userDataA = tree.GetUserData(primaryPair->first);
-		void *userDataB = tree.GetUserData(primaryPair->second);
+		void *userDataA = m_tree.GetUserData(primaryPair->first);
+		void *userDataB = m_tree.GetUserData(primaryPair->second);
 
 		callback->AddPair(userDataA, userDataB);
 		++it;
-		while (it != proxySet.end())
+		while (it != m_proxySet.end())
 		{
 			auto pair = it;
 

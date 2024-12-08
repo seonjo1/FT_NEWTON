@@ -4,55 +4,51 @@ namespace ale
 {
 BroadPhase::BroadPhase()
 {
-	moveCount = 0;
-	moveCapacity = 16;
-	moveBuffer.resize(moveCapacity);
+	m_moveCount = 0;
+	m_moveCapacity = 16;
+	m_moveBuffer.resize(m_moveCapacity);
 }
 
-int32_t BroadPhase::CreateProxy(const AABB &aabb, void *userData)
+int32_t BroadPhase::createProxy(const AABB &aabb, void *userData)
 {
-	std::cout << "BroadPhase::CreateProxy\n";
-	int32_t proxyId = tree.CreateProxy(aabb, userData);
-	BufferMove(proxyId);
+	int32_t proxyId = m_tree.CreateProxy(aabb, userData);
+	bufferMove(proxyId);
 	return proxyId;
 }
 
-void BroadPhase::DestroyProxy(int32_t proxyId)
+void BroadPhase::destroyProxy(int32_t proxyId)
 {
 }
 
-void BroadPhase::MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement)
+void BroadPhase::moveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement)
 {
-	bool buffer = tree.MoveProxy(proxyId, aabb, displacement);
+	bool buffer = m_tree.MoveProxy(proxyId, aabb, displacement);
 	if (buffer)
 	{
-		BufferMove(proxyId);
+		bufferMove(proxyId);
 	}
 }
 
-void BroadPhase::BufferMove(int32_t proxyId)
+void BroadPhase::bufferMove(int32_t proxyId)
 {
-	std::cout << "BroadPhase::BufferMove\n";
-	if (moveCount == moveCapacity)
+	if (m_moveCount == m_moveCapacity)
 	{
-		moveCapacity *= 2;
-		moveBuffer.resize(moveCapacity);
+		m_moveCapacity *= 2;
+		m_moveBuffer.resize(m_moveCapacity);
 	}
-	moveBuffer[moveCount] = proxyId;
-	++moveCount;
-	std::cout << "BroadPhase::BufferMove end\n";
+	m_moveBuffer[m_moveCount] = proxyId;
+	++m_moveCount;
 }
 
 bool BroadPhase::queryCallback(int32_t proxyId)
 {
-	// std::cout << "BroadPhase::queryCallback\n";
-	if (proxyId == queryProxyId)
+	if (proxyId == m_queryProxyId)
 	{
 		return true;
 	}
 
-	proxySet.insert({std::min(proxyId, queryProxyId), std::max(proxyId, queryProxyId)});
-	std::cout << "proxyset insert: " << proxyId << ", " << queryProxyId << '\n';
+	m_proxySet.insert({std::min(proxyId, m_queryProxyId), std::max(proxyId, m_queryProxyId)});
+	std::cout << "proxyset insert: " << proxyId << ", " << m_queryProxyId << '\n';
 	return true;
 }
 

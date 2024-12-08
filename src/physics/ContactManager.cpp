@@ -44,6 +44,6 @@ void ContactManager::AddPair(void *proxyUserDataA, void *proxyUserDataB)
 void ContactManager::findNewContacts()
 {
 	// std::cout << "ContactManager::findNewContacts\n";
-	broadPhase.UpdatePairs(this);
+	broadPhase.updatePairs(this);
 }
 } // namespace ale
