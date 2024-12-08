@@ -12,7 +12,7 @@ class SphereShape : public Shape
 	virtual ~SphereShape() = default;
 	SphereShape *clone() const;
 	int32_t GetChildCount() const;
-	void ComputeAABB(AABB *aabb) const;
+	void ComputeAABB(AABB *aabb, const Transform &xf) const;
 	void ComputeMass(MassData *massData, float density) const;
 	void SetCenter(const glm::vec3 &center);
 	void SetRadius(float radius);

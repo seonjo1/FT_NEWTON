@@ -40,7 +40,7 @@ class DynamicTree
 	void DestroyProxy(int32_t proxyId);
 
 	// proxyId에 해당하는 node 삭제 후, 적당한 위치로 다시 Insert
-	// bool MoveProxy(int32_t proxyId, const AABB &aabb1, const glm::vec3 &displacement);
+	bool MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement);
 
 	//
 	void *GetUserData(int32_t proxyId) const;

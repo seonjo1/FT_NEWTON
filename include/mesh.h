@@ -26,7 +26,8 @@ class Mesh
 										   ale::BoxShape *shape, const ale::Transform &xf);
 	static std::unique_ptr<Mesh> createSphere(DeviceManager *deviceManager, VkCommandPool commandPool,
 											  ale::SphereShape *shape, const ale::Transform &xf);
-
+	static std::unique_ptr<Mesh> createGround(DeviceManager *deviceManager, VkCommandPool commandPool,
+											  ale::BoxShape *shape, const ale::Transform &xf);
 	void setMaterial(Material *material);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
 							  VkDescriptorSetLayout descriptorSetLayout);

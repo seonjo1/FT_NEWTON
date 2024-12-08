@@ -29,7 +29,9 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	xfId = bd->xfId;
 
 	// Transform struct needed
-	xf.Set(bd->position, bd->angle);
+	// xf.Set(bd->position, bd->angle);
+	xf.position = bd->position;
+	xf.orientation = bd->orientation;
 
 	linearVelocity = bd->linearVelocity;
 	angularVelocity = bd->angularVelocity;
@@ -43,9 +45,25 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	acceleration = glm::vec3(0.0f);
 }
 
+void Rigidbody::synchronizeFixtures()
+{
+	Transform xf1;
+	xf1.position = sweep.p;
+	xf1.orientation = sweep.q;
+
+	BroadPhase *broadPhase = &world->contactManager.broadPhase;
+	for (Fixture *fixture : fixtures)
+	{
+		fixture->synchronize(broadPhase, xf1, xf);
+	}
+}
+
 // Update acceleration by Adding force to Body
 void Rigidbody::integrate(float duration)
 {
+	// gravity
+	// addGravity();
+
 	// Set acceleration by F = ma
 	lastFrameAcceleration = acceleration;
 	lastFrameAcceleration += (forceAccum * inverseMass);
@@ -60,6 +78,10 @@ void Rigidbody::integrate(float duration)
 	// impose drag
 	/// linearDamping
 	// angularDamping
+
+	// set sweep (previous Transform)
+	sweep.p = xf.position;
+	sweep.q = xf.orientation;
 
 	// set position
 	xf.position += (linearVelocity * duration);
@@ -105,6 +127,25 @@ void Rigidbody::addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &poi
 void Rigidbody::addTorque(const glm::vec3 &torque)
 {
 	torqueAccum += torque;
+}
+
+void Rigidbody::addGravity()
+{
+	addForce(glm::vec3(0.0f, -1.0f, 0.0f));
+}
+
+void Rigidbody::calculateForceAccum()
+{
+	while (!forceRegistry.empty())
+	{
+		addForce(forceRegistry.front());
+		forceRegistry.pop();
+	}
+}
+
+void Rigidbody::registerForce(const glm::vec3 &force)
+{
+	forceRegistry.push(force);
 }
 
 void Rigidbody::clearAccumulators()

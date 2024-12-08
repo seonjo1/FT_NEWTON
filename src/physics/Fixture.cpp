@@ -43,7 +43,7 @@ void Fixture::CreateProxies(BroadPhase *broadPhase)
 	std::cout << "Fixture::Create Proxies\n";
 	for (int32_t i = 0; i < proxies.size(); ++i)
 	{
-		shape->ComputeAABB(&proxies[i]->aabb);
+		shape->ComputeAABB(&proxies[i]->aabb, body->getTransform());
 		proxies[i]->proxyId = broadPhase->CreateProxy(proxies[i]->aabb, proxies[i]);
 		proxies[i]->fixture = this;
 		proxies[i]->childIndex = i;
@@ -52,6 +52,26 @@ void Fixture::CreateProxies(BroadPhase *broadPhase)
 
 void Fixture::DestroyProxies(BroadPhase *broadPhase)
 {
+}
+
+void Fixture::synchronize(BroadPhase *broadPhase, const Transform &xf1, const Transform &xf2)
+{
+	if (proxies.size() == 0)
+	{
+		return;
+	}
+
+	for (FixtureProxy *proxy : proxies)
+	{
+		AABB aabb1, aabb2;
+		shape->ComputeAABB(&aabb1, xf1);
+		shape->ComputeAABB(&aabb2, xf2);
+
+		proxy->aabb.Combine(aabb1, aabb2);
+
+		glm::vec3 displacement = xf2.position - xf1.position;
+		broadPhase->MoveProxy(proxy->proxyId, proxy->aabb, displacement);
+	}
 }
 
 Rigidbody *Fixture::getBody() const

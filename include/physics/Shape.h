@@ -4,6 +4,7 @@
 #include "Collision.h"
 #include "Vertex.h"
 #include "common.h"
+#include <algorithm>
 
 namespace ale
 {
@@ -27,7 +28,7 @@ class Shape
 	virtual ~Shape() = default;
 	virtual Shape *clone() const = 0;
 	virtual int32_t GetChildCount() const = 0;
-	virtual void ComputeAABB(AABB *aabb) const = 0;
+	virtual void ComputeAABB(AABB *aabb, const Transform &xf) const = 0;
 	virtual void ComputeMass(MassData *massData, float density) const = 0;
 	Type getType() const
 	{
