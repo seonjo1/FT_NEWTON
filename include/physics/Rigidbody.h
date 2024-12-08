@@ -58,6 +58,8 @@ class Rigidbody
 {
   public:
 	Rigidbody(const BodyDef *bd, World *world);
+
+	void synchronizeFixtures();
 	void integrate(float duration);
 	void calculateDerivedData();
 	void addForce(const glm::vec3 &force);
@@ -100,9 +102,7 @@ class Rigidbody
 	glm::vec3 linearVelocity;
 	glm::vec3 angularVelocity;
 	glm::mat3 inverseInertiaTensorWorld;
-	float motion;
-	bool isAwake;
-	bool canSleep;
+	glm::mat3 inverseInertiaTensor;
 	glm::mat4 transformMatrix;
 	glm::vec3 forceAccum;
 	glm::vec3 torqueAccum;
@@ -110,10 +110,14 @@ class Rigidbody
 	glm::vec3 lastFrameAcceleration;
 	std::vector<Fixture *> fixtures;
 	std::queue<glm::vec3> forceRegistry;
-	BodyType type;
+	Sweep sweep;
 
+	float motion;
+	bool isAwake;
+	bool canSleep;
+
+	BodyType type;
 	float inverseMass;
-	glm::mat3 inverseInertiaTensor;
 	float linearDamping;
 	float angularDamping;
 	float gravityScale;

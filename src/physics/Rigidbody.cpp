@@ -45,6 +45,19 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	acceleration = glm::vec3(0.0f);
 }
 
+void Rigidbody::synchronizeFixtures()
+{
+	Transform xf1;
+	xf1.position = sweep.p;
+	xf1.orientation = sweep.q;
+
+	BroadPhase *broadPhase = &world->contactManager.broadPhase;
+	for (Fixture *fixture : fixtures)
+	{
+		fixture->synchronize(broadPhase, xf1, xf);
+	}
+}
+
 // Update acceleration by Adding force to Body
 void Rigidbody::integrate(float duration)
 {
@@ -65,6 +78,10 @@ void Rigidbody::integrate(float duration)
 	// impose drag
 	/// linearDamping
 	// angularDamping
+
+	// set sweep (previous Transform)
+	sweep.p = xf.position;
+	sweep.q = xf.orientation;
 
 	// set position
 	xf.position += (linearVelocity * duration);
