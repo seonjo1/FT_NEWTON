@@ -66,7 +66,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	}
 
 	// 충돌 생성
-	Contact* contact = Contact::create(fixtureA, indexA, fixtureB, indexB);
+	Contact *contact = Contact::create(fixtureA, indexA, fixtureB, indexB);
 	if (contact == nullptr)
 	{
 		return;
@@ -130,16 +130,15 @@ void ContactManager::findNewContacts()
 
 void ContactManager::collide()
 {
-	Contact* contact = m_contactList;
+	Contact *contact = m_contactList;
 
 	// contactList 순회
 	while (contact)
 	{
-		// 실제 충돌 여부를 검사하고 해당 충돌 정보인 manifold 생성 
-		contact->Update();
-		contact = contact->GetNext();
+		// 실제 충돌 여부를 검사하고 해당 충돌 정보인 manifold 생성
+		contact->update();
+		contact = contact->getNext();
 	}
 }
 
 } // namespace ale
-
