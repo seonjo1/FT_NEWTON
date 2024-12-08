@@ -4,6 +4,7 @@
 #include "physics/BoxShape.h"
 #include "physics/Collision.h"
 #include "physics/SphereShape.h"
+#include <queue>
 
 namespace ale
 {
@@ -27,6 +28,7 @@ struct BodyDef
 		// position()
 		position = glm::vec3(0.0f);
 		angle = 0.0f;
+		orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 		linearVelocity = glm::vec3(0.0f);
 		angularVelocity = glm::vec3(0.0f);
 		linearDamping = 0.0f;
@@ -39,6 +41,7 @@ struct BodyDef
 
 	BodyType type;
 	glm::vec3 position;
+	glm::quat orientation;
 	float angle;
 	glm::vec3 linearVelocity;
 	glm::vec3 angularVelocity;
@@ -61,6 +64,9 @@ class Rigidbody
 	void addForceAtPoint(const glm::vec3 &force, const glm::vec3 &point);
 	void addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &point);
 	void addTorque(const glm::vec3 &torque);
+	void addGravity();
+	void registerForce(const glm::vec3 &force);
+	void calculateForceAccum();
 	void clearAccumulators();
 
 	void translate(float distance);
@@ -103,6 +109,7 @@ class Rigidbody
 	glm::vec3 acceleration;
 	glm::vec3 lastFrameAcceleration;
 	std::vector<Fixture *> fixtures;
+	std::queue<glm::vec3> forceRegistry;
 	BodyType type;
 
 	float inverseMass;
