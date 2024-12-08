@@ -65,6 +65,11 @@ void Contact::update()
 	}
 }
 
+bool Contact::isTouching() const
+{
+	return (m_flags & EContactFlag::TOUCHING) == EContactFlag::TOUCHING;
+}
+
 inline Contact *Contact::getNext()
 {
 	return m_next;
