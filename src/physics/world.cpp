@@ -31,6 +31,7 @@ void World::runPhysics()
 	// update Possible Contact Pairs - BroadPhase
 	contactManager.findNewContacts();
 	// Process Contacts
+	contactManager.collide();
 }
 
 void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
