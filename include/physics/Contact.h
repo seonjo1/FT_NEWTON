@@ -35,9 +35,16 @@ enum class EContactFlag
 	// e_toiFlag			= 0x0020
 };
 
-class b2Contact
+class Contact
 {
   public:
+	Contact *create(Fixture *fixtureA, int32_t indexA, Fixture *fixtureB, int32_t indexB);
+	Fixture* getFixtureA() const;
+	Fixture* getFixtureB() const;
+	int32_t getChildIndexA() const;
+	int32_t getChildIndexB() const;
+
+
   protected:
 	uint32_t m_flags;
 
