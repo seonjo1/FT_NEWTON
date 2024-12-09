@@ -10,8 +10,8 @@ namespace ale
 {
 enum class Type
 {
-	e_sphere = 0,
-	e_box = 1
+	e_sphere = (1 << 0),
+	e_box = (1 << 1)
 };
 
 struct MassData
