@@ -4,6 +4,7 @@
 #include "ContactManager.h"
 #include "Island.h"
 #include "common.h"
+#include <stack>
 
 class Model;
 class App;
@@ -21,7 +22,7 @@ class World
 	World(uint32_t size, App &app);
 	void startFrame();
 	void runPhysics();
-	void Solve(float duration);
+	void solve(float duration);
 	void createBody(std::unique_ptr<Model> &model, int32_t xfId);
 	void createBox(std::unique_ptr<Model> &model, int32_t xfId);
 	void createSphere(std::unique_ptr<Model> &model, int32_t xfId);

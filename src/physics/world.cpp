@@ -36,7 +36,7 @@ void World::runPhysics()
 	solve(0.001f);
 }
 
-void World::Solve(float duration)
+void World::solve(float duration)
 {
 	// island 초기화
 	Island island;
@@ -54,7 +54,7 @@ void World::Solve(float duration)
 	}
 
 	// Body를 순회하며 island를 생성후 solve 처리
-	std::vector<Rigidbody *> stack(rigidbodies.size());
+	std::stack<Rigidbody *> stack;
 
 	// body 순회
 	for (Rigidbody *body : rigidbodies)
@@ -74,17 +74,15 @@ void World::Solve(float duration)
 		// 현재 Body가 island 생성 가능하다 판단이 끝났으니
 		// island clear를 통해 새로운 island 생성
 		island.clear();
-		int32_t stackCount = 0;
-		stack[stackCount] = body;
-		stackCount++;
+		stack.push(body);
 		body->m_flags |= EBodyFlag::ISLAND; // body island 처리
 
 		// DFS로 island 생성
-		while (stackCount > 0)
+		while (!stack.empty())
 		{
 			// 스택 가장 마지막에 있는 body island에 추가
-			stackCount--;
-			Rigidbody *targetBody = stack[stackCount];
+			Rigidbody *targetBody = stack.top();
+			stack.pop();
 			island.add(targetBody);
 
 			// body가 staticBody면 뒤에 과정 pass
@@ -123,7 +121,7 @@ void World::Solve(float duration)
 				}
 
 				// 충돌 상대 body가 island에 속한게 아니었으면 stack에 추가 후 island 플래그 on
-				stack[stackCount++] = other;
+				stack.push(other);
 				other->m_flags |= EBodyFlag::ISLAND;
 			}
 		}
