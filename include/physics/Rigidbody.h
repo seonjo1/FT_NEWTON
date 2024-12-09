@@ -66,6 +66,7 @@ class Rigidbody
 	Rigidbody(const BodyDef *bd, World *world);
 
 	void synchronizeFixtures();
+	void synchronizeTransform();
 	void integrate(float duration);
 	void calculateDerivedData();
 	void addForce(const glm::vec3 &force);
