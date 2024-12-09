@@ -62,7 +62,7 @@ void SwapChainManager::init(GLFWwindow* window, DeviceManager* deviceManager, Vk
 */ 
 void SwapChainManager::createSwapChain(GLFWwindow* window, DeviceManager* deviceManager, VkSurfaceKHR surface) {
 	
-	SwapChainSupportDetails swapChainSupport = deviceManager->getSwapChainSupport();
+	SwapChainSupportDetails swapChainSupport = deviceManager->getSwapChainSupport(surface);
 	QueueFamilyIndices queueFamilyIndices = deviceManager->getQueueFamilyIndices();
 
 	// 서피스 포맷 선택
