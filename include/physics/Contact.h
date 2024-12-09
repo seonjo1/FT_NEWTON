@@ -9,6 +9,8 @@ namespace ale
 class Contact;
 class Manifold;
 
+using contactMemberFunction = Contact *(*)(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
+
 struct ContactLink
 {
 	Rigidbody *other;  // 연결된 반대쪽 Body
@@ -17,27 +19,23 @@ struct ContactLink
 	ContactLink *next; // 다음 충돌 정보
 };
 
+enum class EContactType
+{
+	SPHERE_TO_SPHERE = (1 << 0),
+	BOX_TO_BOX = (1 << 1),
+	SphereToBox = (1 << 0) | (1 << 1),
+};
+
 enum class EContactFlag
 {
 	ISLAND = 0x0001,
 	TOUCHING = 0x0002,
-
-	// e_enabledFlag		= 0x0004,
-
-	// // This contact needs filtering because a fixture filter was changed.
-	// e_filterFlag		= 0x0008,
-
-	// // This bullet contact had a TOI event
-	// e_bulletHitFlag		= 0x0010,
-
-	// // This contact has a valid TOI in m_toi
-	// e_toiFlag			= 0x0020
 };
 
 class Contact
 {
   public:
-	Contact *create(Fixture *fixtureA, int32_t indexA, Fixture *fixtureB, int32_t indexB);
+	Contact *create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
 	void update();
 	virtual void evaluate(Manifold *manifold, const Transform &transformA, const Transform &transformB) = 0;
 	bool isTouching() const;
@@ -49,6 +47,8 @@ class Contact
 	int32_t getChildIndexB() const;
 
   protected:
+	static contactMemberFunction createContactFunctions[4];
+
 	uint32_t m_flags;
 
 	Contact *m_prev;
@@ -64,9 +64,6 @@ class Contact
 	int32_t m_indexB;
 
 	Manifold m_manifold;
-
-	int32_t m_toiCount;
-	float m_toi;
 
 	float m_friction;
 	float m_restitution;

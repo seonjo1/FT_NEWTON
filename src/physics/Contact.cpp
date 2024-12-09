@@ -1,10 +1,66 @@
 #include "physics/Contact.h"
+#include "physics/BoxToBoxContact.h"
+#include "physics/SphereToBoxContact.h"
+#include "physics/SphereToSphereContact.h"
 
 namespace ale
 {
-Contact *Contact::create(Fixture *fixtureA, int32_t indexA, Fixture *fixtureB, int32_t indexB)
+createContactFunctions = {
+	nullptr,
+	&SphereToSphereContact::create,
+	&BoxToBoxContact::create,
+	&SphereToBoxContact::create,
+};
+
+Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
+	: m_fixtureA(fixtureA), m_fixtureB(fixtureB), m_indexA(indexA), m_indexB(indexB)
 {
+	m_flags = 0;
+
+	m_fixtureA = fixtureA;
+	m_fixtureB = fixtureB;
+
+	m_indexA = indexA;
+	m_indexB = indexB;
+
+	m_prev = nullptr;
+	m_next = nullptr;
+
+	m_nodeA.contact = nullptr;
+	m_nodeA.prev = nullptr;
+	m_nodeA.next = nullptr;
+	m_nodeA.other = nullptr;
+
+	m_nodeB.contact = nullptr;
+	m_nodeB.prev = nullptr;
+	m_nodeB.next = nullptr;
+	m_nodeB.other = nullptr;
+
+	m_friction = std::sqrt(m_fixtureA->m_friction, m_fixtureB->m_friction);
+	m_restitution = std::max(m_fixtureA->m_restitution, m_fixtureB->m_restitution);
+
+	m_tangentSpeed = 0.0f;
 }
+
+Contact *Contact::create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
+{
+	// 각 fixture의 shape의 type 가져오기
+	Type type1 = fixtureA->GetType();
+	Type type2 = fixtureB->GetType();
+
+	if (type1 > type2)
+	{
+		Fixture *tmpFixture = fixtureA;
+		int32_t tmpIndex = indexA;
+		fixtureA = fixtureB;
+		indexA = indexB;
+		fixtureB = tmpFixture;
+		indexB = tmpIndex;
+	}
+
+	return createContactFUnctions[type1 | type2](fixtureA, fixtureB, indexA, indexB);
+}
+
 void Contact::update()
 {
 	// 기존 manifold 저장
