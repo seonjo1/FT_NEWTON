@@ -379,7 +379,7 @@ void App::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
 	//	[사용할 그래픽 파이프 라인을 설정하는 명령 기록]
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->getGraphicsPipeline());
 
-	VkExtent2D swapChainExtent = swapChainManager->getSwapChainExtent();
+	VkExtent2D swapChainExtent = swapChainManager->getSwapChainExtent(vulkanInstance->getSurface());
 
 	// 뷰포트 정보 입력
 	VkViewport viewport{};

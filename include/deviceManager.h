@@ -28,7 +28,7 @@ public:
 	VkQueue getGraphicsQueue();
 	VkQueue getPresentQueue();
 	VkSampleCountFlagBits getMsaaSamples();
-	SwapChainSupportDetails getSwapChainSupport();
+	SwapChainSupportDetails getSwapChainSupport(VkSurfaceKHR surface);
 	VkFormat findDepthFormat();
 
 private:

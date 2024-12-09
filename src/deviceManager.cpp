@@ -294,7 +294,28 @@ VkSampleCountFlagBits DeviceManager::getMsaaSamples()
 	return msaaSamples;
 }
 
-SwapChainSupportDetails DeviceManager::getSwapChainSupport()
+SwapChainSupportDetails DeviceManager::getSwapChainSupport(VkSurfaceKHR surface)
 {
+	// GPU와 surface가 호환할 수 있는 capability 정보 쿼리
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &swapChainSupport.capabilities);
+
+	// device에서 surface 객체를 지원하는 format이 존재하는지 확인 
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+
+	if (formatCount != 0) {
+		swapChainSupport.formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, swapChainSupport.formats.data());
+	}
+
+	// device에서 surface 객체를 지원하는 presentMode가 있는지 확인 
+	uint32_t presentModeCount;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+
+	if (presentModeCount != 0) {
+		swapChainSupport.presentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, swapChainSupport.presentModes.data());
+	}
+
 	return swapChainSupport;
 }
