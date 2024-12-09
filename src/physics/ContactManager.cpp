@@ -66,10 +66,10 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	}
 
 	// 충돌 생성
-	Contact *contact = Contact::create(fixtureA, indexA, fixtureB, indexB);
+	Contact *contact = Contact::create(fixtureA, fixtureB, indexA, indexB);
 	if (contact == nullptr)
 	{
-		return;
+		throw std::runtime_error("Generating Contact fail!");
 	}
 
 	fixtureA = contact->getFixtureA();
@@ -113,10 +113,6 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 		bodyB->m_contactLinks->prev = &contact->m_nodeB;
 	}
 	bodyB->m_contactLinks = &contact->m_nodeB;
-
-	// // body Awake 상태 설정
-	// bodyA->SetAwake(true);
-	// bodyB->SetAwake(true);
 
 	// 충돌 개수 추가
 	++m_contactCount;
