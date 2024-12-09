@@ -112,11 +112,11 @@ struct ManifoldPoint
 
 struct Manifold
 {
-	ManifoldPoint points[b2_maxManifoldPoints]; // 접촉점, 충격량, 충돌 지점의 고유 id
-	glm::vec2 localNormal;						// Local 좌표계에서의 법선 벡터
-	glm::vec2 localPoint;						// Local 좌표계에서 충돌 면을 특정하기 위한 좌표
-	EManifoldType type;							// 타입
-	int32_t pointCount;							// 접촉점 개수
+	std::vector<ManifoldPoint> points; // 접촉점, 충격량, 충돌 지점의 고유 id
+	glm::vec2 localNormal;			   // Local 좌표계에서의 법선 벡터
+	glm::vec2 localPoint;			   // Local 좌표계에서 충돌 면을 특정하기 위한 좌표
+	EManifoldType type;				   // 타입
+	int32_t pointCount;				   // 접촉점 개수
 };
 
 } // namespace ale
