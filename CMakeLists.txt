@@ -3,10 +3,6 @@ cmake_minimum_required(VERSION 3.13)
 set(PROJECT_NAME VULKAN_TUTORIAL)
 set(CMAKE_CXX_STANDARD 17)
  
-set(WINDOW_NAME "VULKAN_TUTORIAL")
-set(WINDOW_WIDTH 1920)
-set(WINDOW_HEIGHT 1080)
-
 project(${PROJECT_NAME})
 set(SRC src/main.cpp src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
 		src/swapChainManager.cpp src/image.cpp src/renderer.cpp
@@ -33,11 +29,6 @@ target_link_directories(${PROJECT_NAME} PUBLIC ${DEP_LIB_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
 
 target_compile_options(${PROJECT_NAME} PUBLIC "/utf-8")
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-WINDOW_NAME="${WINDOW_NAME}"
-WINDOW_WIDTH=${WINDOW_WIDTH}
-WINDOW_HEIGHT=${WINDOW_HEIGHT})
 
 # Dependency들이 먼저 build 될 수 있게 관계 설정 / 뒤에서 부터 컴파일
 add_dependencies(${PROJECT_NAME} ${DEP_LIST})
