@@ -16,8 +16,10 @@ class SphereShape : public Shape
 	void ComputeMass(MassData *massData, float density) const;
 	void SetCenter(const glm::vec3 &center);
 	void SetRadius(float radius);
+	void setShapeFeatures(std::vector<Vertex>& vertices);
 
 	float radius;
+	float localRadius;
 };
 } // namespace ale
 #endif

@@ -45,4 +45,24 @@ void SphereShape::SetRadius(float radius)
 	this->radius = radius;
 }
 
+void SphereShape::setShapeFeatures(std::vector<Vertex>& vertices)
+{
+	// welzl 알고리즘 나중에 적용 고려
+	localCenter = glm::vec3(0.0f);
+	float distance = 0.0f;
+
+	for (const Vertex &vertex : vertices)
+	{
+		distance = std::max(
+			vertex.position.x * vertex.position.x +
+			vertex.position.y * vertex.position.y +
+			vertex.position.z * vertex.position.z,
+			distance
+		);
+	}
+
+	localRadius = std::sqrt(distance);
+}
+
+
 } // namespace ale
