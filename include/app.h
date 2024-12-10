@@ -72,6 +72,8 @@ class App
 
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
+	const uint32_t WINDOW_WIDTH = 1920;
+	const uint32_t WINDOW_HEIGHT = 1080;
 };
 
 #endif
