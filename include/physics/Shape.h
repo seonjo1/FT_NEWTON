@@ -36,6 +36,7 @@ class Shape
 	}
 
 	glm::vec3 center;
+	glm::vec3 localCenter;
 	Type type;
 };
 
