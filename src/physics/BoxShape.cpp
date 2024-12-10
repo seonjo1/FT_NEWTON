@@ -48,10 +48,23 @@ void BoxShape::ComputeMass(MassData *massData, float density) const
 
 void BoxShape::SetVertices(const std::vector<Vertex> &vertices)
 {
+	glm::vec3 maxPos(std::numeric_limits<float>::lowest());
+	glm::vec3 minPos(std::numeric_limits<float>::max());
+
 	for (const Vertex &vertex : vertices)
 	{
+		maxPos.x = std::max(maxPos.x, vertex.position.x);
+		maxPos.y = std::max(maxPos.y, vertex.position.y);
+		maxPos.z = std::max(maxPos.z, vertex.position.z);
+		minPos.x = std::min(minPos.x, vertex.position.x);
+		minPos.y = std::min(minPos.y, vertex.position.y);
+		minPos.z = std::min(minPos.z, vertex.position.z);
+
 		this->vertices.insert(vertex.position);
 	}
+
+	localCenter = (maxPos + minPos) / 2.0f;
+	halfSize = (maxPos - minPos) / 2.0f;
 }
 
 } // namespace ale
