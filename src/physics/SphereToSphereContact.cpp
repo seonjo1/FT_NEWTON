@@ -11,4 +11,9 @@ Contact *SphereToSphereContact::create(Fixture *fixtureA, Fixture *fixtureB, int
 	return new SphereToSphereContact(fixtureA, fixtureB, indexA, indexB);
 }
 
+void SphereToSphereContact::evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB)
+{
+	
+}
+
 } // namespace ale
