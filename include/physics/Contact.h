@@ -2,6 +2,7 @@
 #define CONTACT_H
 
 #include "Rigidbody.h"
+#include <cmath>
 
 namespace ale
 {
@@ -35,9 +36,10 @@ enum class EContactFlag
 class Contact
 {
   public:
+	Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
 	Contact *create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
 	void update();
-	virtual void evaluate(Manifold *manifold, const Transform &transformA, const Transform &transformB) = 0;
+	virtual void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB) = 0;
 	bool isTouching() const;
 
 	Contact *getNext();
