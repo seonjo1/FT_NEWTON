@@ -34,6 +34,26 @@ enum class EContactFlag
 	TOUCHING = 0x0002,
 };
 
+int32_t operator&(int32_t val, EContactFlag flag)
+{
+	return val & static_cast<int32_t>(flag);
+}
+
+int32_t operator|(int32_t val, EContactFlag flag)
+{
+	return val | static_cast<int32_t>(flag);
+}
+
+int32_t operator~(EContactFlag flag)
+{
+	return ~static_cast<int32_t>(flag);
+}
+
+bool operator==(int32_t val, EContactFlag flag)
+{
+	return static_cast<int32_t>(flag) == val;
+}
+
 class Contact
 {
   public:

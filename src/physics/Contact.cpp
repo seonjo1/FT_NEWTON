@@ -91,9 +91,9 @@ void Contact::update()
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 	for (ManifoldPoint& manifoldPoint : m_manifold.points)
 	{
-		manifoldPoint->normalImpulse = 0.0f;
-		manifoldPoint->tangentImpulse = 0.0f;
-		uint32_t manifoldPointId = manifoldPoint->id;
+		manifoldPoint.normalImpulse = 0.0f;
+		manifoldPoint.tangentImpulse = 0.0f;
+		uint32_t manifoldPointId = manifoldPoint.id;
 
 		for (ManifoldPoint& oldManifoldPoint : oldManifold.points)
 		{
@@ -110,12 +110,12 @@ void Contact::update()
 	if (touching)
 	{
 		// touching시 touching flag on
-		m_flags |= EContactFlag::TOUCHING;
+		m_flags = m_flags | EContactFlag::TOUCHING;
 	}
 	else
 	{
 		// touching이 아니면 touching flag off
-		m_flags &= ~EContactFlag::TOUCHING;
+		m_flags = m_flags & ~EContactFlag::TOUCHING;
 	}
 }
 
@@ -158,7 +158,6 @@ ContactLink& Contact::getNodeB()
 {
 	return m_nodeB;
 }
-
 
 void Contact::setPrev(Contact* contact)
 {
