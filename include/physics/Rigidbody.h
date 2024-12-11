@@ -103,8 +103,8 @@ class Rigidbody
 	void createFixture(Shape *shape);
 	void createFixture(const FixtureDef *fd);
 
-	ContactLink *GetContactLinks();
-	bool ShouldCollide(const Body *other) const;
+	ContactLink *getContactLinks();
+	bool shouldCollide(const Rigidbody *other) const;
 
   protected:
 	World *world;
@@ -133,7 +133,7 @@ class Rigidbody
 	float gravityScale;
 	int32_t xfId;
 
-	ContactLink *contactLinks;
+	ContactLink *m_contactLinks;
 
   private:
 };

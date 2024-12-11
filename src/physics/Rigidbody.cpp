@@ -186,6 +186,11 @@ int32_t Rigidbody::getTransformId() const
 	return xfId;
 }
 
+ContactLink *Rigidbody::getContactLinks()
+{
+	return m_contactLinks;
+}
+
 void Rigidbody::setPosition(const glm::vec3 &position)
 {
 	this->xf.position = position;
