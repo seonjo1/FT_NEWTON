@@ -47,7 +47,10 @@ class Fixture
 
 	void synchronize(BroadPhase *broadPhase, const Transform &xf1, const Transform &xf2);
 
+	float getFriction();
+	float getRestitution();
 	Rigidbody *getBody() const;
+	Type getType() const;
 
   protected:
 	Rigidbody *body;

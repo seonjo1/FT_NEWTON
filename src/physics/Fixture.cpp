@@ -79,4 +79,19 @@ Rigidbody *Fixture::getBody() const
 	return body;
 }
 
+Type Fixture::getType() const
+{
+	return shape->getType();
+}
+
+float Fixture::getFriction()
+{
+	return friction;
+}
+
+float Fixture::getRestitution()
+{
+	return restitution;
+}
+
 } // namespace ale
