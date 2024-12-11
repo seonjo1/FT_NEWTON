@@ -10,10 +10,10 @@ ContactManager::ContactManager()
 bool ContactManager::isSameContact(ContactLink *link, Fixture *fixtureA, Fixture *fixtureB, int32_t indexA,
 								   int32_t indexB)
 {
-	Fixture *fixtureX = link->contact->GetFixtureA();
-	Fixture *fixtureY = link->contact->GetFixtureB();
-	int32_t indexX = link->contact->GetChildIndexA();
-	int32_t indexY = link->contact->GetChildIndexB();
+	Fixture *fixtureX = link->contact->getFixtureA();
+	Fixture *fixtureY = link->contact->getFixtureB();
+	int32_t indexX = link->contact->getChildIndexA();
+	int32_t indexY = link->contact->getChildIndexB();
 
 	// 같은 충돌인 경우 충돌 생성 x
 	if (fixtureX == fixtureA && fixtureY == fixtureB && indexX == indexA && indexY == indexB)
@@ -49,7 +49,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	}
 
 	// 동일 부위의 충돌이 있는 경우 return
-	ContactLink *link = bodyA->GetContactLinks();
+	ContactLink *link = bodyA->getContactLinks();
 	while (link)
 	{
 		if (link->other == bodyB && isSameContact(link, fixtureA, fixtureB, indexA, indexB))
@@ -60,7 +60,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	}
 
 	// BodyA와 BodyB가 충돌 가능 관계인지 확인
-	if (bodyA->ShouldCollide(bodyB) == false)
+	if (bodyA->shouldCollide(bodyB) == false)
 	{
 		return;
 	}
@@ -80,39 +80,45 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	bodyB = fixtureB->getBody();
 
 	// contact를 world contactList 앞에 끼워넣기 (Contact*)
-	contact->m_prev = nullptr;
-	contact->m_next = m_contactList;
+	contact->setPrev(nullptr);
+	contact->setNext(m_contactList);
 	if (m_contactList != nullptr)
 	{
-		m_contactList->m_prev = contact;
+		m_contactList->setPrev(contact);
 	}
 	m_contactList = contact;
 
 	// contact의 m_nodeA 초기화
-	contact->m_nodeA.contact = contact;
-	contact->m_nodeA.other = bodyB;
+	ContactLink& nodeA = contact->getNodeA();
+	ContactLink *bodyAContactLinks = bodyA->getContactLinks();
+
+	nodeA.contact = contact;
+	nodeA.other = bodyB;
 
 	// bodyA의 contactLinks에 새로운 Link 추가
-	contact->m_nodeA.prev = nullptr;
-	contact->m_nodeA.next = bodyA->m_contactLinks;
-	if (bodyA->m_contactLinks != nullptr)
+	nodeA.prev = nullptr;
+	nodeA.next = bodyAContactLinks;
+	if (bodyAContactLinks != nullptr)
 	{
-		bodyA->m_contactLinks->prev = &contact->m_nodeA;
+		bodyAContactLinks->prev = &nodeA;
 	}
-	bodyA->m_contactLinks = &contact->m_nodeA;
+	bodyAContactLinks = &nodeA;
 
 	// contact의 m_nodeB 초기화
-	contact->m_nodeB.contact = contact;
-	contact->m_nodeB.other = bodyA;
+	ContactLink& nodeB = contact->getNodeB();
+	ContactLink *bodyBContactLinks = bodyB->getContactLinks();
+
+	nodeB.contact = contact;
+	nodeB.other = bodyA;
 
 	// bodyB의 contactLinks에 새로운 Link 추가
-	contact->m_nodeB.prev = nullptr;
-	contact->m_nodeB.next = bodyB->m_contactLinks;
-	if (bodyB->m_contactLinks != nullptr)
+	nodeB.prev = nullptr;
+	nodeB.next = bodyBContactLinks;
+	if (bodyBContactLinks != nullptr)
 	{
-		bodyB->m_contactLinks->prev = &contact->m_nodeB;
+		bodyBContactLinks->prev = &nodeB;
 	}
-	bodyB->m_contactLinks = &contact->m_nodeB;
+	bodyBContactLinks = &nodeB;
 
 	// 충돌 개수 추가
 	++m_contactCount;
