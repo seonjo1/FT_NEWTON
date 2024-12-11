@@ -66,6 +66,14 @@ struct Transform
 		position = p;
 		// set orientation by angle
 	}
+	    glm::mat4 toMatrix() const {
+        // Create a 4x4 transformation matrix
+        glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position); // Translation
+        glm::mat4 rotationMatrix = glm::toMat4(orientation);                     // Rotation
+
+        // Combine translation and rotation
+        return translationMatrix * rotationMatrix;
+    }
 
 	glm::vec3 position;
 	glm::quat orientation;
@@ -102,13 +110,14 @@ enum class EManifoldType
 	FACE_A_TO_FACE_B,
 };
 
+
 struct ManifoldPoint
 {
-	glm::vec3 localPoint; 	// 충돌 지점의 위치
-	glm::vec3 localNormal;	// 법선 벡터
+	glm::vec3 point; 	// 충돌 지점의 위치
+	glm::vec3 normal;	// 법선 벡터
 	float normalImpulse;  	// 법선 방향 충격량
 	float tangentImpulse; 	// 접촉면 충격량
-	uint32_t id;		  	// 충돌 지점의 고유 id
+	uint64_t id;		  	// 충돌 지점의 고유 id
 	EManifoldType type;		// 타입
 };
 
