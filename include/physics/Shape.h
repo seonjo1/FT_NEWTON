@@ -35,6 +35,9 @@ class Shape
 	virtual int32_t GetChildCount() const = 0;
 	virtual void ComputeAABB(AABB *aabb, const Transform &xf) const = 0;
 	virtual void ComputeMass(MassData *massData, float density) const = 0;
+	virtual float getLocalRadius() const = 0;
+	virtual const glm::vec3& getLocalHalfSize() const = 0;
+
 	Type getType() const
 	{
 		return type;
