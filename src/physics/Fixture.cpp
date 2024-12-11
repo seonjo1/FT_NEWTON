@@ -84,6 +84,12 @@ Type Fixture::getType() const
 	return shape->getType();
 }
 
+Shape *Fixture::getShape()
+{
+	return shape;
+}
+
+
 float Fixture::getFriction()
 {
 	return friction;
@@ -93,5 +99,11 @@ float Fixture::getRestitution()
 {
 	return restitution;
 }
+
+const FixtureProxy* Fixture::getFixtureProxy() const
+{
+	return proxies[0];
+}
+
 
 } // namespace ale

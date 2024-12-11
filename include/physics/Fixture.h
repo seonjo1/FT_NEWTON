@@ -51,6 +51,8 @@ class Fixture
 	float getRestitution();
 	Rigidbody *getBody() const;
 	Type getType() const;
+	Shape *getShape();
+	const FixtureProxy* getFixtureProxy() const;
 
   protected:
 	Rigidbody *body;
