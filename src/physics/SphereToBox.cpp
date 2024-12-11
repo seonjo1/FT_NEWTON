@@ -118,7 +118,7 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		
 		proxyIdA = (proxyIdA << 5) & bitmask;
 		proxyIdB = (proxyIdB << 5) & bitmask;
-		manifoldPoint.id = (proxyIdA << 32) | (proxyIdB << 10) | static_cast<int64_t>(manifoldPoint.type);
+		manifoldPoint.id = (proxyIdA << 32) | (proxyIdB << 10) | info.type;
 
 		manifold.points.push_back(manifoldPoint);
 	}
