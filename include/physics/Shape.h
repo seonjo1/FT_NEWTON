@@ -14,6 +14,11 @@ enum class Type
 	e_box = (1 << 1)
 };
 
+int32_t operator|(Type type1, Type type2)
+{
+	return type1 | type2;
+}
+
 struct MassData
 {
 	glm::vec3 center;
