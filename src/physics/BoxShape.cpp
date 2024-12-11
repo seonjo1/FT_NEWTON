@@ -67,4 +67,15 @@ void BoxShape::SetVertices(const std::vector<Vertex> &vertices)
 	halfSize = (maxPos - minPos) / 2.0f;
 }
 
+float BoxShape::getLocalRadius() const
+{
+	return 0;
+}
+
+const glm::vec3& BoxShape::getLocalHalfSize() const
+{
+	return halfSize;
+}
+
+
 } // namespace ale

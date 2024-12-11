@@ -27,6 +27,8 @@ class BoxShape : public Shape
 	void ComputeAABB(AABB *aabb, const Transform &xf) const;
 	void ComputeMass(MassData *massData, float density) const;
 	void SetVertices(const std::vector<Vertex> &v);
+	virtual float getLocalRadius() const override;
+	virtual const glm::vec3& getLocalHalfSize() const override;
 
 	// Vertex Info needed
 	std::set<glm::vec3, Vec3Comparator> vertices;
