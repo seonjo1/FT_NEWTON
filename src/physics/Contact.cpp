@@ -36,8 +36,8 @@ Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t i
 	m_nodeB.next = nullptr;
 	m_nodeB.other = nullptr;
 
-	m_friction = mixFixture(m_fixtureA->m_friction, m_fixtureB->m_friction);
-	m_restitution = std::max(m_fixtureA->m_restitution, m_fixtureB->m_restitution);
+	m_friction = std::sqrt(m_fixtureA->getFriction() * m_fixtureB->getFriction());
+	m_restitution = std::max(m_fixtureA->getRestitution(), m_fixtureB->getRestitution());
 
 	m_tangentSpeed = 0.0f;
 }
@@ -58,7 +58,7 @@ Contact *Contact::create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, i
 		indexB = tmpIndex;
 	}
 
-	return createContactFUnctions[type1 | type2](fixtureA, fixtureB, indexA, indexB);
+	return createContactFunctions[type1 | type2](fixtureA, fixtureB, indexA, indexB);
 }
 
 void Contact::update()
@@ -148,4 +148,27 @@ inline int32_t Contact::getChildIndexB() const
 {
 	return m_indexB;
 }
+
+ContactLink& Contact::getNodeA()
+{
+	return m_nodeA;
+}
+
+ContactLink& Contact::getNodeB()
+{
+	return m_nodeB;
+}
+
+
+void Contact::setPrev(Contact* contact)
+{
+ 
+}
+
+void Contact::setNext(Contact* contact)
+{
+
+}
+
+
 } // namespace ale
