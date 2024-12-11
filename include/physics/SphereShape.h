@@ -17,6 +17,8 @@ class SphereShape : public Shape
 	void SetCenter(const glm::vec3 &center);
 	void SetRadius(float radius);
 	void setShapeFeatures(std::vector<Vertex>& vertices);
+	virtual float getLocalRadius() const override;
+	virtual const glm::vec3& getLocalHalfSize() const override;
 
 	float radius;
 	float localRadius;

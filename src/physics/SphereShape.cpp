@@ -64,5 +64,14 @@ void SphereShape::setShapeFeatures(std::vector<Vertex>& vertices)
 	localRadius = std::sqrt(distance);
 }
 
+float SphereShape::getLocalRadius() const
+{
+	return localRadius;
+}
+
+const glm::vec3& SphereShape::getLocalHalfSize() const
+{
+	return glm::vec3(0.0f);
+}
 
 } // namespace ale
