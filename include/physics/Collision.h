@@ -119,6 +119,7 @@ struct ManifoldPoint
 	float tangentImpulse; 	// 접촉면 충격량
 	uint64_t id;		  	// 충돌 지점의 고유 id
 	EManifoldType type;		// 타입
+	bool isAInvolved;
 };
 
 struct Manifold
