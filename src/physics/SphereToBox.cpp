@@ -43,7 +43,7 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, halfSizeB.z), 1.0f),
 		matrix * glm::vec4(localCenterB + halfSizeB, 1.0f)};
 	glm::vec3 worldCenterB = matrix * glm::vec4(localCenterB, 1.0f);
-	bool isInvolved = isSphereInside(worldCenterA, worldCenterA, pointsB);
+	bool isInvolved = isSphereInside(worldCenterA, worldCenterB, pointsB);
 
 	SphereToBoxInfo info;
 	info.distance = std::numeric_limits<float>::max();
@@ -86,7 +86,7 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		int32_t idx3 = facePointIndex[i][2];
 		int32_t idx4 = facePointIndex[i][3];
 		getPointToFaceDistance(worldCenterA, pointsB[idx1], pointsB[idx2], pointsB[idx3], pointsB[idx4], i + 20, info,
-							   involved);
+							   isInvolved);
 	}
 
 	float radius = shapeA->getLocalRadius();
