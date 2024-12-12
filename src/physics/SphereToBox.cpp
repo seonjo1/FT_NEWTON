@@ -121,10 +121,12 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		{
 			manifoldPoint.normal = -manifoldPoint.normal;
 			manifoldPoint.isInvolved = true;
+			manifoldPoint.seperation = std::sqrt(info.distance) + radius;
 		}
 		else
 		{
 			manifoldPoint.isInvolved = false;
+			manifoldPoint.seperation = std::sqrt(info.distance);
 		}
 
 		manifold.points.push_back(manifoldPoint);
