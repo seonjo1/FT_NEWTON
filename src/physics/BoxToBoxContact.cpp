@@ -109,6 +109,7 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 
 		manifoldPoint.point = info.point;
 		manifoldPoint.normal = info.normal;
+		manifoldPoint.seperation = info.overlap;
 
 		int64_t proxyIdA = m_fixtureA->getFixtureProxy()->proxyId;
 		int64_t proxyIdB = m_fixtureB->getFixtureProxy()->proxyId;
@@ -158,7 +159,7 @@ bool BoxToBoxContact::isDuplicate(const std::vector<glm::vec3> &axes, const glm:
 {
 	for (int i = 0; i < length; i++)
 	{
-		if (glm::length(axes[i] - axis) < 1e-6f)
+		if (glm::abs(glm::dot(axes[i], axis)) > 1.0f - 1e-6f)
 		{
 			return true;
 		}
@@ -283,9 +284,10 @@ void BoxToBoxContact::fillFaceToPointInfo(BoxToBoxInfo &info, std::vector<glm::v
 									 ? faceVector[info.axisType][0]
 									 : faceVector[info.axisType][1];
 	glm::vec3 &pointB = pointsB[info.typeB];
-	info.point = pointB;
+
 	info.normal =
 		glm::normalize(glm::cross(pointsA[faceA[1]] - pointsA[faceA[0]], pointsA[faceA[2]] - pointsA[faceA[0]]));
+	info.point = pointB;
 }
 
 void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -321,7 +323,7 @@ void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::ve
 
 	glm::vec3 normal = glm::cross(edgeA[1] - edgeA[0], edgeB[1] - edgeB[0]);
 
-	if (glm::dot(normal, edgeB[0] - edgeA[0]) < 0)
+	if (glm::dot(normal, edgeA[0] - edgeB[0]) < 0)
 	{
 		normal = -normal;
 	}
