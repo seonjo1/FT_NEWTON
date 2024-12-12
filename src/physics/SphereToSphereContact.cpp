@@ -13,8 +13,8 @@ Contact *SphereToSphereContact::create(Fixture *fixtureA, Fixture *fixtureB, int
 
 void SphereToSphereContact::evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB)
 {
-	/* 
-		64bit = 27bit(small proxyId) 	 | 
+	/*
+		64bit = 27bit(small proxyId) 	 |
 				27bit(big proxyId) 		 |
 				5bit(small contact part) |
 				5bit(big contact part)
@@ -34,7 +34,7 @@ void SphereToSphereContact::evaluate(Manifold &manifold, const Transform &transf
 	{
 		int64_t tmp = proxyIdA;
 		proxyIdA = proxyIdB;
-		proxyIdB = tmp;		
+		proxyIdB = tmp;
 	}
 
 	proxyIdA = (proxyIdA << 5) & bitmask;
@@ -46,6 +46,16 @@ void SphereToSphereContact::evaluate(Manifold &manifold, const Transform &transf
 
 	manifoldPoint.normal = glm::normalize(glm::vec3(worldCenterB - worldCenterA));
 	manifoldPoint.point = glm::vec3(worldCenterB) - shapeB->getLocalRadius() * manifoldPoint.normal;
+
+	// 구 A 안에 B의 중심이 있는 경우 isInvolved = true
+	if (glm::length(worldCenterA - worldCenterB) < shapeA->getLocalRadius())
+	{
+		manifoldPoint.isInvolved = true;
+	}
+	else
+	{
+		manifoldPoint.isInvolved = false;
+	}
 
 	manifold.points.push_back(manifoldPoint);
 }
