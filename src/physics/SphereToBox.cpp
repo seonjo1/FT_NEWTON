@@ -13,8 +13,8 @@ Contact *SphereToBoxContact::create(Fixture *fixtureA, Fixture *fixtureB, int32_
 
 void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB)
 {
-	/* 
-		64bit = 27bit(small proxyId) 	 | 
+	/*
+		64bit = 27bit(small proxyId) 	 |
 				27bit(big proxyId) 		 |
 				5bit(small contact part) |
 				5bit(big contact part)
@@ -33,29 +33,26 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 	glm::vec3 localCenterB = shapeB->localCenter;
 	glm::vec3 halfSizeB = shapeB->getLocalHalfSize();
 	glm::mat4 matrix = transformB.toMatrix();
-	glm::vec3 pointsB[8] = {
-		matrix * glm::vec4(localCenterB - halfSizeB, 1.0f), 
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + halfSizeB, 1.0f)
-	};
+	glm::vec3 pointsB[8] = {matrix * glm::vec4(localCenterB - halfSizeB, 1.0f),
+							matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
+							matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
+							matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
+							matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
+							matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
+							matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, halfSizeB.z), 1.0f),
+							matrix * glm::vec4(localCenterB + halfSizeB, 1.0f)};
 
-	float radius = shapeA->getLocalRadius();
 	SphereToBoxInfo info;
-	info.distance = 2 * radius;
+	info.distance = std::numeric_limits<float>::max();
+	;
 	info.type = -1;
 
 	for (int32_t i = 0; i < 8; i++)
 	{
-		glm::vec3& point = pointsB[i];
-		float distance = 
-			(point.x - worldCenterA.x) * (point.x - worldCenterA.x) +
-			(point.y - worldCenterA.y) * (point.y - worldCenterA.y) +
-			(point.z - worldCenterA.z) * (point.z - worldCenterA.z);
+		glm::vec3 &point = pointsB[i];
+		float distance = (point.x - worldCenterA.x) * (point.x - worldCenterA.x) +
+						 (point.y - worldCenterA.y) * (point.y - worldCenterA.y) +
+						 (point.z - worldCenterA.z) * (point.z - worldCenterA.z);
 
 		if (distance < info.distance)
 		{
@@ -66,24 +63,18 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		}
 	}
 
-	static const int32_t linePointIndex[12][2] = {
-		{0, 1}, {0, 2}, {0, 3}, {1, 4}, 
-		{1, 5}, {2, 4}, {2, 6}, {3, 5},
-		{3, 6}, {4, 7}, {5, 7}, {6, 7}
-	};
+	static const int32_t linePointIndex[12][2] = {{0, 1}, {0, 2}, {0, 3}, {1, 4}, {1, 5}, {2, 4},
+												  {2, 6}, {3, 5}, {3, 6}, {4, 7}, {5, 7}, {6, 7}};
 
 	for (int32_t i = 0; i < 12; i++)
 	{
 		int32_t idx1 = linePointIndex[i][0];
 		int32_t idx2 = linePointIndex[i][1];
-		getPointToLineDistance(worldCenterA, pointsB[idx1], pointsB[idx2], i + 8, info);
+		getPointToEdgeDistance(worldCenterA, pointsB[idx1], pointsB[idx2], i + 8, info);
 	}
 
-	static const int32_t facePointIndex[6][4] = {
-		{0, 1, 2, 4}, {0, 1, 3, 5}, 
-		{0, 2, 3, 6}, {1, 4, 5, 7},
-		{2, 4, 6, 7}, {3, 5, 6, 7}
-	};
+	static const int32_t facePointIndex[6][4] = {{0, 1, 2, 4}, {0, 1, 3, 5}, {0, 2, 3, 6},
+												 {1, 4, 5, 7}, {2, 4, 6, 7}, {3, 5, 6, 7}};
 
 	for (int32_t i = 0; i < 6; i++)
 	{
@@ -91,9 +82,10 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		int32_t idx2 = facePointIndex[i][1];
 		int32_t idx3 = facePointIndex[i][2];
 		int32_t idx4 = facePointIndex[i][3];
-		getPointToFaceDistance(worldCenterA, pointsB[idx1], pointsB[idx2],
-								pointsB[idx3], pointsB[idx4], i + 20, info);
+		getPointToFaceDistance(worldCenterA, pointsB[idx1], pointsB[idx2], pointsB[idx3], pointsB[idx4], i + 20, info);
 	}
+
+	float radius = shapeA->getLocalRadius();
 
 	if (info.distance <= radius * radius)
 	{
@@ -101,7 +93,7 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		manifoldPoint.normal = info.normal;
 		if (info.type < 8)
 			manifoldPoint.type = EManifoldType::FACE_A_TO_POINT_B;
-		else if (info.type > 20)
+		else if (info.type > 19)
 			manifoldPoint.type = EManifoldType::FACE_A_TO_FACE_B;
 		else
 			manifoldPoint.type = EManifoldType::FACE_A_TO_EDGE_B;
@@ -113,9 +105,9 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		{
 			int64_t tmp = proxyIdA;
 			proxyIdA = proxyIdB;
-			proxyIdB = tmp;		
+			proxyIdB = tmp;
 		}
-		
+
 		proxyIdA = (proxyIdA << 5) & bitmask;
 		proxyIdB = (proxyIdB << 5) & bitmask;
 		manifoldPoint.id = (proxyIdA << 32) | (proxyIdB << 10) | info.type;
@@ -124,21 +116,26 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 	}
 }
 
-void SphereToBoxContact::getPointToLineDistance(const glm::vec3& center, const glm::vec3& p1, const glm::vec3& p2, int32_t type, SphereToBoxInfo& info)
+void SphereToBoxContact::getPointToEdgeDistance(const glm::vec3 &center, const glm::vec3 &p1, const glm::vec3 &p2,
+												int32_t type, SphereToBoxInfo &info)
 {
-	glm::vec3 direction = p2 - p1; // 직선의 방향 벡터
-    glm::vec3 pointToStart = center - p1;  // 점과 직선 시작점 간의 벡터
+	glm::vec3 direction = p2 - p1;		  // 직선의 방향 벡터
+	glm::vec3 pointToStart = center - p1; // 점과 직선 시작점 간의 벡터
 
-    float length = glm::dot(direction, direction);
+	float length = glm::dot(direction, direction);
 
-    float dotlength = glm::dot(pointToStart, direction);
+	float dotlength = glm::dot(pointToStart, direction);
 
-    glm::vec3 closestPoint = p1 + dotlength / length * direction;
+	if (dotlength > length)
+	{
+		return;
+	}
 
-	float distance = 
-			(closestPoint.x - center.x) * (closestPoint.x - center.x) +
-			(closestPoint.y - center.y) * (closestPoint.y - center.y) +
-			(closestPoint.z - center.z) * (closestPoint.z - center.z);
+	glm::vec3 closestPoint = p1 + dotlength / length * direction;
+
+	float distance = (closestPoint.x - center.x) * (closestPoint.x - center.x) +
+					 (closestPoint.y - center.y) * (closestPoint.y - center.y) +
+					 (closestPoint.z - center.z) * (closestPoint.z - center.z);
 
 	if (distance < info.distance)
 	{
@@ -149,8 +146,9 @@ void SphereToBoxContact::getPointToLineDistance(const glm::vec3& center, const g
 	}
 }
 
-void SphereToBoxContact::getPointToFaceDistance(const glm::vec3& center, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& p4,
-												int32_t type, SphereToBoxInfo& info)
+void SphereToBoxContact::getPointToFaceDistance(const glm::vec3 &center, const glm::vec3 &p1, const glm::vec3 &p2,
+												const glm::vec3 &p3, const glm::vec3 &p4, int32_t type,
+												SphereToBoxInfo &info)
 {
 	glm::vec3 v1 = p2 - p1;
 	glm::vec3 v2 = p3 - p1;
@@ -162,9 +160,10 @@ void SphereToBoxContact::getPointToFaceDistance(const glm::vec3& center, const g
 	// 평면과 점 사이의 거리 공식
 	float numerator = glm::dot(normal, center) + d;
 	float distance = std::abs(numerator);
+	distance = distance * distance;
 
 	glm::vec3 closestPoint = center - numerator * normal;
-	
+
 	if (distance < info.distance)
 	{
 		info.type = type;
