@@ -24,7 +24,9 @@ class SphereToBoxContact : public Contact
 	void getPointToEdgeDistance(const glm::vec3 &center, const glm::vec3 &p1, const glm::vec3 &p2, int32_t type,
 								SphereToBoxInfo &info);
 	void getPointToFaceDistance(const glm::vec3 &center, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3,
-								const glm::vec3 &p4, int32_t type, SphereToBoxInfo &info);
+								const glm::vec3 &p4, int32_t type, SphereToBoxInfo &info, bool isInvolved);
+	bool isSphereInside(const glm::vec3 &sphereCenter, const glm::vec3 &boxCenter,
+						const std::vector<glm::vec3> &points);
 };
 } // namespace ale
 
