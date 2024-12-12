@@ -41,20 +41,22 @@ void SphereToSphereContact::evaluate(Manifold &manifold, const Transform &transf
 	proxyIdB = (proxyIdB << 5) & bitmask;
 	manifoldPoint.id = (proxyIdA << 32) | (proxyIdB << 10);
 
-	glm::vec4 worldCenterA = transformA.toMatrix() * glm::vec4(shapeA->localCenter, 1.0f);
-	glm::vec4 worldCenterB = transformB.toMatrix() * glm::vec4(shapeB->localCenter, 1.0f);
+	glm::vec3 worldCenterA = transformA.toMatrix() * glm::vec4(shapeA->localCenter, 1.0f);
+	glm::vec3 worldCenterB = transformB.toMatrix() * glm::vec4(shapeB->localCenter, 1.0f);
 
-	manifoldPoint.normal = glm::normalize(glm::vec3(worldCenterB - worldCenterA));
-	manifoldPoint.point = glm::vec3(worldCenterB) - shapeB->getLocalRadius() * manifoldPoint.normal;
+	manifoldPoint.normal = glm::normalize(worldCenterB - worldCenterA);
+	manifoldPoint.point = worldCenterB - shapeB->getLocalRadius() * manifoldPoint.normal;
 
 	// 구 A 안에 B의 중심이 있는 경우 isInvolved = true
 	if (glm::length(worldCenterA - worldCenterB) < shapeA->getLocalRadius())
 	{
 		manifoldPoint.isInvolved = true;
+		manifoldPoint.seperation = shapeB->getLocalRadius() + glm::length(worldCenterB - manifoldPoint.point);
 	}
 	else
 	{
 		manifoldPoint.isInvolved = false;
+		manifoldPoint.seperation = shapeB->getLocalRadius() - glm::length(worldCenterB - manifoldPoint.point);
 	}
 
 	manifold.points.push_back(manifoldPoint);
