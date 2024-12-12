@@ -113,13 +113,14 @@ enum class EManifoldType
 
 struct ManifoldPoint
 {
-	glm::vec3 point; 	// 충돌 지점의 위치
-	glm::vec3 normal;	// 법선 벡터
+	bool isInvolved;
 	float normalImpulse;  	// 법선 방향 충격량
 	float tangentImpulse; 	// 접촉면 충격량
+	float seperation;		// 관통 깊이
 	uint64_t id;		  	// 충돌 지점의 고유 id
+	glm::vec3 point; 		// 충돌 지점의 위치
+	glm::vec3 normal;		// 법선 벡터
 	EManifoldType type;		// 타입
-	bool isInvolved;
 };
 
 struct Manifold
