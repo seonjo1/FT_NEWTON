@@ -88,7 +88,7 @@ void DynamicTree::DestroyProxy(int32_t proxyId)
 
 bool DynamicTree::MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement)
 {
-	if (nodes[proxyId].aabb.Contains(aabb))
+	if (nodes[proxyId].aabb.contains(aabb))
 	{
 		return false;
 	}
@@ -166,10 +166,10 @@ void DynamicTree::InsertLeaf(int32_t leaf)
 		int32_t child1 = nodes[index].child1;
 		int32_t child2 = nodes[index].child2;
 
-		float area = nodes[index].aabb.GetSurface();
+		float area = nodes[index].aabb.getSurface();
 		AABB combinedAABB;
-		combinedAABB.Combine(nodes[index].aabb, leafAABB);
-		float combinedArea = combinedAABB.GetSurface();
+		combinedAABB.combine(nodes[index].aabb, leafAABB);
+		float combinedArea = combinedAABB.getSurface();
 
 		float cost = 2.0f * combinedArea;
 		float inheritedCost = 2.0f * (combinedArea - area);
@@ -213,7 +213,7 @@ void DynamicTree::InsertLeaf(int32_t leaf)
 	int32_t newParent = AllocateNode();
 	nodes[newParent].parent = oldParent;
 	nodes[newParent].userData = nullptr;
-	nodes[newParent].aabb.Combine(leafAABB, nodes[sibling].aabb);
+	nodes[newParent].aabb.combine(leafAABB, nodes[sibling].aabb);
 	nodes[newParent].height = nodes[sibling].height + 1;
 
 	if (oldParent != nullNode)
@@ -250,7 +250,7 @@ void DynamicTree::InsertLeaf(int32_t leaf)
 		int32_t child2 = nodes[index].child2;
 
 		nodes[index].height = std::max(nodes[child1].height, nodes[child2].height) + 1;
-		nodes[index].aabb.Combine(nodes[child1].aabb, nodes[child2].aabb);
+		nodes[index].aabb.combine(nodes[child1].aabb, nodes[child2].aabb);
 
 		index = nodes[index].parent;
 	}
@@ -300,7 +300,7 @@ void DynamicTree::RemoveLeaf(int32_t leaf)
 			int32_t child2 = nodes[index].child2;
 
 			nodes[index].height = std::max(nodes[child1].height, nodes[child2].height) + 1;
-			nodes[index].aabb.Combine(nodes[child1].aabb, nodes[child2].aabb);
+			nodes[index].aabb.combine(nodes[child1].aabb, nodes[child2].aabb);
 
 			index = nodes[index].parent;
 		}
@@ -316,16 +316,16 @@ void DynamicTree::RemoveLeaf(int32_t leaf)
 float DynamicTree::GetInsertionCostForLeaf(const AABB &leafAABB, int32_t child, float inheritedCost)
 {
 	AABB aabb;
-	aabb.Combine(leafAABB, nodes[child].aabb);
-	return aabb.GetSurface() + inheritedCost;
+	aabb.combine(leafAABB, nodes[child].aabb);
+	return aabb.getSurface() + inheritedCost;
 }
 
 float DynamicTree::GetInsertionCost(const AABB &leafAABB, int32_t child, float inheritedCost)
 {
 	AABB aabb;
-	aabb.Combine(leafAABB, nodes[child].aabb);
-	float oldArea = nodes[child].aabb.GetSurface();
-	float newArea = aabb.GetSurface();
+	aabb.combine(leafAABB, nodes[child].aabb);
+	float oldArea = nodes[child].aabb.getSurface();
+	float newArea = aabb.getSurface();
 	return (newArea - oldArea) + inheritedCost;
 }
 
@@ -380,8 +380,8 @@ int32_t DynamicTree::Balance(int32_t iA)
 			A->child2 = iG;
 			G->parent = iA;
 			nodes[iG].parent = iA;
-			A->aabb.Combine(B->aabb, G->aabb);
-			C->aabb.Combine(A->aabb, F->aabb);
+			A->aabb.combine(B->aabb, G->aabb);
+			C->aabb.combine(A->aabb, F->aabb);
 
 			A->height = std::max(B->height, G->height) + 1;
 			C->height = std::max(A->height, F->height) + 1;
@@ -391,8 +391,8 @@ int32_t DynamicTree::Balance(int32_t iA)
 			C->child2 = iG;
 			A->child2 = iF;
 			F->parent = iA;
-			A->aabb.Combine(B->aabb, F->aabb);
-			C->aabb.Combine(A->aabb, G->aabb);
+			A->aabb.combine(B->aabb, F->aabb);
+			C->aabb.combine(A->aabb, G->aabb);
 
 			A->height = std::max(B->height, F->height) + 1;
 			C->height = std::max(A->height, G->height) + 1;
@@ -433,8 +433,8 @@ int32_t DynamicTree::Balance(int32_t iA)
 			B->child2 = iD;
 			A->child2 = iE;
 			E->parent = iA;
-			A->aabb.Combine(C->aabb, E->aabb);
-			B->aabb.Combine(A->aabb, D->aabb);
+			A->aabb.combine(C->aabb, E->aabb);
+			B->aabb.combine(A->aabb, D->aabb);
 
 			A->height = std::max(C->height, E->height) + 1;
 			C->height = std::max(A->height, D->height) + 1;
@@ -444,8 +444,8 @@ int32_t DynamicTree::Balance(int32_t iA)
 			B->child2 = iE;
 			A->child2 = iD;
 			D->parent = iA;
-			A->aabb.Combine(C->aabb, D->aabb);
-			B->aabb.Combine(A->aabb, E->aabb);
+			A->aabb.combine(C->aabb, D->aabb);
+			B->aabb.combine(A->aabb, E->aabb);
 
 			A->height = std::max(C->height, D->height) + 1;
 			C->height = std::max(A->height, E->height) + 1;

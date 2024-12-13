@@ -7,36 +7,36 @@ namespace ale
 {
 struct AABB
 {
-	bool IsValid() const;
+	bool isValid() const;
 
-	glm::vec3 GetCenter() const
+	glm::vec3 getCenter() const
 	{
 	}
 
-	glm::vec3 GetExtents() const
+	glm::vec3 getExtents() const
 	{
 	}
 
-	float GetSurface() const
+	float getSurface() const
 	{
 		glm::vec3 v = upperBound - lowerBound;
 
 		return (v.x * v.y + v.y * v.z + v.z * v.x) * 2.0f;
 	}
 
-	void Combine(const AABB &aabb)
+	void combine(const AABB &aabb)
 	{
 		lowerBound = min(lowerBound, aabb.lowerBound);
 		upperBound = max(upperBound, aabb.upperBound);
 	}
 
-	void Combine(const AABB &aabb1, const AABB &aabb2)
+	void combine(const AABB &aabb1, const AABB &aabb2)
 	{
 		lowerBound = min(aabb1.lowerBound, aabb2.lowerBound);
 		upperBound = max(aabb1.upperBound, aabb2.upperBound);
 	}
 
-	bool Contains(const AABB &aabb) const
+	bool contains(const AABB &aabb) const
 	{
 		bool result = true;
 
@@ -61,7 +61,7 @@ struct Transform
 	Transform(const glm::vec3 &p, const glm::quat &r) : position(p), orientation(r)
 	{
 	}
-	void Set(const glm::vec3 &p, float angle)
+	void set(const glm::vec3 &p, float angle)
 	{
 		position = p;
 		// set orientation by angle

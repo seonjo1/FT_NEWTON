@@ -28,8 +28,6 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	type = bd->type;
 	xfId = bd->xfId;
 
-	// Transform struct needed
-	// xf.Set(bd->position, bd->angle);
 	xf.position = bd->position;
 	xf.orientation = bd->orientation;
 
