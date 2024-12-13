@@ -19,14 +19,12 @@ struct VelocityConstraintPoint
 
 struct ContactPositionConstraint
 {
-	std::vector<glm::vec3> localPoints;
-	glm::vec3 localNormal;
-	glm::vec3 localPoint;
+	ManifoldPoint* points;
 	int32_t indexA;
 	int32_t indexB;
 	float invMassA, invMassB;
 	glm::vec3 localCenterA, localCenterB;
-	float invIA, invIB;
+	glm::mat3 invIA, invIB;
 	EManifoldType type;
 	float radiusA, radiusB;
 	int32_t pointCount;
@@ -34,14 +32,14 @@ struct ContactPositionConstraint
 
 struct ContactVelocityConstraint
 {
-	std::vector<VelocityConstraintPoint> points;
+	ManifoldPoint* points;
 	glm::vec3 normal;
 	glm::mat3 normalMass;
 	glm::mat3 K;
+	glm::mat3 invIA, invIB;
 	int32_t indexA;
 	int32_t indexB;
 	float invMassA, invMassB;
-	float invIA, invIB;
 	float friction;
 	float restitution;
 	float tangentSpeed;
