@@ -103,7 +103,7 @@ void World::solve(float duration)
 				}
 
 				// contact가 touching 상태가 아니면 continue
-				if (contact->isTouching() == false)
+				if (contact->hasFlag(EContactFlag::TOUCHING) == false)
 				{
 					continue;
 				}
