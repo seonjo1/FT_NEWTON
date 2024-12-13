@@ -1,8 +1,8 @@
 #ifndef CONTACT_H
 #define CONTACT_H
 
-#include "Rigidbody.h"
 #include "Fixture.h"
+#include "Rigidbody.h"
 #include <cmath>
 
 namespace ale
@@ -64,22 +64,24 @@ class Contact
 	virtual void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB) = 0;
 	bool isTouching() const;
 
-
 	Contact *getNext();
 	Fixture *getFixtureA() const;
 	Fixture *getFixtureB() const;
 	int32_t getChildIndexA() const;
 	int32_t getChildIndexB() const;
-	ContactLink& getNodeA();
-	ContactLink& getNodeB();
+	ContactLink &getNodeA();
+	ContactLink &getNodeB();
 
-	void setPrev(Contact* contact);
-	void setNext(Contact* contact);
+	void setPrev(Contact *contact);
+	void setNext(Contact *contact);
+	void setFlag(EContactFlag flag);
+	void unsetFlag(EContactFlag flag);
+	bool hasFlag(EContactFlag flag);
 
   protected:
 	static contactMemberFunction createContactFunctions[4];
 
-	uint32_t m_flags;
+	int32_t m_flags;
 
 	Contact *m_prev;
 	Contact *m_next;

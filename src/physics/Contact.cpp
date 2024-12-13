@@ -89,13 +89,13 @@ void Contact::update()
 	// manifold의 충격량 0으로 초기화 및 old manifold 중
 	// 같은 충돌이 있는경우 Impulse 재사용
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
-	for (ManifoldPoint& manifoldPoint : m_manifold.points)
+	for (ManifoldPoint &manifoldPoint : m_manifold.points)
 	{
 		manifoldPoint.normalImpulse = 0.0f;
 		manifoldPoint.tangentImpulse = 0.0f;
 		uint32_t manifoldPointId = manifoldPoint.id;
 
-		for (ManifoldPoint& oldManifoldPoint : oldManifold.points)
+		for (ManifoldPoint &oldManifoldPoint : oldManifold.points)
 		{
 			// oldmanifold에 똑같은 manifold가 존재하는 경우 impulse 덮어쓰기
 			if (oldManifoldPoint.id == manifoldPointId)
@@ -149,25 +149,39 @@ inline int32_t Contact::getChildIndexB() const
 	return m_indexB;
 }
 
-ContactLink& Contact::getNodeA()
+ContactLink &Contact::getNodeA()
 {
 	return m_nodeA;
 }
 
-ContactLink& Contact::getNodeB()
+ContactLink &Contact::getNodeB()
 {
 	return m_nodeB;
 }
 
-void Contact::setPrev(Contact* contact)
+void Contact::setPrev(Contact *contact)
 {
- 
+	m_prev = contact;
 }
 
-void Contact::setNext(Contact* contact)
+void Contact::setNext(Contact *contact)
 {
-
+	m_next = contact;
 }
 
+void Contact::setFlag(EContactFlag flag)
+{
+	m_flags = m_flags | static_cast<int32_t>(flag);
+}
+
+void Contact::unsetFlag(EContactFlag flag)
+{
+	m_flags = m_flags & ~static_cast<int32_t>(flag);
+}
+
+bool Contact::hasFlag(EContactFlag flag)
+{
+	return (m_flags & static_cast<int32_t>(flag)) == static_cast<int32_t>(flag);
+}
 
 } // namespace ale
