@@ -1,10 +1,10 @@
-#include "physics/ContactSolver.h"
+#include "ContactSolver.h"
 
 namespace ale
 {
-ContactSolver::ContactSolver(ContactSolverDef *def)
-	: m_duration(def->duration), m_positions(*(def->positions)), m_velocities(*(def->velocities)),
-	  m_contacts(*(def->contacts))
+ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, std::vector<Position> &positions,
+							 std::vector<Velocity> &velocities)
+	: m_duration(duration), m_positions(positions), m_velocities(velocities), m_contacts(contacts)
 {
 	int32_t size = contacts.size();
 	for (int32_t i = 0; i < size; i++)
@@ -23,7 +23,7 @@ ContactSolver::ContactSolver(ContactSolverDef *def)
 		Manifold *manifold = contact->getManifold();
 
 		// 속도 제약 설정
-		ContactVelocityConstraint &velocityConstraint = m_velocityConstraints[i];
+		ContactVelocityConstraint velocityConstraint;
 		velocityConstraint.friction = contact->m_friction;
 		velocityConstraint.restitution = contact->m_restitution;
 		velocityConstraint.tangentSpeed = contact->m_tangentSpeed;
@@ -38,8 +38,10 @@ ContactSolver::ContactSolver(ContactSolverDef *def)
 		velocityConstraint.K.SetZero();
 		velocityConstraint.normalMass.SetZero();
 
+		m_velocityConstraints.push_back(velocityConstraint);
+
 		// 위치 제약 설정
-		ContactPositionConstraint &positionConstraint = m_positionConstraints[i];
+		ContactPositionConstraint positionConstraint;
 		positionConstraint.indexA = bodyA->m_islandIndex;
 		positionConstraint.indexB = bodyB->m_islandIndex;
 		positionConstraint.invMassA = bodyA->m_invMass;
@@ -54,6 +56,8 @@ ContactSolver::ContactSolver(ContactSolverDef *def)
 		positionConstraint.radiusA = radiusA;
 		positionConstraint.radiusB = radiusB;
 		positionConstraint.type = manifold->type;
+
+		m_positionConstraints.push_back(positionConstraint);
 
 		// manifold의 points 순회
 		int32_t pointSize = manifold->points.size();

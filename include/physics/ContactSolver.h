@@ -1,7 +1,7 @@
 #ifndef CONTACTSOLVER_H
 #define CONTACTSOLVER_H
 
-#include "Rigidbody.h"
+#include "Island.h"
 
 namespace ale
 {
@@ -49,28 +49,22 @@ struct ContactVelocityConstraint
 	int32_t contactIndex;
 };
 
-struct ContactSolverDef
-{
-	float duration;
-	std::vector<Contact *> *contacts;
-	std::vector<Position> *positions;
-	std::vector<Velocity> *velocities;
-};
-
 class ContactSolver
 {
   public:
-	ContactSolver(ContactSolverDef *def);
+	ContactSolver(float duration, std::vector<Contact *> &contacts, std::vector<Position> &positions,
+				  std::vector<Velocity> &velocities);
 	void initializeVelocityConstraints();
 	void solveVelocityConstraints();
 	void storeImpulses();
 	bool solvePositionConstraints();
+	void warmStart();
 
 	float m_duration;
-	std::vector<Position *> &m_positions;
-	std::vector<Velocity *> &m_velocities;
-	std::vector<ContactPositionConstraint> &m_positionConstraints;
-	std::vector<ContactVelocityConstraint> &m_velocityConstraints;
+	std::vector<Position> &m_positions;
+	std::vector<Velocity> &m_velocities;
+	std::vector<ContactPositionConstraint> m_positionConstraints;
+	std::vector<ContactVelocityConstraint> m_velocityConstraints;
 	std::vector<Contact *> &m_contacts;
 };
 
