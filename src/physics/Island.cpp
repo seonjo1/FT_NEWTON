@@ -110,6 +110,7 @@ void Island::solve(float duration)
 
 void Island::add(Rigidbody *body)
 {
+	body->setIslandIndex(m_bodies.size());
 	m_bodies.push_back(body);
 }
 
