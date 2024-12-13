@@ -197,9 +197,24 @@ const glm::mat4 &Rigidbody::getTransformMatrix() const
 	return transformMatrix;
 }
 
+const glm::mat3 &Rigidbody::getInverseInertiaTensorWorld() const
+{
+	return inverseInertiaTensorWorld;
+}
+
+float Rigidbody::getInverseMass() const
+{
+	return inverseMass;
+}
+
 int32_t Rigidbody::getTransformId() const
 {
 	return xfId;
+}
+
+int32_t Rigidbody::getIslandIndex() const
+{
+	return m_islandIndex;
 }
 
 ContactLink *Rigidbody::getContactLinks()
@@ -219,7 +234,7 @@ void Rigidbody::setPosition(const glm::vec3 &position)
 
 void Rigidbody::setOrientation(const glm::quat &orientation)
 {
-	xf.orientation = orientation;	
+	xf.orientation = orientation;
 }
 
 void Rigidbody::setLinearVelocity(const glm::vec3 &linearVelocity)
@@ -242,6 +257,11 @@ void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
 	// 역행렬 존재 가능한지 예외처리
 	inverseInertiaTensor = inertiaTensor;
 	inverseInertiaTensor = glm::inverse(inverseInertiaTensor);
+}
+
+void Rigidbody::setIslandIndex(int32_t idx)
+{
+	m_islandIndex = idx;
 }
 
 void Rigidbody::setFlag(EBodyFlag flag)

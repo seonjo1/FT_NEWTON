@@ -96,21 +96,26 @@ class Rigidbody
 	const glm::vec3 &getLinearVelocity() const;
 	const glm::vec3 &getAngularVelocity() const;
 	const glm::vec3 &getAcceleration() const;
-	int32_t getTransformId() const;
+	const glm::mat3 &getInverseInertiaTensorWorld() const;
+	float getInverseMass() const;
 	BodyType getType();
+	int32_t getTransformId() const;
+	int32_t getIslandIndex() const;
+	ContactLink *getContactLinks();
+
 	void setPosition(const glm::vec3 &position);
 	void setOrientation(const glm::quat &orientation);
 	void setLinearVelocity(const glm::vec3 &linearVelocity);
 	void setAngularVelocity(const glm::vec3 &angularVelocity);
 	void setAcceleration(const glm::vec3 &acceleration);
 	void setMassData(float mass, const glm::mat3 &inertiaTensor);
+	void setIslandIndex(int32_t idx);
 	void setFlag(EBodyFlag flag);
 	void unsetFlag(EBodyFlag flag);
 
 	void createFixture(Shape *shape);
 	void createFixture(const FixtureDef *fd);
 
-	ContactLink *getContactLinks();
 	bool shouldCollide(const Rigidbody *other) const;
 	bool hasFlag(EBodyFlag flag);
 	void updateSweep();
@@ -142,6 +147,7 @@ class Rigidbody
 	float gravityScale;
 	int32_t xfId;
 	int32_t m_flags;
+	int32_t m_islandIndex;
 
 	ContactLink *m_contactLinks;
 
