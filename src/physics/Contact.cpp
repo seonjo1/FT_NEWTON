@@ -118,6 +118,21 @@ void Contact::update()
 	}
 }
 
+float Contact::getFriction() const
+{
+	return m_friction;
+}
+
+float Contact::getRestitution() const
+{
+	return m_restitution;
+}
+
+float Contact::getTangentSpeed() const
+{
+	return m_tangentSpeed;
+}
+
 inline Contact *Contact::getNext()
 {
 	return m_next;
@@ -151,6 +166,11 @@ ContactLink &Contact::getNodeA()
 ContactLink &Contact::getNodeB()
 {
 	return m_nodeB;
+}
+
+const Manifold &Contact::getManifold() const
+{
+	return m_manifold;
 }
 
 void Contact::setPrev(Contact *contact)

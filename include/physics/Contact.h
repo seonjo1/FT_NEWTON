@@ -63,6 +63,9 @@ class Contact
 	void update();
 	virtual void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB) = 0;
 
+	float getFriction() const;
+	float getRestitution() const;
+	float getTangentSpeed() const;
 	Contact *getNext();
 	Fixture *getFixtureA() const;
 	Fixture *getFixtureB() const;
@@ -70,6 +73,7 @@ class Contact
 	int32_t getChildIndexB() const;
 	ContactLink &getNodeA();
 	ContactLink &getNodeB();
+	const Manifold &getManifold() const;
 
 	void setPrev(Contact *contact);
 	void setNext(Contact *contact);
