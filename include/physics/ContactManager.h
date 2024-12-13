@@ -19,7 +19,6 @@ class ContactManager
 
 	BroadPhase broadPhase;
 	Contact *m_contactList;
-	int32_t m_contactCount;
 };
 
 } // namespace ale

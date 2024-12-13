@@ -18,10 +18,12 @@ bool ContactManager::isSameContact(ContactLink *link, Fixture *fixtureA, Fixture
 	// 같은 충돌인 경우 충돌 생성 x
 	if (fixtureX == fixtureA && fixtureY == fixtureB && indexX == indexA && indexY == indexB)
 	{
+		link->contact->setFlag(EContactFlag::TOUCHING);
 		return true;
 	}
 	if (fixtureX == fixtureB && fixtureY == fixtureA && indexX == indexB && indexY == indexA)
 	{
+		link->contact->setFlag(EContactFlag::TOUCHING);
 		return true;
 	}
 
@@ -89,7 +91,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	m_contactList = contact;
 
 	// contact의 m_nodeA 초기화
-	ContactLink& nodeA = contact->getNodeA();
+	ContactLink &nodeA = contact->getNodeA();
 	ContactLink *bodyAContactLinks = bodyA->getContactLinks();
 
 	nodeA.contact = contact;
@@ -105,7 +107,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	bodyAContactLinks = &nodeA;
 
 	// contact의 m_nodeB 초기화
-	ContactLink& nodeB = contact->getNodeB();
+	ContactLink &nodeB = contact->getNodeB();
 	ContactLink *bodyBContactLinks = bodyB->getContactLinks();
 
 	nodeB.contact = contact;
@@ -119,9 +121,6 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 		bodyBContactLinks->prev = &nodeB;
 	}
 	bodyBContactLinks = &nodeB;
-
-	// 충돌 개수 추가
-	++m_contactCount;
 }
 
 void ContactManager::findNewContacts()
@@ -138,7 +137,10 @@ void ContactManager::collide()
 	while (contact)
 	{
 		// 실제 충돌 여부를 검사하고 해당 충돌 정보인 manifold 생성
-		contact->update();
+		if (contact->hasFlag(EContactFlag::TOUCHING))
+		{
+			contact->update();
+		}
 		contact = contact->getNext();
 	}
 }
