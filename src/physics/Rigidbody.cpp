@@ -177,6 +177,21 @@ const glm::vec3 &Rigidbody::getPosition() const
 	return xf.position;
 }
 
+const glm::quat &Rigidbody::getOrientation() const
+{
+	return xf.orientation;
+}
+
+const glm::vec3 &Rigidbody::getLinearVelocity() const
+{
+	return linearVelocity;
+}
+
+const glm::vec3 &Rigidbody::getAngularVelocity() const
+{
+	return angularVelocity;
+}
+
 const glm::mat4 &Rigidbody::getTransformMatrix() const
 {
 	return transformMatrix;
@@ -197,10 +212,24 @@ BodyType Rigidbody::getType()
 	return type;
 }
 
-
 void Rigidbody::setPosition(const glm::vec3 &position)
 {
 	this->xf.position = position;
+}
+
+void Rigidbody::setOrientation(const glm::quat &orientation)
+{
+	xf.orientation = orientation;	
+}
+
+void Rigidbody::setLinearVelocity(const glm::vec3 &linearVelocity)
+{
+	this->linearVelocity = linearVelocity;
+}
+
+void Rigidbody::setAngularVelocity(const glm::vec3 &angularVelocity)
+{
+	this->angularVelocity = angularVelocity;
 }
 
 void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
@@ -250,6 +279,12 @@ void Rigidbody::createFixture(const FixtureDef *fd)
 bool Rigidbody::hasFlag(EBodyFlag flag)
 {
 	return (m_flags & static_cast<int32_t>(flag)) == static_cast<int32_t>(flag);
+}
+
+void Rigidbody::updateSweep()
+{
+	sweep.p = xf.position;
+	sweep.q = xf.orientation;
 }
 
 } // namespace ale

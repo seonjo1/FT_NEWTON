@@ -90,7 +90,7 @@ class Rigidbody
 
 	// getter function
 	const glm::vec3 &getPosition() const;
-	const glm::vec3 &getOrientation() const;
+	const glm::quat &getOrientation() const;
 	const Transform &getTransform() const;
 	const glm::mat4 &getTransformMatrix() const;
 	const glm::vec3 &getLinearVelocity() const;
@@ -98,7 +98,6 @@ class Rigidbody
 	const glm::vec3 &getAcceleration() const;
 	int32_t getTransformId() const;
 	BodyType getType();
-
 	void setPosition(const glm::vec3 &position);
 	void setOrientation(const glm::quat &orientation);
 	void setLinearVelocity(const glm::vec3 &linearVelocity);
@@ -114,6 +113,7 @@ class Rigidbody
 	ContactLink *getContactLinks();
 	bool shouldCollide(const Rigidbody *other) const;
 	bool hasFlag(EBodyFlag flag);
+	void updateSweep();
 
   protected:
 	World *world;
