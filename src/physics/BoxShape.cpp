@@ -32,7 +32,7 @@ void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 
 	std::sort(vertexVector.begin(), vertexVector.end(), Vec3Comparator());
 
-	// get min, max vertex
+	// get min, max vertex - 가장 앞과 끝 값만 가져오면 되는 게 아니라 가장 큰 x,y,z 작은 x,y,z 필요
 	glm::vec3 upper = *std::prev(vertexVector.end());
 	glm::vec3 lower = *vertexVector.begin();
 
