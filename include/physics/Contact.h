@@ -62,7 +62,6 @@ class Contact
 	Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
 	void update();
 	virtual void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB) = 0;
-	bool isTouching() const;
 
 	Contact *getNext();
 	Fixture *getFixtureA() const;

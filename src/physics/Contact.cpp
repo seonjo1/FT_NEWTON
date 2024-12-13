@@ -15,7 +15,7 @@ contactMemberFunction createContactFunctions[4] = {
 Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
 	: m_fixtureA(fixtureA), m_fixtureB(fixtureB), m_indexA(indexA), m_indexB(indexB)
 {
-	m_flags = 0;
+	m_flags = static_cast<int32_t>(EContactFlag::TOUCHING);
 
 	m_fixtureA = fixtureA;
 	m_fixtureB = fixtureB;
@@ -68,7 +68,6 @@ void Contact::update()
 
 	// 이전 프레임에서 두 객체가 충돌중이었는지 확인
 	bool touching = false;
-	bool wasTouching = (m_flags & EContactFlag::TOUCHING) == EContactFlag::TOUCHING;
 
 	// bodyA, bodyB의 Transform 가져오기
 	Rigidbody *bodyA = m_fixtureA->getBody();
@@ -117,11 +116,6 @@ void Contact::update()
 		// touching이 아니면 touching flag off
 		m_flags = m_flags & ~EContactFlag::TOUCHING;
 	}
-}
-
-bool Contact::isTouching() const
-{
-	return (m_flags & EContactFlag::TOUCHING) == EContactFlag::TOUCHING;
 }
 
 inline Contact *Contact::getNext()
