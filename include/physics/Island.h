@@ -1,22 +1,17 @@
 #ifndef ISLAND_H
 #define ISLAND_H
 
+#include "Contact.h"
 #include "ContactSolver.h"
 #include "Rigidbody.h"
 
 namespace ale
 {
 
-enum class EIterations
-{
-	VELOCITY = 6,
-	POSITION = 2
-}
-
 struct Position
 {
 	glm::vec3 position;
-	glm::vec3 orientation;
+	glm::quat orientation;
 };
 
 struct Velocity
@@ -30,10 +25,18 @@ class Island
   public:
 	Island() = default;
 	~Island() = default;
+	void solve(float duration);
 
 	void add(Rigidbody *body);
 	void add(Contact *contact);
 	void clear();
+
+	static const int32_t VELOCITY_ITERATION;
+	static const int32_t POSITION_ITERATION;
+	static const float MAX_TRANSLATION;
+	static const float MAX_TRANSLATION_SQUARED;
+	static const float MAX_ROTATION;
+	static const float MAX_ROTATION_SQUARED;
 
 	std::vector<Rigidbody *> m_bodies;
 	std::vector<Contact *> m_contacts;
