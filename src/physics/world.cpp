@@ -44,13 +44,13 @@ void World::solve(float duration)
 	// 모든 body들의 플래그에 islandFlag 제거
 	for (Rigidbody *body : rigidbodies)
 	{
-		body->m_flags &= ~EBodyFlag::ISLAND;
+		body->unsetFlag(EBodyFlag::ISLAND);
 	}
 
 	// 모든 contact들의 플래그에 islandFlag 제거
-	for (Contact *contact : m_contactManager.m_contactList)
+	for (Contact *contact = contactManager.m_contactList; contact; contact = contact->getNext())
 	{
-		contact->m_flags &= ~EContactFlag::ISLAND;
+		contact->unsetFlag(EContactFlag::ISLAND);
 	}
 
 	// Body를 순회하며 island를 생성후 solve 처리
@@ -60,13 +60,13 @@ void World::solve(float duration)
 	for (Rigidbody *body : rigidbodies)
 	{
 		// 이미 island에 포함된 경우 continue
-		if (body->m_flags & EBodyFlag::ISLAND)
+		if (body->hasFlag(EBodyFlag::ISLAND))
 		{
 			continue;
 		}
 
 		// staticBody인 경우 continue
-		if (body->GetType() == BodyType::e_static)
+		if (body->getType() == BodyType::e_static)
 		{
 			continue;
 		}
@@ -75,7 +75,7 @@ void World::solve(float duration)
 		// island clear를 통해 새로운 island 생성
 		island.clear();
 		stack.push(body);
-		body->m_flags |= EBodyFlag::ISLAND; // body island 처리
+		body->setFlag(EBodyFlag::ISLAND); // body island 처리
 
 		// DFS로 island 생성
 		while (!stack.empty())
@@ -86,18 +86,18 @@ void World::solve(float duration)
 			island.add(targetBody);
 
 			// body가 staticBody면 뒤에 과정 pass
-			if (targetBody->GetType() == BodyType::e_static)
+			if (targetBody->getType() == BodyType::e_static)
 			{
 				continue;
 			}
 
 			// body contactList의 contact들을 island에 추가
-			for (ContactLink *link : targetBody->GetContactLinks)
+			for (ContactLink *link = targetBody->getContactLinks(); link; link = link->next)
 			{
 				Contact *contact = link->contact;
 
 				// 이미 island에 포함된 경우 continue
-				if (contact->m_flags & EContactFlag::ISLAND)
+				if (contact->hasFlag(EContactFlag::ISLAND))
 				{
 					continue;
 				}
@@ -110,31 +110,31 @@ void World::solve(float duration)
 
 				// 위 조건을 다 충족하는 경우 island에 추가 후 island 플래그 on
 				island.add(contact);
-				contact->m_flags |= EContactFlag::ISLAND;
+				contact->setFlag(EContactFlag::ISLAND);
 
 				Rigidbody *other = link->other;
 
 				// 충돌 상대 body가 이미 island에 속한 상태면 continue
-				if (other->m_flags & EBodyFlag::ISLAND)
+				if (other->hasFlag(EBodyFlag::ISLAND))
 				{
 					continue;
 				}
 
 				// 충돌 상대 body가 island에 속한게 아니었으면 stack에 추가 후 island 플래그 on
 				stack.push(other);
-				other->m_flags |= EBodyFlag::ISLAND;
+				other->setFlag(EBodyFlag::ISLAND);
 			}
 		}
 
 		// 생성한 island 충돌 처리
-		island.Solve(&profile, step, m_gravity, m_allowSleep);
+		island.solve(duration);
 
 		// island의 staticBody들의 island 플래그 off
 		for (Rigidbody *body : island.m_bodies)
 		{
-			if (body->GetType() == BodyType::e_static)
+			if (body->getType() == BodyType::e_static)
 			{
-				body->m_flags &= ~EBodyFlag::ISLAND;
+				body->unsetFlag(EBodyFlag::ISLAND);
 			}
 		}
 	}
