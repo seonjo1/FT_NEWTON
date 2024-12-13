@@ -20,6 +20,11 @@ enum class BodyType
 	e_dynamic
 };
 
+enum class EBodyFlag
+{
+	ISLAND,
+};
+
 struct BodyDef
 {
 	BodyDef()
@@ -92,6 +97,7 @@ class Rigidbody
 	const glm::vec3 &getAngularVelocity() const;
 	const glm::vec3 &getAcceleration() const;
 	int32_t getTransformId() const;
+	BodyType getType();
 
 	void setPosition(const glm::vec3 &position);
 	void setOrientation(const glm::quat &orientation);
@@ -99,12 +105,15 @@ class Rigidbody
 	void setAngularVelocity(const glm::vec3 &angularVelocity);
 	void setAcceleration(const glm::vec3 &acceleration);
 	void setMassData(float mass, const glm::mat3 &inertiaTensor);
+	void setFlag(EBodyFlag flag);
+	void unsetFlag(EBodyFlag flag);
 
 	void createFixture(Shape *shape);
 	void createFixture(const FixtureDef *fd);
 
 	ContactLink *getContactLinks();
 	bool shouldCollide(const Rigidbody *other) const;
+	bool hasFlag(EBodyFlag flag);
 
   protected:
 	World *world;
@@ -132,6 +141,7 @@ class Rigidbody
 	float angularDamping;
 	float gravityScale;
 	int32_t xfId;
+	int32_t m_flags;
 
 	ContactLink *m_contactLinks;
 

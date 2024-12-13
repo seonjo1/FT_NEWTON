@@ -43,6 +43,7 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	canSleep = bd->canSleep;
 	isAwake = bd->isAwake;
 	acceleration = glm::vec3(0.0f);
+	m_flags = 0;
 }
 
 void Rigidbody::synchronizeFixtures()
@@ -191,6 +192,12 @@ ContactLink *Rigidbody::getContactLinks()
 	return m_contactLinks;
 }
 
+BodyType Rigidbody::getType()
+{
+	return type;
+}
+
+
 void Rigidbody::setPosition(const glm::vec3 &position)
 {
 	this->xf.position = position;
@@ -206,6 +213,16 @@ void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
 	// 역행렬 존재 가능한지 예외처리
 	inverseInertiaTensor = inertiaTensor;
 	inverseInertiaTensor = glm::inverse(inverseInertiaTensor);
+}
+
+void Rigidbody::setFlag(EBodyFlag flag)
+{
+	m_flags = m_flags | static_cast<int32_t>(flag);
+}
+
+void Rigidbody::unsetFlag(EBodyFlag flag)
+{
+	m_flags = m_flags & ~static_cast<int32_t>(flag);
 }
 
 void Rigidbody::createFixture(Shape *shape)
@@ -228,6 +245,11 @@ void Rigidbody::createFixture(const FixtureDef *fd)
 	fixture->CreateProxies(&world->contactManager.broadPhase);
 	fixtures.push_back(fixture);
 	std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
+}
+
+bool Rigidbody::hasFlag(EBodyFlag flag)
+{
+	return (m_flags & static_cast<int32_t>(flag)) == static_cast<int32_t>(flag);
 }
 
 } // namespace ale
