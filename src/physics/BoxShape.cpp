@@ -1,4 +1,5 @@
 #include "physics/BoxShape.h"
+#include <limits>
 
 namespace ale
 {
@@ -30,14 +31,14 @@ void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 		vertex = glm::vec3(v.x, v.y, v.z);
 	}
 
+	// 최적화 여지 있음.
 	std::sort(vertexVector.begin(), vertexVector.end(), Vec3Comparator());
 
-	// get min, max vertex - 가장 앞과 끝 값만 가져오면 되는 게 아니라 가장 큰 x,y,z 작은 x,y,z 필요
 	glm::vec3 upper = *std::prev(vertexVector.end());
 	glm::vec3 lower = *vertexVector.begin();
 
-	// std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
-	// std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
+	std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
+	std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
 
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
