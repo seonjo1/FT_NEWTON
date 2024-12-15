@@ -9,7 +9,7 @@ namespace ale
 {
 
 class Contact;
-class Manifold;
+struct Manifold;
 
 using contactMemberFunction = Contact *(*)(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
 
