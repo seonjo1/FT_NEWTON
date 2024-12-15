@@ -29,7 +29,6 @@ void Island::solve(float duration)
 	}
 
 	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities);
-	contactSolver.initializeVelocityConstraints();
 
 	// 기존 충돌의 정보로 충격량 계산
 	contactSolver.warmStart();
@@ -38,7 +37,7 @@ void Island::solve(float duration)
 	for (int32_t i = 0; i < VELOCITY_ITERATION; ++i)
 	{
 		// 충돌 속도 제약 해결
-		contactSolver.solveVelocityConstraints();
+		contactSolver.solveVelocityConstraints(VELOCITY_ITERATION);
 	}
 
 	// warm starting을 위해 충격량 기록
