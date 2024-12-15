@@ -307,4 +307,13 @@ void Rigidbody::updateSweep()
 	sweep.q = xf.orientation;
 }
 
+bool Rigidbody::shouldCollide(const Rigidbody *other) const
+{
+	if (type != BodyType::e_dynamic && other->type != BodyType::e_dynamic)
+	{
+		return false;
+	}
+}
+
+
 } // namespace ale
