@@ -53,16 +53,14 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 	for (int32_t i = 0; i < 8; i++)
 	{
 		glm::vec3 &point = pointsB[i];
-		float distance = (point.x - worldCenterA.x) * (point.x - worldCenterA.x) +
-						 (point.y - worldCenterA.y) * (point.y - worldCenterA.y) +
-						 (point.z - worldCenterA.z) * (point.z - worldCenterA.z);
+		float distance = glm::length2(point - worldCenterA);
 
 		if (distance < info.distance)
 		{
 			info.type = i;
 			info.distance = distance;
-			info.point = point;
 			info.normal = glm::normalize(point - worldCenterA);
+			info.pointB = point;
 		}
 	}
 
@@ -93,7 +91,7 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 
 	if (info.distance <= radius * radius)
 	{
-		manifoldPoint.point = info.point;
+		manifoldPoint.pointB = info.pointB;
 		manifoldPoint.normal = info.normal;
 		if (info.type < 8)
 			manifoldPoint.type = EManifoldType::FACE_A_TO_POINT_B;
@@ -129,6 +127,8 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 			manifoldPoint.seperation = std::sqrt(info.distance);
 		}
 
+		manifoldPoint.pointA = worldCenterA + manifoldPoint.normal * manifoldPoint.seperation;
+
 		manifold.points.push_back(manifoldPoint);
 	}
 }
@@ -154,7 +154,7 @@ void SphereToBoxContact::getPointToEdgeDistance(const glm::vec3 &center, const g
 	if (distance < info.distance)
 	{
 		info.type = type;
-		info.point = closestPoint;
+		info.pointB = closestPoint;
 		info.normal = glm::normalize(closestPoint - center);
 		info.distance = distance;
 	}
@@ -198,7 +198,7 @@ void SphereToBoxContact::getPointToFaceDistance(const glm::vec3 &center, const g
 	if (distance < info.distance)
 	{
 		info.type = type;
-		info.point = closestPoint;
+		info.pointB = closestPoint;
 		info.normal = glm::normalize(closestPoint - center);
 		info.distance = distance;
 	}
