@@ -72,10 +72,9 @@ float BoxShape::getLocalRadius() const
 	return 0;
 }
 
-const glm::vec3& BoxShape::getLocalHalfSize() const
+const glm::vec3 &BoxShape::getLocalHalfSize() const
 {
 	return halfSize;
 }
-
 
 } // namespace ale
