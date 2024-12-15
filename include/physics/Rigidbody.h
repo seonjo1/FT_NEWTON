@@ -103,6 +103,7 @@ class Rigidbody
 	void setAngularVelocity(const glm::vec3 &angularVelocity);
 	void setAcceleration(const glm::vec3 &acceleration);
 	void setMassData(float mass, const glm::mat3 &inertiaTensor);
+	void setContactLinks(ContactLink *contactLink);
 	void setIslandIndex(int32_t idx);
 	void setFlag(EBodyFlag flag);
 	void unsetFlag(EBodyFlag flag);

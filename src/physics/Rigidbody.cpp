@@ -44,6 +44,7 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	isAwake = bd->isAwake;
 	acceleration = glm::vec3(0.0f);
 	m_flags = 0;
+	m_contactLinks = nullptr;
 }
 
 void Rigidbody::synchronizeFixtures()
@@ -63,7 +64,7 @@ void Rigidbody::synchronizeFixtures()
 void Rigidbody::integrate(float duration)
 {
 	// gravity
-	// addGravity();
+	addGravity();
 
 	// Set acceleration by F = ma
 	lastFrameAcceleration = acceleration;
@@ -257,6 +258,11 @@ void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
 	// 역행렬 존재 가능한지 예외처리
 	inverseInertiaTensor = inertiaTensor;
 	inverseInertiaTensor = glm::inverse(inverseInertiaTensor);
+}
+
+void Rigidbody::setContactLinks(ContactLink *contactLink)
+{
+	m_contactLinks = contactLink;
 }
 
 void Rigidbody::setIslandIndex(int32_t idx)
