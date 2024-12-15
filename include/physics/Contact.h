@@ -18,6 +18,8 @@ struct ContactLink
 	Contact *contact;  // 두 Body 간의 Contact 정보
 	ContactLink *prev; // 이전 충돌 정보
 	ContactLink *next; // 다음 충돌 정보
+
+	ContactLink() : other(nullptr), contact(nullptr), prev(nullptr), next(nullptr) {};
 };
 
 enum class EContactType
@@ -55,8 +57,8 @@ class Contact
 	Fixture *getFixtureB() const;
 	int32_t getChildIndexA() const;
 	int32_t getChildIndexB() const;
-	ContactLink &getNodeA();
-	ContactLink &getNodeB();
+	ContactLink *getNodeA();
+	ContactLink *getNodeB();
 	const Manifold &getManifold() const;
 
 	void setPrev(Contact *contact);
