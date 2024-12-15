@@ -60,11 +60,6 @@ struct BodyDef
 	int32_t xfId;
 };
 
-enum class EBodyFlag
-{
-	ISLAND,
-};
-
 class Rigidbody
 {
   public:
