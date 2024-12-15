@@ -16,7 +16,7 @@ enum class Type
 
 int32_t operator|(Type type1, Type type2)
 {
-	return type1 | type2;
+	return static_cast<int32_t>(type1) | static_cast<int32_t>(type2);
 }
 
 struct MassData
