@@ -2,7 +2,6 @@
 #define ISLAND_H
 
 #include "Contact.h"
-#include "ContactSolver.h"
 #include "Rigidbody.h"
 
 namespace ale
