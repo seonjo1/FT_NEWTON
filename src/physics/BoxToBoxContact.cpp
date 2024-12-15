@@ -28,17 +28,17 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 	glm::vec3 localCenterA = shapeA->localCenter;
 	// glm::vec3 worldCenterA = transformA.toMatrix() * glm::vec4(localCenterA, 1.0f);
 	glm::vec3 halfSizeA = shapeA->getLocalHalfSize();
-	glm::mat4 matrix = transformA.toMatrix();
-	glm::vec3 worldCenterA = matrix * glm::vec4(localCenterA, 1.0f);
+	glm::mat4 matrixA = transformA.toMatrix();
+	glm::vec3 worldCenterA = matrixA * glm::vec4(localCenterA, 1.0f);
 	std::vector<glm::vec3> pointsA = {
-		matrix * glm::vec4(localCenterA - halfSizeA, 1.0f),
-		matrix * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, -halfSizeA.z), 1.0f),
-		matrix * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f),
-		matrix * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, -halfSizeA.y, halfSizeA.z), 1.0f),
-		matrix * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f),
-		matrix * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, halfSizeA.z), 1.0f),
-		matrix * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, halfSizeA.y, halfSizeA.z), 1.0f),
-		matrix * glm::vec4(localCenterA + halfSizeA, 1.0f)};
+		matrixA * glm::vec4(localCenterA - halfSizeA, 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, -halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, -halfSizeA.y, halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, halfSizeA.y, halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + halfSizeA, 1.0f)};
 	std::vector<glm::vec3> axesA = {
 		glm::normalize(pointsA[1] - pointsA[0]),
 		glm::normalize(pointsA[2] - pointsA[0]),
@@ -49,16 +49,16 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 	glm::vec3 localCenterB = shapeB->localCenter;
 	// glm::vec3 worldCenterB = transformB.toMatrix() * glm::vec4(localCenterB, 1.0f);
 	glm::vec3 halfSizeB = shapeB->getLocalHalfSize();
-	glm::mat4 matrix = transformB.toMatrix();
+	glm::mat4 matrixB = transformB.toMatrix();
 	std::vector<glm::vec3> pointsB = {
-		matrix * glm::vec4(localCenterB - halfSizeB, 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + halfSizeB, 1.0f)};
+		matrixB * glm::vec4(localCenterB - halfSizeB, 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + halfSizeB, 1.0f)};
 	std::vector<glm::vec3> axesB = {
 		glm::normalize(pointsB[1] - pointsB[0]),
 		glm::normalize(pointsB[2] - pointsB[0]),
@@ -145,7 +145,6 @@ BoxToBoxInfo BoxToBoxContact::boxToBoxSAT(const std::vector<glm::vec3> &pointsA,
 		{
 			continue;
 		}
-		glm::vec3 impactAxis;
 
 		if (!isOverlapped(info, axis, pointsA, pointsB, i))
 		{
