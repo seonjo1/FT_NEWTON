@@ -13,7 +13,8 @@ struct BoxToBoxInfo
 	int32_t typeA;
 	int32_t typeB;
 	float overlap;
-	glm::vec3 point;
+	glm::vec3 pointA;
+	glm::vec3 pointB;
 	glm::vec3 normal;
 };
 

@@ -29,6 +29,7 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 	// glm::vec3 worldCenterA = transformA.toMatrix() * glm::vec4(localCenterA, 1.0f);
 	glm::vec3 halfSizeA = shapeA->getLocalHalfSize();
 	glm::mat4 matrix = transformA.toMatrix();
+	glm::vec3 worldCenterA = matrix * glm::vec4(localCenterA, 1.0f);
 	std::vector<glm::vec3> pointsA = {
 		matrix * glm::vec4(localCenterA - halfSizeA, 1.0f),
 		matrix * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, -halfSizeA.z), 1.0f),
@@ -107,7 +108,8 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 			manifoldPoint.type = EManifoldType::POINT_A_TO_FACE_B;
 		}
 
-		manifoldPoint.point = info.point;
+		manifoldPoint.pointA = info.pointA;
+		manifoldPoint.pointB = info.pointA - info.normal * info.overlap;
 		manifoldPoint.normal = info.normal;
 		manifoldPoint.seperation = info.overlap;
 
@@ -287,7 +289,7 @@ void BoxToBoxContact::fillFaceToPointInfo(BoxToBoxInfo &info, std::vector<glm::v
 
 	info.normal =
 		glm::normalize(glm::cross(pointsA[faceA[1]] - pointsA[faceA[0]], pointsA[faceA[2]] - pointsA[faceA[0]]));
-	info.point = pointB;
+	info.pointA = pointB - info.normal * info.overlap;
 }
 
 void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -334,7 +336,7 @@ void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::ve
 	float ratio = findIntersectionRatio(projectedEdgeA, projectedEdgeB);
 
 	info.normal = normal;
-	info.point = edgeA[0] + (edgeA[1] - edgeA[0]) * ratio;
+	info.pointA = edgeA[0] + (edgeA[1] - edgeA[0]) * ratio;
 }
 
 void BoxToBoxContact::fillPointToFaceInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -347,7 +349,7 @@ void BoxToBoxContact::fillPointToFaceInfo(BoxToBoxInfo &info, std::vector<glm::v
 	glm::vec3 &pointA = pointsA[info.typeA];
 	std::vector<int32_t> faceB =
 		isContainPoint(faceVector[axisType][0], info.typeB) ? faceVector[axisType][0] : faceVector[axisType][1];
-	info.point = pointA;
+	info.pointA = pointA;
 	info.normal =
 		-glm::normalize(glm::cross(pointsB[faceB[1]] - pointsB[faceB[0]], pointsB[faceB[2]] - pointsB[faceB[0]]));
 }
