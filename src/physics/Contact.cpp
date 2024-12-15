@@ -179,14 +179,14 @@ int32_t Contact::getChildIndexB() const
 	return m_indexB;
 }
 
-ContactLink &Contact::getNodeA()
+ContactLink *Contact::getNodeA()
 {
-	return m_nodeA;
+	return &m_nodeA;
 }
 
-ContactLink &Contact::getNodeB()
+ContactLink *Contact::getNodeB()
 {
-	return m_nodeB;
+	return &m_nodeB;
 }
 
 const Manifold &Contact::getManifold() const
