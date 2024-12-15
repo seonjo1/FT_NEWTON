@@ -8,9 +8,11 @@ set(SRC src/main.cpp src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
 		src/swapChainManager.cpp src/image.cpp src/renderer.cpp
 		src/buffer.cpp src/mesh.cpp src/model.cpp src/syncObject.cpp 
 		src/commandManager.cpp src/descriptorPool.cpp src/camera.cpp
-		src/physics/BoxShape.cpp src/physics/BroadPhase.cpp src/physics/ContactManager.cpp
-		src/physics/DynamicTree.cpp src/physics/Fixture.cpp src/physics/Rigidbody.cpp
-		src/physics/SphereShape.cpp src/physics/world.cpp)
+		src/physics/BoxShape.cpp src/physics/BoxToBoxContact.cpp src/physics/BroadPhase.cpp 
+		src/physics/Contact.cpp src/physics/ContactManager.cpp src/physics/ContactSolver.cpp 
+		src/physics/DynamicTree.cpp src/physics/Fixture.cpp src/physics/Island.cpp 
+		src/physics/Rigidbody.cpp src/physics/SphereShape.cpp src/physics/SphereToBoxContact.cpp 
+		src/physics/SphereToSphereContact.cpp src/physics/world.cpp )
 
 add_executable(${PROJECT_NAME} ${SRC})
 
