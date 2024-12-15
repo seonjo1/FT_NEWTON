@@ -245,12 +245,12 @@ void App::createWorld()
 {
 	world = new ale::World(static_cast<uint32_t>(models.size()), *this);
 
-	std::cout << "App::Create World\n";
+	// std::cout << "App::Create World\n";
 	for (size_t i = 0; i < models.size(); ++i)
 	{
 		world->createBody(models[i], static_cast<int32_t>(i));
 	}
-	std::cout << "App::Create World end\n";
+	// std::cout << "App::Create World end\n";
 }
 
 bool App::tryPrepareImage(uint32_t *imageIndex)
