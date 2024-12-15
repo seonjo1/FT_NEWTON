@@ -15,7 +15,7 @@ Fixture::Fixture()
 
 void Fixture::Create(Rigidbody *body, const FixtureDef *fd)
 {
-	std::cout << "Fixture::Create\n";
+	// std::cout << "Fixture::Create\n";
 	shape = fd->shape;
 	density = fd->density;
 	friction = fd->friction;
@@ -24,7 +24,7 @@ void Fixture::Create(Rigidbody *body, const FixtureDef *fd)
 
 	int32_t childCount = shape->GetChildCount();
 	proxies.resize(childCount);
-	std::cout << "Fixture::Create - child count: " << childCount << '\n';
+	// std::cout << "Fixture::Create - child count: " << childCount << '\n';
 	for (int32_t i = 0; i < childCount; ++i)
 	{
 		if (!proxies[i])
@@ -40,7 +40,7 @@ void Fixture::Destroy()
 
 void Fixture::CreateProxies(BroadPhase *broadPhase)
 {
-	std::cout << "Fixture::Create Proxies\n";
+	// std::cout << "Fixture::Create Proxies\n";
 	for (int32_t i = 0; i < proxies.size(); ++i)
 	{
 		shape->ComputeAABB(&proxies[i]->aabb, body->getTransform());
@@ -89,7 +89,6 @@ Shape *Fixture::getShape()
 	return shape;
 }
 
-
 float Fixture::getFriction()
 {
 	return friction;
@@ -100,10 +99,9 @@ float Fixture::getRestitution()
 	return restitution;
 }
 
-const FixtureProxy* Fixture::getFixtureProxy() const
+const FixtureProxy *Fixture::getFixtureProxy() const
 {
 	return proxies[0];
 }
-
 
 } // namespace ale

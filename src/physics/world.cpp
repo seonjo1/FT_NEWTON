@@ -142,7 +142,7 @@ void World::solve(float duration)
 
 void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 {
-	std::cout << "World::Create Body\n";
+	// std::cout << "World::Create Body\n";
 	Shape *shape = model->getShape();
 	Type type = shape->getType();
 
@@ -161,7 +161,7 @@ void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 
 void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 {
-	std::cout << "World::Create Box\n";
+	// std::cout << "World::Create Box\n";
 	Shape *s = model->getShape();
 	BoxShape *shape = dynamic_cast<BoxShape *>(s);
 	BodyDef bd;
@@ -198,7 +198,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 
 void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 {
-	std::cout << "World::Create Sphere\n";
+	// std::cout << "World::Create Sphere\n";
 	Shape *s = model->getShape();
 	SphereShape *shape = dynamic_cast<SphereShape *>(s);
 
@@ -221,7 +221,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	SphereShape *sphere = shape->clone();
 	body->createFixture(sphere);
 	rigidbodies.push_back(body);
-	std::cout << "World:: Create Sphere end\n";
+	// std::cout << "World:: Create Sphere end\n";
 }
 
 void World::registerBodyForce(int32_t idx, const glm::vec3 &force)

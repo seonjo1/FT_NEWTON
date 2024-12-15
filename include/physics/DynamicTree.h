@@ -89,7 +89,7 @@ template <typename T> inline void DynamicTree::Query(T *callback, const AABB &aa
 	{
 		int32_t nodeId = stack.top();
 		stack.pop();
-		std::cout << "nodeId: " << nodeId << '\n';
+		// std::cout << "nodeId: " << nodeId << '\n';
 		if (nodeId == nullNode)
 		{
 			continue;
@@ -108,9 +108,9 @@ template <typename T> inline void DynamicTree::Query(T *callback, const AABB &aa
 			}
 			else
 			{
-				std::cout << "stack push: " << node.child1 << '\n';
+				// std::cout << "stack push: " << node.child1 << '\n';
 				stack.push(node.child1);
-				std::cout << "stack push: " << node.child2 << '\n';
+				// std::cout << "stack push: " << node.child2 << '\n';
 				stack.push(node.child2);
 			}
 		}

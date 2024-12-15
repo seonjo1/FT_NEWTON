@@ -276,24 +276,24 @@ void Rigidbody::unsetFlag(EBodyFlag flag)
 
 void Rigidbody::createFixture(Shape *shape)
 {
-	std::cout << "Rigidbody::Create Fixture(Shape)\n";
+	// std::cout << "Rigidbody::Create Fixture(Shape)\n";
 	FixtureDef fd;
 	fd.shape = shape;
 
 	createFixture(&fd);
-	std::cout << "Rigidbody::Create Fixture(Shape) end\n";
+	// std::cout << "Rigidbody::Create Fixture(Shape) end\n";
 }
 
 void Rigidbody::createFixture(const FixtureDef *fd)
 {
-	std::cout << "Rigidbody::Create Fixture(FixtureDef)\n";
+	// std::cout << "Rigidbody::Create Fixture(FixtureDef)\n";
 
 	Fixture *fixture = new Fixture();
 
 	fixture->Create(this, fd);
 	fixture->CreateProxies(&world->contactManager.broadPhase);
 	fixtures.push_back(fixture);
-	std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
+	// std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
 }
 
 bool Rigidbody::hasFlag(EBodyFlag flag)

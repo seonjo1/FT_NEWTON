@@ -62,9 +62,9 @@ void DynamicTree::FreeNode(int32_t nodeId)
 
 int32_t DynamicTree::CreateProxy(const AABB &aabb, void *userData)
 {
-	std::cout << "DynamicTree::CreateProxy\n";
+	// std::cout << "DynamicTree::CreateProxy\n";
 	int32_t proxyId = AllocateNode();
-	std::cout << "proxyId: " << proxyId << '\n';
+	// std::cout << "proxyId: " << proxyId << '\n';
 
 	glm::vec3 r(0.1, 0.1, 0.1);
 	nodes[proxyId].aabb.lowerBound = aabb.lowerBound - r;
@@ -75,7 +75,7 @@ int32_t DynamicTree::CreateProxy(const AABB &aabb, void *userData)
 	// insert leaf
 	InsertLeaf(proxyId);
 
-	std::cout << "DynamicTree::CreateProxy end\n";
+	// std::cout << "DynamicTree::CreateProxy end\n";
 
 	return proxyId;
 }
@@ -148,7 +148,7 @@ const AABB &DynamicTree::GetFatAABB(int32_t proxyId) const
 
 void DynamicTree::InsertLeaf(int32_t leaf)
 {
-	std::cout << "DynamicTree::InsertLeaf\n";
+	// std::cout << "DynamicTree::InsertLeaf\n";
 	if (root == nullNode)
 	{
 		root = leaf;
@@ -158,8 +158,8 @@ void DynamicTree::InsertLeaf(int32_t leaf)
 
 	AABB leafAABB = nodes[leaf].aabb;
 	int32_t index = root;
-	std::cout << "before root: " << index << '\n';
-	std::cout << "leaf: " << leaf << '\n';
+	// std::cout << "before root: " << index << '\n';
+	// std::cout << "leaf: " << leaf << '\n';
 
 	while (nodes[index].IsLeaf() == false)
 	{
@@ -254,7 +254,7 @@ void DynamicTree::InsertLeaf(int32_t leaf)
 
 		index = nodes[index].parent;
 	}
-	std::cout << "DynamicTree::InsertLeaf end\n";
+	// std::cout << "DynamicTree::InsertLeaf end\n";
 }
 
 void DynamicTree::RemoveLeaf(int32_t leaf)

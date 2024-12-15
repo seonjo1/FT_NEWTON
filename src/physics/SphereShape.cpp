@@ -25,8 +25,8 @@ void SphereShape::ComputeAABB(AABB *aabb, const Transform &xf) const
 	glm::vec3 upper = center + glm::vec3(radius);
 	glm::vec3 lower = center - glm::vec3(radius);
 
-	std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
-	std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
+	// std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
+	// std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
 
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
@@ -45,7 +45,7 @@ void SphereShape::SetRadius(float radius)
 	this->radius = radius;
 }
 
-void SphereShape::setShapeFeatures(std::vector<Vertex>& vertices)
+void SphereShape::setShapeFeatures(std::vector<Vertex> &vertices)
 {
 	// welzl 알고리즘 나중에 적용 고려
 	localCenter = glm::vec3(0.0f);
@@ -53,12 +53,9 @@ void SphereShape::setShapeFeatures(std::vector<Vertex>& vertices)
 
 	for (const Vertex &vertex : vertices)
 	{
-		distance = std::max(
-			vertex.position.x * vertex.position.x +
-			vertex.position.y * vertex.position.y +
-			vertex.position.z * vertex.position.z,
-			distance
-		);
+		distance = std::max(vertex.position.x * vertex.position.x + vertex.position.y * vertex.position.y +
+								vertex.position.z * vertex.position.z,
+							distance);
 	}
 
 	localRadius = std::sqrt(distance);
@@ -69,7 +66,7 @@ float SphereShape::getLocalRadius() const
 	return localRadius;
 }
 
-const glm::vec3& SphereShape::getLocalHalfSize() const
+const glm::vec3 &SphereShape::getLocalHalfSize() const
 {
 	return glm::vec3(0.0f);
 }

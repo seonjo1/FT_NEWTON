@@ -67,7 +67,7 @@ template <typename T> void BroadPhase::UpdatePairs(T *callback)
 	for (int32_t i = 0; i < moveCount; ++i)
 	{
 		queryProxyId = moveBuffer[i];
-		std::cout << "queryProxyId: " << queryProxyId << '\n';
+		// std::cout << "queryProxyId: " << queryProxyId << '\n';
 		if (queryProxyId == NULL_PROXY)
 		{
 			continue;
@@ -83,7 +83,7 @@ template <typename T> void BroadPhase::UpdatePairs(T *callback)
 	for (auto &it = proxySet.begin(); it != proxySet.end();)
 	{
 		auto primaryPair = it;
-		std::cout << "proxyIdA: " << primaryPair->first << " proxyIdB: " << primaryPair->second << '\n';
+		// std::cout << "proxyIdA: " << primaryPair->first << " proxyIdB: " << primaryPair->second << '\n';
 		void *userDataA = tree.GetUserData(primaryPair->first);
 		void *userDataB = tree.GetUserData(primaryPair->second);
 
