@@ -118,7 +118,8 @@ struct ManifoldPoint
 	float tangentImpulse; // 접촉면 충격량
 	float seperation;	  // 관통 깊이
 	uint64_t id;		  // 충돌 지점의 고유 id
-	glm::vec3 point;	  // 충돌 지점의 위치
+	glm::vec3 pointA;	  // 충돌 지점의 위치
+	glm::vec3 pointB;	  // 충돌 지점의 위치
 	glm::vec3 normal;	  // 법선 벡터
 	EManifoldType type;	  // 타입
 };
