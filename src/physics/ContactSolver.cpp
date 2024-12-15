@@ -2,9 +2,10 @@
 
 namespace ale
 {
+
 ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, std::vector<Position> &positions,
 							 std::vector<Velocity> &velocities)
-	: m_duration(duration), m_positions(positions), m_velocities(velocities), m_contacts(contacts)
+	: m_duration(duration), m_positions(positions), m_velocities(velocities), m_contacts(contacts), m_stopVelocity(duration * (3.0f / 5.0f))
 {
 	int32_t size = contacts.size();
 	for (int32_t i = 0; i < size; i++)
@@ -22,23 +23,38 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 		Rigidbody *bodyB = fixtureB->getBody();
 		Manifold manifold = contact->getManifold();
 
+		glm::vec3 gravity(0.0f, -1.0f, 0.0f);
+		bool isStopContact = true;
+
+		if (bodyA->getType() == BodyType::e_dynamic)
+		{
+			float gravityVelocity = glm::dot((gravity * bodyA->getInverseMass() * m_duration), manifold.points[0].normal);
+			float normalVelocity = glm::dot(m_velocities[bodyA->getIslandIndex()].linearVelocity, manifold.points[0].normal);
+			isStopContact = (m_stopVelocity >= (normalVelocity - gravityVelocity));
+		}
+
+		if (bodyB->getType() == BodyType::e_dynamic)
+		{
+			float gravityVelocity = glm::dot((gravity * bodyB->getInverseMass() * m_duration), -manifold.points[0].normal);
+			float normalVelocity = glm::dot(m_velocities[bodyB->getIslandIndex()].linearVelocity, -manifold.points[0].normal);
+			isStopContact = (m_stopVelocity >= (normalVelocity - gravityVelocity));
+		}
+
 		// 속도 제약 설정
 		ContactVelocityConstraint velocityConstraint;
 		velocityConstraint.friction = contact->getFriction();
 		velocityConstraint.restitution = contact->getRestitution();
-		velocityConstraint.tangentSpeed = contact->getTangentSpeed();
+		velocityConstraint.worldCenterA = bodyA->getTransform().toMatrix() * glm::vec4(shapeA->localCenter, 1.0f);
+		velocityConstraint.worldCenterB = bodyB->getTransform().toMatrix() * glm::vec4(shapeB->localCenter, 1.0f);
 		velocityConstraint.indexA = bodyA->getIslandIndex();
 		velocityConstraint.indexB = bodyB->getIslandIndex();
 		velocityConstraint.invMassA = bodyA->getInverseMass();
 		velocityConstraint.invMassB = bodyB->getInverseMass();
 		velocityConstraint.invIA = bodyA->getInverseInertiaTensorWorld();
 		velocityConstraint.invIB = bodyB->getInverseInertiaTensorWorld();
-		velocityConstraint.contactIndex = i;
 		velocityConstraint.pointCount = manifold.points.size();
 		velocityConstraint.points = manifold.points.data();
-		velocityConstraint.K = glm::mat3(0.0f);
-		velocityConstraint.normalMass = glm::mat3(0.0f);
-
+		velocityConstraint.isStopContact = isStopContact; 
 
 		// 위치 제약 설정
 		ContactPositionConstraint positionConstraint;
@@ -52,46 +68,88 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 		positionConstraint.invIB = bodyB->getInverseInertiaTensorWorld();
 		positionConstraint.pointCount = manifold.points.size();
 		positionConstraint.points = manifold.points.data();
-
-
-		// // manifold의 points 순회
-		// int32_t pointSize = manifold.points.size();
-		// velocityConstraint.points.resize(pointSize);
-		// for (int j = 0; j < pointSize; j++)
-		// {
-		// 	ManifoldPoint &manifoldPoint = manifold.points[j];
-		// 	// 속도 제약 설정의 point 설정
-		// 	VelocityConstraintPoint &velocityPoint = velocityConstraint->points[j];
-
-		// 	// warmStarting인 경우 초기 impulse 설정
-		// 	if (m_step.warmStarting)
-		// 	{
-		// 		velocityPoint.normalImpulse = m_step.dtRatio * manifoldPoint.normalImpulse;
-		// 		velocityPoint.tangentImpulse = m_step.dtRatio * manifoldPoint.tangentImpulse;
-		// 	}
-		// 	else
-		// 	{
-		// 		velocityPoint.normalImpulse = 0.0f;
-		// 		velocityPoint.tangentImpulse = 0.0f;
-		// 	}
-
-		// 	velocityPoint.rA.SetZero();
-		// 	velocityPoint.rB.SetZero();
-		// 	velocityPoint.normalMass = 0.0f;
-		// 	velocityPoint.tangentMass = 0.0f;
-		// 	velocityPoint.velocityBias = 0.0f;
-
-		// 	// 위치 제약 설정의 point 설정
-		// 	positionConstraint.localPoints[j] = manifoldPoint.localPoint;
-		// }
+		positionConstraint.isStopContact = isStopContact;
 
 		m_velocityConstraints.push_back(velocityConstraint);
 		m_positionConstraints.push_back(positionConstraint);
 	}
 }
 
-void ContactSolver::initializeVelocityConstraints()
+void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 {
+	int32_t length = m_contacts.size();
+	for (int32_t i = 0; i < length; i++)
+	{
+		Contact *contact = m_contacts[i];
+		ContactVelocityConstraint &velocityConstraint = m_velocityConstraints[i];
+		int32_t pointCount = velocityConstraint.pointCount;
+		int32_t indexA = velocityConstraint.indexA;
+		int32_t indexB = velocityConstraint.indexB;
+		for (int32_t j = 0; j < pointCount; j++)
+		{
+			ManifoldPoint &manifoldPoint = velocityConstraint.points[j];
+
+			// 상대 속도 계산
+			glm::vec3 rA = manifoldPoint.pointA - velocityConstraint.worldCenterA;	// bodyA의 충돌 지점까지의 벡터
+			glm::vec3 rB = manifoldPoint.pointB - velocityConstraint.worldCenterB;	// bodyB의 충돌 지점까지의 벡터
+			glm::vec3 relativeVelocity = (m_velocities[indexB].linearVelocity + glm::cross(m_velocities[indexB].angularVelocity, rB)) -
+										 (m_velocities[indexA].linearVelocity + glm::cross(m_velocities[indexA].angularVelocity, rA));
+
+			// 법선 방향 속도
+			float normalVelocity = glm::dot(relativeVelocity, manifoldPoint.normal);
+
+			// 법선 방향 충격량 계산
+			float normalImpulse = -(1.0f + velocityConstraint.restitution) * normalVelocity;
+			normalImpulse = normalImpulse / (velocityConstraint.invMassA + velocityConstraint.invMassB);
+
+			float alpha = 1.0f / float(velocityIteration); // 반복 횟수에 따른 비율
+			normalImpulse *= alpha;
+
+			// 충격량 클램핑 (누적된 충격량 포함)
+			float prevNormalImpulse = manifoldPoint.normalImpulse;
+			manifoldPoint.normalImpulse = glm::max(prevNormalImpulse + normalImpulse, 0.0f);
+			normalImpulse = manifoldPoint.normalImpulse - prevNormalImpulse;
+
+			// 접선 방향 마찰 계산
+			glm::vec3 tangent = relativeVelocity - (normalVelocity * manifoldPoint.normal);
+			if (glm::length(tangent) > 0.0f)
+			{
+				tangent = glm::normalize(tangent);
+			}
+			float tangentImpulse = -glm::dot(relativeVelocity, tangent);
+			tangentImpulse = tangentImpulse / (velocityConstraint.invMassA + velocityConstraint.invMassB);
+
+			// 마찰 충격량 클램핑
+			float maxFriction = velocityConstraint.friction * manifoldPoint.normalImpulse;
+			float prevTangentImpulse = manifoldPoint.tangentImpulse;
+			manifoldPoint.tangentImpulse =
+				glm::clamp(prevTangentImpulse + tangentImpulse, -maxFriction, maxFriction);
+			tangentImpulse = manifoldPoint.tangentImpulse - prevTangentImpulse;
+
+			// 총 충격량
+			glm::vec3 totalImpulse = (normalImpulse * manifoldPoint.normal) + (tangentImpulse * tangent);
+
+			// 속도 업데이트
+			if (velocityConstraint.isStopContact)
+			{
+				m_velocities[indexA].linearVelocity = m_velocities[indexA].linearVelocity - glm::dot(m_velocities[indexA].linearVelocity, manifoldPoint.normal) * manifoldPoint.normal;
+				m_velocities[indexB].linearVelocity = m_velocities[indexB].linearVelocity - glm::dot(m_velocities[indexB].linearVelocity, -manifoldPoint.normal) * -manifoldPoint.normal;
+				manifoldPoint.normalImpulse = 0.0f;
+			}
+			else
+			{
+				m_velocities[indexA].linearVelocity = m_velocities[indexA].linearVelocity - totalImpulse * velocityConstraint.invMassA;
+				m_velocities[indexB].linearVelocity = m_velocities[indexB].linearVelocity + totalImpulse * velocityConstraint.invMassB;
+			}
+
+			// 각속도 업데이트
+			glm::vec3 angularImpulseA = glm::cross(rA, totalImpulse) * velocityConstraint.invIA;
+			glm::vec3 angularImpulseB = glm::cross(rB, -totalImpulse) * velocityConstraint.invIB;
+			m_velocities[indexA].angularVelocity = m_velocities[indexA].angularVelocity - angularImpulseA;
+			m_velocities[indexB].angularVelocity = m_velocities[indexB].angularVelocity + angularImpulseB;
+
+		}
+	}
 }
 
 } // namespace ale
