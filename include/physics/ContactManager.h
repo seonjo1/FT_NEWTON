@@ -3,7 +3,6 @@
 
 #include "BroadPhase.h"
 #include "Contact.h"
-#include "Shape.h"
 
 namespace ale
 {

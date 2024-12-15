@@ -2,7 +2,6 @@
 #define RIGIDBODY_H
 
 #include "physics/BoxShape.h"
-#include "physics/Collision.h"
 #include "physics/SphereShape.h"
 #include <queue>
 

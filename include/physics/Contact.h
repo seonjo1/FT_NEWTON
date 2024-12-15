@@ -2,7 +2,6 @@
 #define CONTACT_H
 
 #include "Fixture.h"
-#include "Rigidbody.h"
 #include <cmath>
 
 namespace ale
@@ -11,7 +10,7 @@ namespace ale
 class Contact;
 struct Manifold;
 
-using contactMemberFunction = Contact *(*)(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
+using contactMemberFunction = Contact *(*)(Fixture *, Fixture *, int32_t, int32_t);
 
 struct ContactLink
 {
@@ -34,25 +33,10 @@ enum class EContactFlag
 	TOUCHING = 0x0002,
 };
 
-int32_t operator&(int32_t val, EContactFlag flag)
-{
-	return val & static_cast<int32_t>(flag);
-}
-
-int32_t operator|(int32_t val, EContactFlag flag)
-{
-	return val | static_cast<int32_t>(flag);
-}
-
-int32_t operator~(EContactFlag flag)
-{
-	return ~static_cast<int32_t>(flag);
-}
-
-bool operator==(int32_t val, EContactFlag flag)
-{
-	return static_cast<int32_t>(flag) == val;
-}
+int32_t operator&(int32_t val, EContactFlag flag);
+int32_t operator|(int32_t val, EContactFlag flag);
+int32_t operator~(EContactFlag flag);
+bool operator==(int32_t val, EContactFlag flag);
 
 class Contact
 {

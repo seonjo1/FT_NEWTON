@@ -1,7 +1,7 @@
 #ifndef SPHERETOBOXCONTACT_H
 #define SPHERETOBOXCONTACT_H
 
-#include "Contact.h"
+#include "physics/Contact.h"
 
 namespace ale
 {
