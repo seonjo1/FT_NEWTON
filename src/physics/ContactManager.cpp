@@ -5,6 +5,7 @@ namespace ale
 {
 ContactManager::ContactManager()
 {
+	m_contactList = nullptr;
 }
 
 bool ContactManager::isSameContact(ContactLink *link, Fixture *fixtureA, Fixture *fixtureB, int32_t indexA,
@@ -56,6 +57,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	{
 		if (link->other == bodyB && isSameContact(link, fixtureA, fixtureB, indexA, indexB))
 		{
+			std::cout << "out!!\n";
 			return;
 		}
 		link = link->next;
@@ -82,7 +84,6 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	bodyB = fixtureB->getBody();
 
 	// contact를 world contactList 앞에 끼워넣기 (Contact*)
-	contact->setPrev(nullptr);
 	contact->setNext(m_contactList);
 	if (m_contactList != nullptr)
 	{
@@ -91,36 +92,34 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	m_contactList = contact;
 
 	// contact의 m_nodeA 초기화
-	ContactLink &nodeA = contact->getNodeA();
+	ContactLink *nodeA = contact->getNodeA();
 	ContactLink *bodyAContactLinks = bodyA->getContactLinks();
 
-	nodeA.contact = contact;
-	nodeA.other = bodyB;
+	nodeA->contact = contact;
+	nodeA->other = bodyB;
 
 	// bodyA의 contactLinks에 새로운 Link 추가
-	nodeA.prev = nullptr;
-	nodeA.next = bodyAContactLinks;
+	nodeA->next = bodyAContactLinks;
 	if (bodyAContactLinks != nullptr)
 	{
-		bodyAContactLinks->prev = &nodeA;
+		bodyAContactLinks->prev = nodeA;
 	}
-	bodyAContactLinks = &nodeA;
+	bodyA->setContactLinks(nodeA);
 
 	// contact의 m_nodeB 초기화
-	ContactLink &nodeB = contact->getNodeB();
+	ContactLink *nodeB = contact->getNodeB();
 	ContactLink *bodyBContactLinks = bodyB->getContactLinks();
 
-	nodeB.contact = contact;
-	nodeB.other = bodyA;
+	nodeB->contact = contact;
+	nodeB->other = bodyA;
 
 	// bodyB의 contactLinks에 새로운 Link 추가
-	nodeB.prev = nullptr;
-	nodeB.next = bodyBContactLinks;
+	nodeB->next = bodyBContactLinks;
 	if (bodyBContactLinks != nullptr)
 	{
-		bodyBContactLinks->prev = &nodeB;
+		bodyBContactLinks->prev = nodeB;
 	}
-	bodyBContactLinks = &nodeB;
+	bodyB->setContactLinks(nodeB);
 }
 
 void ContactManager::findNewContacts()
