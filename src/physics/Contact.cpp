@@ -5,7 +5,28 @@
 
 namespace ale
 {
-contactMemberFunction createContactFunctions[4] = {
+	
+int32_t operator&(int32_t val, EContactFlag flag)
+{
+	return val & static_cast<int32_t>(flag);
+}
+
+int32_t operator|(int32_t val, EContactFlag flag)
+{
+	return val | static_cast<int32_t>(flag);
+}
+
+int32_t operator~(EContactFlag flag)
+{
+	return ~static_cast<int32_t>(flag);
+}
+
+bool operator==(int32_t val, EContactFlag flag)
+{
+	return static_cast<int32_t>(flag) == val;
+}
+
+contactMemberFunction Contact::createContactFunctions[4] = {
 	nullptr,
 	&SphereToSphereContact::create,
 	&BoxToBoxContact::create,
@@ -133,27 +154,27 @@ float Contact::getTangentSpeed() const
 	return m_tangentSpeed;
 }
 
-inline Contact *Contact::getNext()
+Contact *Contact::getNext()
 {
 	return m_next;
 }
 
-inline Fixture *Contact::getFixtureA() const
+Fixture *Contact::getFixtureA() const
 {
 	return m_fixtureA;
 }
 
-inline Fixture *Contact::getFixtureB() const
+Fixture *Contact::getFixtureB() const
 {
 	return m_fixtureB;
 }
 
-inline int32_t Contact::getChildIndexA() const
+int32_t Contact::getChildIndexA() const
 {
 	return m_indexA;
 }
 
-inline int32_t Contact::getChildIndexB() const
+int32_t Contact::getChildIndexB() const
 {
 	return m_indexB;
 }
