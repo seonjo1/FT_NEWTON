@@ -31,6 +31,7 @@ class Model
 
 	uint32_t getSize();
 	ale::Shape *getShape() const;
+	bool isStatic();
 
   private:
 	void load(std::string filename, DeviceManager *deviceManager, VkCommandPool commandPool);
@@ -47,6 +48,7 @@ class Model
 	std::vector<std::unique_ptr<Material>> materials;
 	ale::Shape *shape;
 	uint32_t size;
+	bool m_isStatic;
 };
 
 #endif

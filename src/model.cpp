@@ -28,6 +28,7 @@ void Model::createBoxMesh(DeviceManager *deviceManager, VkCommandPool commandPoo
 		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
 		meshes.push_back(Mesh::createBox(deviceManager, commandPool, boxShape, xf));
 		meshes[0]->setMaterial(materials[0].get());
+		m_isStatic = false;
 	}
 }
 
@@ -59,6 +60,7 @@ void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool command
 		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
 		meshes.push_back(Mesh::createSphere(deviceManager, commandPool, sphereShape, xf));
 		meshes[0]->setMaterial(materials[0].get());
+		m_isStatic = false;
 	}
 }
 
@@ -74,6 +76,7 @@ void Model::createGroundMesh(DeviceManager *deviceManager, VkCommandPool command
 		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
 		meshes.push_back(Mesh::createGround(deviceManager, commandPool, groundShape, xf));
 		meshes[0]->setMaterial(materials[0].get());
+		m_isStatic = true;
 	}
 }
 
@@ -198,3 +201,9 @@ ale::Shape *Model::getShape() const
 {
 	return shape;
 }
+
+bool Model::isStatic()
+{
+	return m_isStatic;
+}
+
