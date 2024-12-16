@@ -88,10 +88,10 @@ void DynamicTree::DestroyProxy(int32_t proxyId)
 
 bool DynamicTree::MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement)
 {
-	if (nodes[proxyId].aabb.contains(aabb))
-	{
-		return false;
-	}
+	// if (nodes[proxyId].aabb.contains(aabb))
+	// {
+	// 	return false;
+	// }
 
 	RemoveLeaf(proxyId);
 
@@ -148,18 +148,15 @@ const AABB &DynamicTree::GetFatAABB(int32_t proxyId) const
 
 void DynamicTree::InsertLeaf(int32_t leaf)
 {
-	std::cout << "DynamicTree::InsertLeaf\n";
 	if (root == nullNode)
 	{
 		root = leaf;
-		nodes[root].parent = -1;
+		nodes[root].parent = nullNode;
 		return;
 	}
 
 	AABB leafAABB = nodes[leaf].aabb;
 	int32_t index = root;
-	std::cout << "before root: " << index << '\n';
-	std::cout << "leaf: " << leaf << '\n';
 
 	while (nodes[index].IsLeaf() == false)
 	{
@@ -211,6 +208,7 @@ void DynamicTree::InsertLeaf(int32_t leaf)
 
 	int32_t oldParent = nodes[sibling].parent;
 	int32_t newParent = AllocateNode();
+
 	nodes[newParent].parent = oldParent;
 	nodes[newParent].userData = nullptr;
 	nodes[newParent].aabb.combine(leafAABB, nodes[sibling].aabb);
@@ -249,12 +247,16 @@ void DynamicTree::InsertLeaf(int32_t leaf)
 		int32_t child1 = nodes[index].child1;
 		int32_t child2 = nodes[index].child2;
 
+		assert(child1 != nullNode);
+		assert(child2 != nullNode);
+
 		nodes[index].height = std::max(nodes[child1].height, nodes[child2].height) + 1;
 		nodes[index].aabb.combine(nodes[child1].aabb, nodes[child2].aabb);
 
 		index = nodes[index].parent;
 	}
-	std::cout << "DynamicTree::InsertLeaf end\n";
+	// std::cout << "print tree\n";
+	// printDynamicTree(root);
 }
 
 void DynamicTree::RemoveLeaf(int32_t leaf)
@@ -311,6 +313,8 @@ void DynamicTree::RemoveLeaf(int32_t leaf)
 		nodes[sibling].parent = nullNode;
 		FreeNode(parent);
 	}
+	// std::cout << "print tree\n";
+	// printDynamicTree(root);
 }
 
 float DynamicTree::GetInsertionCostForLeaf(const AABB &leafAABB, int32_t child, float inheritedCost)
@@ -327,6 +331,17 @@ float DynamicTree::GetInsertionCost(const AABB &leafAABB, int32_t child, float i
 	float oldArea = nodes[child].aabb.getSurface();
 	float newArea = aabb.getSurface();
 	return (newArea - oldArea) + inheritedCost;
+}
+
+void DynamicTree::printDynamicTree(int32_t nodeId)
+{
+	if (nodeId == nullNode)
+	{
+		return;
+	}
+	std::cout << nodeId << "\n";
+	printDynamicTree(nodes[nodeId].child1);
+	printDynamicTree(nodes[nodeId].child2);
 }
 
 int32_t DynamicTree::Balance(int32_t iA)
@@ -431,24 +446,24 @@ int32_t DynamicTree::Balance(int32_t iA)
 		if (D->height > E->height)
 		{
 			B->child2 = iD;
-			A->child2 = iE;
+			A->child1 = iE;
 			E->parent = iA;
 			A->aabb.combine(C->aabb, E->aabb);
 			B->aabb.combine(A->aabb, D->aabb);
 
 			A->height = std::max(C->height, E->height) + 1;
-			C->height = std::max(A->height, D->height) + 1;
+			B->height = std::max(A->height, D->height) + 1;
 		}
 		else
 		{
 			B->child2 = iE;
-			A->child2 = iD;
+			A->child1 = iD;
 			D->parent = iA;
 			A->aabb.combine(C->aabb, D->aabb);
 			B->aabb.combine(A->aabb, E->aabb);
 
 			A->height = std::max(C->height, D->height) + 1;
-			C->height = std::max(A->height, E->height) + 1;
+			B->height = std::max(A->height, E->height) + 1;
 		}
 		return iB;
 	}
