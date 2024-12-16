@@ -42,8 +42,11 @@ struct AABB
 
 		result = result && lowerBound.x <= aabb.lowerBound.x;
 		result = result && lowerBound.y <= aabb.lowerBound.y;
+		result = result && lowerBound.z <= aabb.lowerBound.z;
+
 		result = result && aabb.upperBound.x <= upperBound.x;
 		result = result && aabb.upperBound.y <= upperBound.y;
+		result = result && aabb.upperBound.z <= upperBound.z;
 
 		return result;
 	}
