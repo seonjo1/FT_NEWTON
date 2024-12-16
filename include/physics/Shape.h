@@ -11,7 +11,8 @@ namespace ale
 enum class Type
 {
 	SPHERE = 0,
-	BOX = 1
+	BOX = 1,
+	GROUND = 2
 };
 
 struct MassData
@@ -33,6 +34,10 @@ class Shape
 	Type getType() const
 	{
 		return m_type;
+	}
+	void setType(Type type)
+	{
+		m_type = type;
 	}
 
 	glm::vec3 m_center;

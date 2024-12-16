@@ -68,6 +68,7 @@ void Model::createGroundMesh(DeviceManager *deviceManager, VkCommandPool command
 	shape = new ale::BoxShape();
 	ale::BoxShape *groundShape = dynamic_cast<ale::BoxShape *>(shape);
 
+	shape->setType(ale::Type::GROUND);
 	if (groundShape)
 	{
 		size = 1;
