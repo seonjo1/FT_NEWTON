@@ -22,18 +22,36 @@ void World::startFrame()
 
 void World::runPhysics()
 {
+	float duration = 0.001f;
 	for (Rigidbody *body : rigidbodies)
 	{
+		std::cout << "start calculateForceAccum()" << std::endl;
 		body->calculateForceAccum();
-		body->integrate(0.001f);
+		std::cout << "finish calculateForceAccum()" << std::endl;
+
+		std::cout << "start integrate()" << std::endl;
+		body->integrate(duration);
+		std::cout << "finish integrate()" << std::endl;
+
+		std::cout << "start synchronizeFixtures()" << std::endl;
 		body->synchronizeFixtures();
+		std::cout << "finish synchronizeFixtures()" << std::endl;
+
+		std::cout << "start setTransformById()" << std::endl;
 		app.setTransformById(body->getTransformId(), body->getTransform());
+		std::cout << "finish setTransformById()" << std::endl;
 	}
+	std::cout << "start findNewContacts()\n";
 	// update Possible Contact Pairs - BroadPhase
-	contactManager.findNewContacts();
+	// contactManager.findNewContacts();
+	std::cout << "finish findNewContacts()\n";
 	// Process Contacts
-	contactManager.collide();
-	solve(0.001f);
+	std::cout << "start collide()\n";
+	// contactManager.collide();
+	std::cout << "finish collide()\n";
+	std::cout << "start solve()\n";
+	// solve(duration);
+	std::cout << "finish solve()\n";
 }
 
 void World::solve(float duration)

@@ -87,7 +87,7 @@ template <typename T> void BroadPhase::UpdatePairs(T *callback)
 		void *userDataA = tree.GetUserData(primaryPair->first);
 		void *userDataB = tree.GetUserData(primaryPair->second);
 
-		callback->addPair(userDataA, userDataB);
+		// callback->addPair(userDataA, userDataB);
 		++it;
 		while (it != proxySet.end())
 		{
