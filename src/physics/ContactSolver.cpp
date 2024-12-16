@@ -106,10 +106,14 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			// 법선 방향 속도
 			float normalVelocity = glm::dot(relativeVelocity, manifoldPoint.normal);
 
+			if (normalVelocity < m_stopVelocity)
+			{
+				continue;
+			}
+
 			// 법선 방향 충격량 계산
 			float normalImpulse = -(1.0f + velocityConstraint.restitution) * normalVelocity;
 			normalImpulse = normalImpulse / (velocityConstraint.invMassA + velocityConstraint.invMassB);
-
 			float alpha = 1.0f / float(velocityIteration); // 반복 횟수에 따른 비율
 			normalImpulse *= alpha;
 
@@ -135,7 +139,6 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 
 			// 총 충격량
 			glm::vec3 totalImpulse = (normalImpulse * manifoldPoint.normal) + (tangentImpulse * tangent);
-
 			// 속도 업데이트
 			if (velocityConstraint.isStopContact)
 			{
@@ -168,8 +171,8 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 
 bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 {
-	const float kSlop = 0.01f; // 허용 관통 오차
-	const float beta = positionIteration * 0.01f;   // 보정 계수
+	const float kSlop = 0.01f;					  // 허용 관통 오차
+	const float beta = positionIteration * 0.01f; // 보정 계수
 
 	bool solved = true;
 
@@ -203,8 +206,10 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 			glm::vec3 correctionVector = correction * manifoldPoint.normal;
 
 			// 위치 보정
-			positionA -= correctionVector * positionConstraint.invMassA / (positionConstraint.invMassA + positionConstraint.invMassB);
-			positionB += correctionVector * positionConstraint.invMassB / (positionConstraint.invMassA + positionConstraint.invMassB);
+			positionA -= correctionVector * positionConstraint.invMassA /
+						 (positionConstraint.invMassA + positionConstraint.invMassB);
+			positionB += correctionVector * positionConstraint.invMassB /
+						 (positionConstraint.invMassA + positionConstraint.invMassB);
 
 			manifoldPoint.pointA += positionA;
 			manifoldPoint.pointB += positionB;
