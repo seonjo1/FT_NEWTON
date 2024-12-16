@@ -25,8 +25,8 @@ void SphereShape::computeAABB(AABB *aabb, const Transform &xf) const
 	glm::vec3 upper = m_center + glm::vec3(m_radius);
 	glm::vec3 lower = m_center - glm::vec3(m_radius);
 
-	std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
-	std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
+	// std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
+	// std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
 
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);

@@ -37,8 +37,8 @@ void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 	glm::vec3 upper = *std::prev(vertexVector.end());
 	glm::vec3 lower = *vertexVector.begin();
 
-	std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
-	std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
+	// std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
+	// std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
 
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
