@@ -31,7 +31,7 @@ class BoxShape : public Shape
 	virtual const glm::vec3& getLocalHalfSize() const override;
 
 	// Vertex Info needed
-	std::set<glm::vec3, Vec3Comparator> vertices;
+	std::set<glm::vec3, Vec3Comparator> m_vertices;
 	glm::vec3 halfSize;
 };
 } // namespace ale

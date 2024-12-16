@@ -19,7 +19,7 @@ int32_t BoxShape::GetChildCount() const
 void BoxShape::ComputeAABB(AABB *aabb, const Transform &xf) const
 {
 	// update vertices
-	std::vector<glm::vec3> vertexVector(vertices.begin(), vertices.end());
+	std::vector<glm::vec3> vertexVector(m_vertices.begin(), m_vertices.end());
 	glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(xf.orientation));
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), xf.position);
 	glm::mat4 transformMatrix = translationMatrix * rotationMatrix;
@@ -60,7 +60,7 @@ void BoxShape::SetVertices(const std::vector<Vertex> &vertices)
 		minPos.y = std::min(minPos.y, vertex.position.y);
 		minPos.z = std::min(minPos.z, vertex.position.z);
 
-		this->vertices.insert(vertex.position);
+		m_vertices.insert(vertex.position);
 	}
 
 	localCenter = (maxPos + minPos) / 2.0f;
