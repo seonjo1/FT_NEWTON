@@ -45,6 +45,11 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 
 void Rigidbody::synchronizeFixtures()
 {
+	if (type == BodyType::e_static)
+	{
+		return;
+	}
+
 	Transform xf1;
 	xf1.position = sweep.p;
 	xf1.orientation = sweep.q;
@@ -59,8 +64,12 @@ void Rigidbody::synchronizeFixtures()
 // Update acceleration by Adding force to Body
 void Rigidbody::integrate(float duration)
 {
+	if (type == BodyType::e_static)
+	{
+		return;
+	}
 	// gravity
-	// addGravity();
+	addGravity();
 
 	// Set acceleration by F = ma
 	lastFrameAcceleration = acceleration;
