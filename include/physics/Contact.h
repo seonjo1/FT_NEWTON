@@ -31,8 +31,8 @@ enum class EContactType
 
 enum class EContactFlag
 {
-	ISLAND = 0x0001,
-	TOUCHING = 0x0002,
+	ISLAND = (1 << 0),
+	TOUCHING = (1 << 2),
 };
 
 int32_t operator&(int32_t val, EContactFlag flag);
