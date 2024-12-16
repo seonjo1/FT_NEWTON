@@ -57,7 +57,6 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	{
 		if (link->other == bodyB && isSameContact(link, fixtureA, fixtureB, indexA, indexB))
 		{
-			std::cout << "out!!\n";
 			return;
 		}
 		link = link->next;

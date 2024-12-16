@@ -64,7 +64,7 @@ void Rigidbody::synchronizeFixtures()
 void Rigidbody::integrate(float duration)
 {
 	// gravity
-	addGravity();
+	// addGravity();
 
 	// Set acceleration by F = ma
 	lastFrameAcceleration = acceleration;
@@ -133,7 +133,10 @@ void Rigidbody::addTorque(const glm::vec3 &torque)
 
 void Rigidbody::addGravity()
 {
-	addForce(glm::vec3(0.0f, -1.0f, 0.0f));
+	if (type == BodyType::e_dynamic)
+	{
+		addForce(glm::vec3(0.0f, -1.0f, 0.0f));
+	}
 }
 
 void Rigidbody::calculateForceAccum()
@@ -320,6 +323,5 @@ bool Rigidbody::shouldCollide(const Rigidbody *other) const
 		return false;
 	}
 }
-
 
 } // namespace ale

@@ -25,33 +25,19 @@ void World::runPhysics()
 	float duration = 0.001f;
 	for (Rigidbody *body : rigidbodies)
 	{
-		std::cout << "start calculateForceAccum()" << std::endl;
 		body->calculateForceAccum();
-		std::cout << "finish calculateForceAccum()" << std::endl;
 
-		std::cout << "start integrate()" << std::endl;
 		body->integrate(duration);
-		std::cout << "finish integrate()" << std::endl;
 
-		std::cout << "start synchronizeFixtures()" << std::endl;
-		body->synchronizeFixtures();
-		std::cout << "finish synchronizeFixtures()" << std::endl;
+		// body->synchronizeFixtures();
 
-		std::cout << "start setTransformById()" << std::endl;
 		app.setTransformById(body->getTransformId(), body->getTransform());
-		std::cout << "finish setTransformById()" << std::endl;
 	}
-	std::cout << "start findNewContacts()\n";
 	// update Possible Contact Pairs - BroadPhase
-	// contactManager.findNewContacts();
-	std::cout << "finish findNewContacts()\n";
+	contactManager.findNewContacts();
 	// Process Contacts
-	std::cout << "start collide()\n";
-	// contactManager.collide();
-	std::cout << "finish collide()\n";
-	std::cout << "start solve()\n";
-	// solve(duration);
-	std::cout << "finish solve()\n";
+	contactManager.collide();
+	solve(duration);
 }
 
 void World::solve(float duration)
@@ -94,7 +80,7 @@ void World::solve(float duration)
 		island.clear();
 		stack.push(body);
 		body->setFlag(EBodyFlag::ISLAND); // body island 처리
-
+		
 		// DFS로 island 생성
 		while (!stack.empty())
 		{
@@ -185,7 +171,10 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	BodyDef bd;
 
 	// set box definition
-	bd.type = BodyType::e_dynamic;
+	if (model->isStatic())
+		bd.type = BodyType::e_static;
+	else
+		bd.type = BodyType::e_dynamic;
 
 	bd.position = app.getTransformById(xfId).position;
 	bd.orientation = app.getTransformById(xfId).orientation;
@@ -196,8 +185,8 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
-	glm::vec3 upper = *std::prev(shape->vertices.end());
-	glm::vec3 lower = *shape->vertices.begin();
+	glm::vec3 upper = *std::prev(shape->m_vertices.end());
+	glm::vec3 lower = *shape->m_vertices.begin();
 	glm::vec3 diff = upper - lower;
 	float h = abs(diff.y);
 	float w = abs(diff.x);
