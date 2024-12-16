@@ -21,7 +21,7 @@ enum class BodyType
 
 enum class EBodyFlag
 {
-	ISLAND,
+	ISLAND = (1 << 0),
 };
 
 struct BodyDef
