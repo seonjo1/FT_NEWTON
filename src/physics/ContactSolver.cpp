@@ -191,16 +191,17 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 		{
 
 			ManifoldPoint &manifoldPoint = positionConstraint.points[j];
-			// 허용 오차 이하의 관통은 무시
-			if (manifoldPoint.seperation < kSlop)
+
+			// 관통 해소된상태면 무시
+			if (glm::dot(manifoldPoint.pointA - manifoldPoint.pointB, manifoldPoint.normal) < kSlop)
 			{
 				continue;
 			}
-
 			// 관통 깊이에 따른 보정량 계산
 			float correction = beta * (manifoldPoint.seperation - kSlop);
 			if (positionConstraint.isStopContact)
 			{
+				std::cout << "Stop Contact!!\n";
 				correction = manifoldPoint.seperation;
 			}
 			glm::vec3 correctionVector = correction * manifoldPoint.normal;
@@ -210,15 +211,21 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 						 (positionConstraint.invMassA + positionConstraint.invMassB);
 			positionB += correctionVector * positionConstraint.invMassB /
 						 (positionConstraint.invMassA + positionConstraint.invMassB);
-
+			std::cout << "pos dA: " << positionA.x << " " << positionA.y << " " << positionA.z << "\n";
+			std::cout << "pos dB: " << positionB.x << " " << positionB.y << " " << positionB.z << "\n";
+			
+			std::cout << "Before pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " << manifoldPoint.pointA.z << "\n";
+			std::cout << "Before pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " " << manifoldPoint.pointB.z << "\n";
 			manifoldPoint.pointA += positionA;
 			manifoldPoint.pointB += positionB;
-			if (glm::dot(manifoldPoint.pointB - manifoldPoint.pointA, manifoldPoint.normal) > kSlop)
+			std::cout << "Before pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " << manifoldPoint.pointA.z << "\n";
+			std::cout << "Before pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " " << manifoldPoint.pointB.z << "\n";
+			if (glm::dot(manifoldPoint.pointA - manifoldPoint.pointB, manifoldPoint.normal) > kSlop)
 			{
 				solved = false;
 			}
 		}
-
+      
 		m_positions[indexA].position += positionA;
 		m_positions[indexB].position += positionB;
 	}
