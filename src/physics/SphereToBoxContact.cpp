@@ -47,7 +47,6 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 
 	SphereToBoxInfo info;
 	info.distance = std::numeric_limits<float>::max();
-	;
 	info.type = -1;
 
 	for (int32_t i = 0; i < 8; i++)
@@ -124,7 +123,7 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 		else
 		{
 			manifoldPoint.isInvolved = false;
-			manifoldPoint.seperation = std::sqrt(info.distance);
+			manifoldPoint.seperation = radius - std::sqrt(info.distance);
 		}
 
 		manifoldPoint.pointA = worldCenterA + manifoldPoint.normal * manifoldPoint.seperation;
