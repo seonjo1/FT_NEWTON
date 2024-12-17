@@ -26,19 +26,19 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 
 	// 박스 A 정의
 	glm::vec3 localCenterA = shapeA->localCenter;
-	// glm::vec3 worldCenterA = transformA.toMatrix() * glm::vec4(localCenterA, 1.0f);
 	glm::vec3 halfSizeA = shapeA->getLocalHalfSize();
 	glm::mat4 matrixA = transformA.toMatrix();
 	glm::vec3 worldCenterA = matrixA * glm::vec4(localCenterA, 1.0f);
 	std::vector<glm::vec3> pointsA = {
-		matrixA * glm::vec4(localCenterA - halfSizeA, 1.0f),
-		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, -halfSizeA.z), 1.0f),
-		matrixA * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f),
 		matrixA * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, -halfSizeA.y, halfSizeA.z), 1.0f),
-		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f),
 		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, halfSizeA.z), 1.0f),
 		matrixA * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, halfSizeA.y, halfSizeA.z), 1.0f),
-		matrixA * glm::vec4(localCenterA + halfSizeA, 1.0f)};
+		matrixA * glm::vec4(localCenterA - halfSizeA, 1.0f),
+		matrixA * glm::vec4(localCenterA + halfSizeA, 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, -halfSizeA.y, -halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(-halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f),
+		matrixA * glm::vec4(localCenterA + glm::vec3(halfSizeA.x, halfSizeA.y, -halfSizeA.z), 1.0f)};
+
 	std::vector<glm::vec3> axesA = {
 		glm::normalize(pointsA[1] - pointsA[0]),
 		glm::normalize(pointsA[2] - pointsA[0]),
@@ -47,18 +47,18 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 
 	// 박스 B 정의
 	glm::vec3 localCenterB = shapeB->localCenter;
-	// glm::vec3 worldCenterB = transformB.toMatrix() * glm::vec4(localCenterB, 1.0f);
 	glm::vec3 halfSizeB = shapeB->getLocalHalfSize();
 	glm::mat4 matrixB = transformB.toMatrix();
 	std::vector<glm::vec3> pointsB = {
-		matrixB * glm::vec4(localCenterB - halfSizeB, 1.0f),
-		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrixB * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
 		matrixB * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
-		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
 		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
 		matrixB * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, halfSizeB.z), 1.0f),
-		matrixB * glm::vec4(localCenterB + halfSizeB, 1.0f)};
+		matrixB * glm::vec4(localCenterB - halfSizeB, 1.0f),
+		matrixB * glm::vec4(localCenterB + halfSizeB, 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
+		matrixB * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f)};
+
 	std::vector<glm::vec3> axesB = {
 		glm::normalize(pointsB[1] - pointsB[0]),
 		glm::normalize(pointsB[2] - pointsB[0]),
@@ -91,7 +91,6 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 	if (info.collision)
 	{
 		ManifoldPoint manifoldPoint;
-
 		if (info.axisType < 3)
 		{
 			fillFaceToPointInfo(info, pointsA, pointsB);
@@ -280,12 +279,10 @@ void BoxToBoxContact::fillFaceToPointInfo(BoxToBoxInfo &info, std::vector<glm::v
 {
 	static const std::vector<std::vector<std::vector<int32_t>>> faceVector = {
 		{{0, 2, 3, 6}, {1, 5, 4, 7}}, {{0, 3, 1, 5}, {2, 4, 6, 7}}, {{0, 1, 2, 4}, {3, 6, 5, 7}}};
-
 	std::vector<int32_t> faceA = isContainPoint(faceVector[info.axisType][0], info.typeA)
 									 ? faceVector[info.axisType][0]
 									 : faceVector[info.axisType][1];
 	glm::vec3 &pointB = pointsB[info.typeB];
-
 	info.normal =
 		glm::normalize(glm::cross(pointsA[faceA[1]] - pointsA[faceA[0]], pointsA[faceA[2]] - pointsA[faceA[0]]));
 	info.pointA = pointB - info.normal * info.overlap;
