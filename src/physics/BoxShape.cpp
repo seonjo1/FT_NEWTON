@@ -1,10 +1,11 @@
 #include "physics/BoxShape.h"
+#include <limits>
 
 namespace ale
 {
 BoxShape::BoxShape()
 {
-	type = Type::e_box;
+	m_type = Type::BOX;
 }
 BoxShape *BoxShape::clone() const
 {
@@ -12,11 +13,11 @@ BoxShape *BoxShape::clone() const
 	*clone = *this;
 	return clone;
 }
-int32_t BoxShape::GetChildCount() const
+int32_t BoxShape::getChildCount() const
 {
 	return 1;
 }
-void BoxShape::ComputeAABB(AABB *aabb, const Transform &xf) const
+void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 {
 	// update vertices
 	std::vector<glm::vec3> vertexVector(m_vertices.begin(), m_vertices.end());
@@ -30,9 +31,9 @@ void BoxShape::ComputeAABB(AABB *aabb, const Transform &xf) const
 		vertex = glm::vec3(v.x, v.y, v.z);
 	}
 
+	// 최적화 여지 있음.
 	std::sort(vertexVector.begin(), vertexVector.end(), Vec3Comparator());
 
-	// get min, max vertex
 	glm::vec3 upper = *std::prev(vertexVector.end());
 	glm::vec3 lower = *vertexVector.begin();
 
@@ -42,11 +43,11 @@ void BoxShape::ComputeAABB(AABB *aabb, const Transform &xf) const
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
 }
-void BoxShape::ComputeMass(MassData *massData, float density) const
+void BoxShape::computeMass(MassData *massData, float density) const
 {
 }
 
-void BoxShape::SetVertices(const std::vector<Vertex> &vertices)
+void BoxShape::setVertices(const std::vector<Vertex> &vertices)
 {
 	glm::vec3 maxPos(std::numeric_limits<float>::lowest());
 	glm::vec3 minPos(std::numeric_limits<float>::max());

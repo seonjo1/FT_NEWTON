@@ -22,7 +22,7 @@ void Fixture::Create(Rigidbody *body, const FixtureDef *fd)
 	restitution = fd->restitution;
 	this->body = body;
 
-	int32_t childCount = shape->GetChildCount();
+	int32_t childCount = shape->getChildCount();
 	proxies.resize(childCount);
 	// std::cout << "Fixture::Create - child count: " << childCount << '\n';
 	for (int32_t i = 0; i < childCount; ++i)
@@ -43,8 +43,8 @@ void Fixture::CreateProxies(BroadPhase *broadPhase)
 	// std::cout << "Fixture::Create Proxies\n";
 	for (int32_t i = 0; i < proxies.size(); ++i)
 	{
-		shape->ComputeAABB(&proxies[i]->aabb, body->getTransform());
-		proxies[i]->proxyId = broadPhase->CreateProxy(proxies[i]->aabb, proxies[i]);
+		shape->computeAABB(&proxies[i]->aabb, body->getTransform());
+		proxies[i]->proxyId = broadPhase->createProxy(proxies[i]->aabb, proxies[i]);
 		proxies[i]->fixture = this;
 		proxies[i]->childIndex = i;
 	}
@@ -64,13 +64,13 @@ void Fixture::synchronize(BroadPhase *broadPhase, const Transform &xf1, const Tr
 	for (FixtureProxy *proxy : proxies)
 	{
 		AABB aabb1, aabb2;
-		shape->ComputeAABB(&aabb1, xf1);
-		shape->ComputeAABB(&aabb2, xf2);
+		shape->computeAABB(&aabb1, xf1);
+		shape->computeAABB(&aabb2, xf2);
 
-		proxy->aabb.Combine(aabb1, aabb2);
+		proxy->aabb.combine(aabb1, aabb2);
 
 		glm::vec3 displacement = xf2.position - xf1.position;
-		broadPhase->MoveProxy(proxy->proxyId, proxy->aabb, displacement);
+		broadPhase->moveProxy(proxy->proxyId, proxy->aabb, displacement);
 	}
 }
 

@@ -23,10 +23,10 @@ class BoxShape : public Shape
 	BoxShape();
 	virtual ~BoxShape() = default;
 	BoxShape *clone() const;
-	int32_t GetChildCount() const;
-	void ComputeAABB(AABB *aabb, const Transform &xf) const;
-	void ComputeMass(MassData *massData, float density) const;
-	void SetVertices(const std::vector<Vertex> &v);
+	int32_t getChildCount() const;
+	void computeAABB(AABB *aabb, const Transform &xf) const;
+	void computeMass(MassData *massData, float density) const;
+	void setVertices(const std::vector<Vertex> &v);
 	virtual float getLocalRadius() const override;
 	virtual const glm::vec3& getLocalHalfSize() const override;
 

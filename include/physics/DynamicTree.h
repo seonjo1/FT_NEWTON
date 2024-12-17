@@ -67,6 +67,8 @@ class DynamicTree
 
 	float GetInsertionCost(const AABB &leafAABB, int32_t child, float inheritedCost);
 
+	void printDynamicTree(int32_t node);
+
 	// tree의 height 계산
 	int32_t ComputeHeight() const;
 	// sub-tree의 height 계산

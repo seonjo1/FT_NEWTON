@@ -129,7 +129,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 void ContactManager::findNewContacts()
 {
 	// std::cout << "ContactManager::findNewContacts\n";
-	broadPhase.UpdatePairs(this);
+	broadPhase.updatePairs(this);
 }
 
 void ContactManager::collide()

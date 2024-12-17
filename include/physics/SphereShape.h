@@ -11,16 +11,17 @@ class SphereShape : public Shape
 	SphereShape();
 	virtual ~SphereShape() = default;
 	SphereShape *clone() const;
-	int32_t GetChildCount() const;
-	void ComputeAABB(AABB *aabb, const Transform &xf) const;
-	void ComputeMass(MassData *massData, float density) const;
-	void SetCenter(const glm::vec3 &center);
-	void SetRadius(float radius);
+	int32_t getChildCount() const;
+	void computeAABB(AABB *aabb, const Transform &xf) const;
+	void computeMass(MassData *massData, float density) const;
+	void setCenter(const glm::vec3 &center);
+	void setRadius(float radius);
 	void setShapeFeatures(std::vector<Vertex>& vertices);
 	virtual float getLocalRadius() const override;
 	virtual const glm::vec3& getLocalHalfSize() const override;
 
-	float radius;
+
+	float m_radius;
 	float localRadius;
 };
 } // namespace ale

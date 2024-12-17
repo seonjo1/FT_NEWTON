@@ -9,8 +9,9 @@ namespace ale
 {
 enum class Type
 {
-	e_sphere = (1 << 0),
-	e_box = (1 << 1)
+	SPHERE = 0,
+	BOX = 1,
+	GROUND = 2
 };
 
 int32_t operator|(Type type1, Type type2);
@@ -28,20 +29,24 @@ class Shape
   public:
 	virtual ~Shape() = default;
 	virtual Shape *clone() const = 0;
-	virtual int32_t GetChildCount() const = 0;
-	virtual void ComputeAABB(AABB *aabb, const Transform &xf) const = 0;
-	virtual void ComputeMass(MassData *massData, float density) const = 0;
+	virtual int32_t getChildCount() const = 0;
+	virtual void computeAABB(AABB *aabb, const Transform &xf) const = 0;
+	virtual void computeMass(MassData *massData, float density) const = 0;
 	virtual float getLocalRadius() const = 0;
 	virtual const glm::vec3 &getLocalHalfSize() const = 0;
 
 	Type getType() const
 	{
-		return type;
+		return m_type;
+	}
+	void setType(Type type)
+	{
+		m_type = type;
 	}
 
-	glm::vec3 center;
+	glm::vec3 m_center;
 	glm::vec3 localCenter;
-	Type type;
+	Type m_type;
 };
 
 } // namespace ale
