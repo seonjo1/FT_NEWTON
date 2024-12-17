@@ -8,7 +8,7 @@ namespace ale
 
 struct ContactPositionConstraint
 {
-	ManifoldPoint *points;
+	std::vector<ManifoldPoint> points;
 	int32_t pointCount;
 	int32_t indexA;
 	int32_t indexB;
@@ -19,7 +19,7 @@ struct ContactPositionConstraint
 
 struct ContactVelocityConstraint
 {
-	ManifoldPoint *points;
+	std::vector<ManifoldPoint> points;
 	glm::vec3 worldCenterA;
 	glm::vec3 worldCenterB;
 	glm::vec3 normal;

@@ -58,7 +58,7 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 		velocityConstraint.invIA = bodyA->getInverseInertiaTensorWorld();
 		velocityConstraint.invIB = bodyB->getInverseInertiaTensorWorld();
 		velocityConstraint.pointCount = manifold.points.size();
-		velocityConstraint.points = manifold.points.data();
+		velocityConstraint.points = manifold.points;
 		velocityConstraint.isStopContact = isStopContact;
 
 		// 위치 제약 설정
@@ -68,7 +68,7 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 		positionConstraint.invMassA = bodyA->getInverseMass();
 		positionConstraint.invMassB = bodyB->getInverseMass();
 		positionConstraint.pointCount = manifold.points.size();
-		positionConstraint.points = manifold.points.data();
+		positionConstraint.points = manifold.points;
 		positionConstraint.isStopContact = isStopContact;
 
 		m_velocityConstraints.push_back(velocityConstraint);
@@ -95,7 +95,6 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 		for (int32_t j = 0; j < pointCount; j++)
 		{
 			ManifoldPoint &manifoldPoint = velocityConstraint.points[j];
-
 			// 상대 속도 계산
 			glm::vec3 rA = manifoldPoint.pointA - velocityConstraint.worldCenterA; // bodyA의 충돌 지점까지의 벡터
 			glm::vec3 rB = manifoldPoint.pointB - velocityConstraint.worldCenterB; // bodyB의 충돌 지점까지의 벡터
@@ -190,6 +189,7 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 
 		for (int32_t j = 0; j < pointCount; j++)
 		{
+
 			ManifoldPoint &manifoldPoint = positionConstraint.points[j];
 			// 허용 오차 이하의 관통은 무시
 			if (manifoldPoint.seperation < kSlop)
@@ -218,6 +218,7 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 				solved = false;
 			}
 		}
+
 		m_positions[indexA].position += positionA;
 		m_positions[indexB].position += positionB;
 	}
