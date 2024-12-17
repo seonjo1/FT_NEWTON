@@ -220,7 +220,7 @@ void App::drawFrame()
 
 void App::createModels()
 {
-	ale::Transform groundXf(glm::vec3(0.0f, -0.75f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	ale::Transform groundXf(glm::vec3(0.0f, -0.4f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 	models.push_back(
 		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
 	transforms.push_back(groundXf);
