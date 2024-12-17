@@ -255,8 +255,13 @@ void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
 {
 	// 추후 예외처리
 	if (mass == 0)
-		return;
-	inverseMass = 1 / mass;
+	{
+		inverseMass = 0.0f;
+	}
+	else
+	{
+		inverseMass = 1 / mass;
+	}
 
 	// 역행렬 존재 가능한지 예외처리
 	inverseInertiaTensor = inertiaTensor;
