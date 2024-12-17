@@ -75,7 +75,6 @@ void Island::solve(float duration)
 	// 	m_velocities[i].angularVelocity = angularVelocity;
 	// }
 
-	bool positionSolved = false;
 	// 위치 제약 처리 반복
 	for (int32_t i = 0; i < POSITION_ITERATION; ++i)
 	{
@@ -84,7 +83,6 @@ void Island::solve(float duration)
 		// 위치 제약 해제시 반복문 탈출
 		if (contactsOkay)
 		{
-			positionSolved = true;
 			break;
 		}
 	}
