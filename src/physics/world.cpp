@@ -80,7 +80,7 @@ void World::solve(float duration)
 		island.clear();
 		stack.push(body);
 		body->setFlag(EBodyFlag::ISLAND); // body island 처리
-		
+
 		// DFS로 island 생성
 		while (!stack.empty())
 		{
@@ -172,9 +172,13 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// set box definition
 	if (model->isStatic())
+	{
 		bd.type = BodyType::e_static;
+	}
 	else
+	{
 		bd.type = BodyType::e_dynamic;
+	}
 
 	bd.position = app.getTransformById(xfId).position;
 	bd.orientation = app.getTransformById(xfId).orientation;
@@ -196,7 +200,8 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	float Izz = (1.0f / 12.0f) * (w * w + h * h);
 	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
 
-	body->setMassData(1, m);
+	float mass = model->isStatic() ? 0.0f : 1.0f;
+	body->setMassData(mass, m);
 
 	BoxShape *box = shape->clone();
 	body->createFixture(box);
