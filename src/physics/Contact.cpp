@@ -102,6 +102,7 @@ void Contact::update()
 	// 2. 충돌에 따른 manifold 생성
 	// 3. manifold의 내부 값을 impulse를 제외하고 채워줌
 	// 4. 실제 충돌이 일어나지 않은 경우 manifold.pointCount = 0인 충돌 생성
+	m_manifold.points.clear();
 	evaluate(m_manifold, transformA, transformB);
 	int32_t pointCount = m_manifold.points.size();
 	touching = pointCount > 0;
@@ -137,6 +138,7 @@ void Contact::update()
 		// touching이 아니면 touching flag off
 		m_flags = m_flags & ~EContactFlag::TOUCHING;
 	}
+
 }
 
 float Contact::getFriction() const
