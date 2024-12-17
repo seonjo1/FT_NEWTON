@@ -34,14 +34,14 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 	glm::vec3 halfSizeB = shapeB->getLocalHalfSize();
 	glm::mat4 matrix = transformB.toMatrix();
 	std::vector<glm::vec3> pointsB = {
-		matrix * glm::vec4(localCenterB - halfSizeB, 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
 		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
 		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, halfSizeB.z), 1.0f),
 		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, halfSizeB.z), 1.0f),
-		matrix * glm::vec4(localCenterB + halfSizeB, 1.0f)};
+		matrix * glm::vec4(localCenterB - halfSizeB, 1.0f),
+		matrix * glm::vec4(localCenterB + halfSizeB, 1.0f),
+		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, -halfSizeB.y, -halfSizeB.z), 1.0f),
+		matrix * glm::vec4(localCenterB + glm::vec3(-halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f),
+		matrix * glm::vec4(localCenterB + glm::vec3(halfSizeB.x, halfSizeB.y, -halfSizeB.z), 1.0f)};
 	glm::vec3 worldCenterB = matrix * glm::vec4(localCenterB, 1.0f);
 	bool isInvolved = isSphereInside(worldCenterA, worldCenterB, pointsB);
 
@@ -126,7 +126,7 @@ void SphereToBoxContact::evaluate(Manifold &manifold, const Transform &transform
 			manifoldPoint.seperation = radius - std::sqrt(info.distance);
 		}
 
-		manifoldPoint.pointA = worldCenterA + manifoldPoint.normal * manifoldPoint.seperation;
+		manifoldPoint.pointA = worldCenterA + manifoldPoint.normal * radius;
 
 		manifold.points.push_back(manifoldPoint);
 	}
