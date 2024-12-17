@@ -54,8 +54,7 @@ void SphereShape::setShapeFeatures(std::vector<Vertex> &vertices)
 	for (const Vertex &vertex : vertices)
 	{
 		distance = std::max(vertex.position.x * vertex.position.x + vertex.position.y * vertex.position.y +
-								vertex.position.z * vertex.position.z,
-							distance);
+								vertex.position.z * vertex.position.z, distance);
 	}
 
 	localRadius = std::sqrt(distance);
