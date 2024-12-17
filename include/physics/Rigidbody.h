@@ -96,6 +96,7 @@ class Rigidbody
 	int32_t getTransformId() const;
 	int32_t getIslandIndex() const;
 	ContactLink *getContactLinks();
+	int32_t getBodyId() const;
 
 	void setPosition(const glm::vec3 &position);
 	void setOrientation(const glm::quat &orientation);
@@ -116,6 +117,8 @@ class Rigidbody
 	void updateSweep();
 
   protected:
+	static int32_t BODY_COUNT;
+
 	World *world;
 	Transform xf;
 	glm::vec3 linearVelocity;
@@ -143,10 +146,12 @@ class Rigidbody
 	int32_t xfId;
 	int32_t m_flags;
 	int32_t m_islandIndex;
+	int32_t m_bodyID;
 
 	ContactLink *m_contactLinks;
 
   private:
 };
 } // namespace ale
+
 #endif

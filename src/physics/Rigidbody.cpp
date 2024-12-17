@@ -22,6 +22,8 @@ static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::mat3 
 	iitWorld = rotationMatrix * iitBody * glm::transpose(rotationMatrix);
 }
 
+int32_t Rigidbody::BODY_COUNT = 0;
+
 Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {
 	this->world = world;
@@ -45,6 +47,7 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	acceleration = glm::vec3(0.0f);
 	m_flags = 0;
 	m_contactLinks = nullptr;
+	m_bodyID = BODY_COUNT++;
 }
 
 void Rigidbody::synchronizeFixtures()
@@ -230,6 +233,12 @@ BodyType Rigidbody::getType()
 {
 	return type;
 }
+
+int32_t Rigidbody::getBodyId() const
+{
+	return m_bodyID;
+}
+
 
 void Rigidbody::setPosition(const glm::vec3 &position)
 {
