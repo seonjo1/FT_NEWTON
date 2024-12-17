@@ -336,6 +336,7 @@ bool Rigidbody::shouldCollide(const Rigidbody *other) const
 	{
 		return false;
 	}
+	return true;
 }
 
 } // namespace ale
