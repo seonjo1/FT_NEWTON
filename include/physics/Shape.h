@@ -9,9 +9,9 @@ namespace ale
 {
 enum class Type
 {
-	SPHERE = 0,
-	BOX = 1,
-	GROUND = 2
+	SPHERE = (1 << 0),
+	BOX = (1 << 1),
+	GROUND = (1 << 2),
 };
 
 int32_t operator|(Type type1, Type type2);
