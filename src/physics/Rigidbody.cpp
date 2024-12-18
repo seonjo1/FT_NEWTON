@@ -43,6 +43,15 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	acceleration = glm::vec3(0.0f);
 }
 
+Rigidbody::~Rigidbody()
+{
+	for (Fixture *fixture : fixtures)
+	{
+		fixture->Destroy();
+		delete fixture;
+	}
+}
+
 void Rigidbody::synchronizeFixtures()
 {
 	if (type == BodyType::e_static)
