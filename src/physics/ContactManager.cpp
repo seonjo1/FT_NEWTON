@@ -68,7 +68,6 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	// BodyA와 BodyB가 충돌 가능 관계인지 확인
 	if (bodyA->shouldCollide(bodyB) == false)
 	{
-		std::cout << "here\n";
 		return;
 	}
 
