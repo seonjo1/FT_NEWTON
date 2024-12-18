@@ -178,15 +178,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	BoxShape *shape = dynamic_cast<BoxShape *>(s);
 	BodyDef bd;
 
-	// set box definition
-	if (model->isStatic())
-	{
-		bd.type = BodyType::e_static;
-	}
-	else
-	{
-		bd.type = BodyType::e_dynamic;
-	}
+	bd.type = BodyType::e_dynamic;
 
 	bd.position = app.getTransformById(xfId).position;
 	bd.orientation = app.getTransformById(xfId).orientation;
@@ -208,7 +200,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	float Izz = (1.0f / 12.0f) * (w * w + h * h);
 	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
 
-	float mass = model->isStatic() ? 0.0f : 1.0f;
+	float mass = 1.0f;
 	body->setMassData(mass, m);
 
 	BoxShape *box = shape->clone();
@@ -263,18 +255,10 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
-	glm::vec3 upper = *std::prev(shape->m_vertices.end());
-	glm::vec3 lower = *shape->m_vertices.begin();
-	glm::vec3 diff = upper - lower;
-	float h = abs(diff.y);
-	float w = abs(diff.x);
-	float d = abs(diff.z);
-	float Ixx = (1.0f / 12.0f) * (h * h + d * d);
-	float Iyy = (1.0f / 12.0f) * (w * w + d * d);
-	float Izz = (1.0f / 12.0f) * (w * w + h * h);
-	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
+	glm::mat3 m(0.0f);
 
-	body->setMassData(1, m);
+	float mass = 0;
+	body->setMassData(mass, m);
 
 	BoxShape *box = shape->clone();
 	body->createFixture(box);

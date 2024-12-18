@@ -273,15 +273,16 @@ void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
 	if (mass == 0)
 	{
 		inverseMass = 0.0f;
+		inverseInertiaTensor = inertiaTensor;
 	}
 	else
 	{
 		inverseMass = 1 / mass;
-	}
 
-	// 역행렬 존재 가능한지 예외처리
-	inverseInertiaTensor = inertiaTensor;
-	inverseInertiaTensor = glm::inverse(inverseInertiaTensor);
+		// 역행렬 존재 가능한지 예외처리
+		inverseInertiaTensor = inertiaTensor;
+		inverseInertiaTensor = glm::inverse(inverseInertiaTensor);
+	}
 }
 
 void Rigidbody::setContactLinks(ContactLink *contactLink)
