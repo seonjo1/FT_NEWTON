@@ -78,8 +78,8 @@ template <typename T> void BroadPhase::updatePairs(T *callback)
 	{
 		auto primaryPair = it;
 		// std::cout << "proxyIdA: " << primaryPair->first << " proxyIdB: " << primaryPair->second << '\n';
-		void *userDataA = tree.GetUserData(primaryPair->first);
-		void *userDataB = tree.GetUserData(primaryPair->second);
+		void *userDataA = m_tree.GetUserData(primaryPair->first);
+		void *userDataB = m_tree.GetUserData(primaryPair->second);
 
 		callback->addPair(userDataA, userDataB);
 		++it;
