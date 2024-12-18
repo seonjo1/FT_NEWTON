@@ -11,6 +11,14 @@ World::World(uint32_t size, App &app) : app(app)
 {
 }
 
+World::~World()
+{
+	for (Rigidbody *body : rigidbodies)
+	{
+		delete body;
+	}
+}
+
 void World::startFrame()
 {
 	for (Rigidbody *body : rigidbodies)

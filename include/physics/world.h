@@ -18,6 +18,8 @@ class World
 {
   public:
 	World(uint32_t size, App &app);
+	~World();
+
 	void startFrame();
 	void runPhysics();
 	void createBody(std::unique_ptr<Model> &model, int32_t xfId);
