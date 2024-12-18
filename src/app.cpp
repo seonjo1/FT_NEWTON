@@ -225,12 +225,12 @@ void App::createModels()
 		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
 	transforms.push_back(groundXf);
 
-	ale::Transform sphereXf(glm::vec3(0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	ale::Transform sphereXf(glm::vec3(0.0f, 2.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 	models.push_back(
 		Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
 	transforms.push_back(sphereXf);
 
-	ale::Transform boxXf1(glm::vec3(2.0f, 0.0f, 0.0f), glm::quat(glm::vec3(0.0f, glm::radians(45.0f), 0.0f)));
+	ale::Transform boxXf1(glm::vec3(2.0f, 2.0f, 0.0f), glm::quat(glm::vec3(glm::radians(45.0f), glm::radians(45.0f), 0.0f)));
 	models.push_back(
 		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf1, "models/container.png"));
 	transforms.push_back(boxXf1);
