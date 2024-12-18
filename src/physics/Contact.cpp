@@ -26,11 +26,15 @@ bool operator==(int32_t val, EContactFlag flag)
 	return static_cast<int32_t>(flag) == val;
 }
 
-contactMemberFunction Contact::createContactFunctions[4] = {
+contactMemberFunction Contact::createContactFunctions[8] = {
 	nullptr,
 	&SphereToSphereContact::create,
 	&BoxToBoxContact::create,
 	&SphereToBoxContact::create,
+	&BoxToBoxContact::create,
+	&SphereToBoxContact::create,
+	&BoxToBoxContact::create,
+	nullptr
 };
 
 Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
@@ -119,16 +123,16 @@ void Contact::update()
 		manifoldPoint.tangentImpulse = 0.0f;
 		uint32_t manifoldPointId = manifoldPoint.id;
 
-		for (ManifoldPoint &oldManifoldPoint : oldManifold.points)
-		{
-			// oldmanifold에 똑같은 manifold가 존재하는 경우 impulse 덮어쓰기
-			if (oldManifoldPoint.id == manifoldPointId)
-			{
-				manifoldPoint.normalImpulse = oldManifoldPoint.normalImpulse;
-				manifoldPoint.tangentImpulse = oldManifoldPoint.tangentImpulse;
-				break;
-			}
-		}
+		// for (ManifoldPoint &oldManifoldPoint : oldManifold.points)
+		// {
+		// 	// oldmanifold에 똑같은 manifold가 존재하는 경우 impulse 덮어쓰기
+		// 	if (oldManifoldPoint.id == manifoldPointId)
+		// 	{
+		// 		manifoldPoint.normalImpulse = oldManifoldPoint.normalImpulse;
+		// 		manifoldPoint.tangentImpulse = oldManifoldPoint.tangentImpulse;
+		// 		break;
+		// 	}
+		// }
 	}
 
 	if (touching)

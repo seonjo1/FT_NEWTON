@@ -68,7 +68,7 @@ class Contact
 	bool hasFlag(EContactFlag flag);
 
   protected:
-	static contactMemberFunction createContactFunctions[4];
+	static contactMemberFunction createContactFunctions[8];
 
 	int32_t m_flags;
 
