@@ -25,17 +25,27 @@ void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), xf.position);
 	glm::mat4 transformMatrix = translationMatrix * rotationMatrix;
 
+	glm::vec3 upper(std::numeric_limits<float>::lowest());
+	glm::vec3 lower(std::numeric_limits<float>::max());
+
 	for (glm::vec3 &vertex : vertexVector)
 	{
 		glm::vec4 v = transformMatrix * glm::vec4(vertex, 1.0f);
 		vertex = glm::vec3(v.x, v.y, v.z);
+
+		upper.x = std::max(upper.x, vertex.x);
+		upper.y = std::max(upper.y, vertex.y);
+		upper.z = std::max(upper.z, vertex.z);
+		lower.x = std::min(lower.x, vertex.x);
+		lower.y = std::min(lower.y, vertex.y);
+		lower.z = std::min(lower.z, vertex.z);
 	}
 
 	// 최적화 여지 있음.
-	std::sort(vertexVector.begin(), vertexVector.end(), Vec3Comparator());
+	// std::sort(vertexVector.begin(), vertexVector.end(), Vec3Comparator());
 
-	glm::vec3 upper = *std::prev(vertexVector.end());
-	glm::vec3 lower = *vertexVector.begin();
+	// glm::vec3 upper = *std::prev(vertexVector.end());
+	// glm::vec3 lower = *vertexVector.begin();
 
 	// std::cout << "upper: " << upper.x << ", " << upper.y << ", " << upper.z << '\n';
 	// std::cout << "lower: " << lower.x << ", " << lower.y << ", " << lower.z << '\n';
