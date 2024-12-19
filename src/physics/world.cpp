@@ -22,22 +22,26 @@ void World::startFrame()
 
 void World::runPhysics()
 {
-	float duration = 0.001f;
+	float duration = 0.0005f;
 	for (Rigidbody *body : rigidbodies)
 	{
 		body->calculateForceAccum();
 
 		body->integrate(duration);
 
-		// body->synchronizeFixtures();
-
-		app.setTransformById(body->getTransformId(), body->getTransform());
+		body->synchronizeFixtures();
 	}
+	
 	// update Possible Contact Pairs - BroadPhase
 	contactManager.findNewContacts();
 	// Process Contacts
 	contactManager.collide();
 	solve(duration);
+	
+	for (Rigidbody *body : rigidbodies)
+	{
+		app.setTransformById(body->getTransformId(), body->getTransform());
+	}
 }
 
 void World::solve(float duration)
@@ -183,8 +187,8 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.position = app.getTransformById(xfId).position;
 	bd.orientation = app.getTransformById(xfId).orientation;
 	bd.xfId = xfId;
-	bd.linearDamping = 0.01f;
-	bd.angularDamping = 0.01f;
+	bd.linearDamping = 0.0001f;
+	bd.angularDamping = 0.0001f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
@@ -200,7 +204,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	float Izz = (1.0f / 12.0f) * (w * w + h * h);
 	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
 
-	float mass = 1.0f;
+	float mass = 10.0f;
 	body->setMassData(mass, m);
 
 	BoxShape *box = shape->clone();
@@ -220,15 +224,16 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.position = app.getTransformById(xfId).position;
 	bd.orientation = app.getTransformById(xfId).orientation;
 	bd.xfId = xfId;
-	bd.linearDamping = 0.01f;
-	bd.angularDamping = 0.01f;
+	bd.linearDamping = 0.0001f;
+	bd.angularDamping = 0.0001f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
 	// calculate inersiaTensor - (2 / 5) * m * r * r
 	float val = (2.0f / 5.0f) * 1 * 1;
 	glm::mat3 m(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
-	body->setMassData(1, m);
+	float mass = 10.0f;
+	body->setMassData(mass, m);
 
 	SphereShape *sphere = shape->clone();
 	body->createFixture(sphere);
@@ -249,8 +254,8 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.position = app.getTransformById(xfId).position;
 	bd.orientation = app.getTransformById(xfId).orientation;
 	bd.xfId = xfId;
-	bd.linearDamping = 0.01f;
-	bd.angularDamping = 0.01f;
+	bd.linearDamping = 0.0f;
+	bd.angularDamping = 0.0f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
