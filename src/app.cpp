@@ -225,20 +225,26 @@ void App::createModels()
 		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
 	transforms.push_back(groundXf);
 
-	ale::Transform sphereXf(glm::vec3(0.0f, 2.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	models.push_back(
-		Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
-	transforms.push_back(sphereXf);
+	// ale::Transform sphereXf(glm::vec3(0.0f, 100.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	// models.push_back(
+	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
+	// transforms.push_back(sphereXf);
 
-	ale::Transform boxXf1(glm::vec3(2.0f, 2.0f, 0.0f), glm::quat(glm::vec3(glm::radians(45.0f), glm::radians(45.0f), 0.0f)));
+	// ale::Transform sphereXf1(glm::vec3(0.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	// models.push_back(
+	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf1, "models/sphere.png"));
+	// transforms.push_back(sphereXf1);
+
+	ale::Transform boxXf1(glm::vec3(0.0f, 100.0f, 0.2f),
+						  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
 	models.push_back(
 		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf1, "models/container.png"));
 	transforms.push_back(boxXf1);
 
-	ale::Transform boxXf2(glm::vec3(4.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	models.push_back(
-		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png"));
-	transforms.push_back(boxXf2);
+	// ale::Transform boxXf2(glm::vec3(0.0f, 1.0f, 0.2f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	// models.push_back(
+	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png"));
+	// transforms.push_back(boxXf2);
 }
 
 void App::createWorld()
@@ -429,10 +435,10 @@ void App::submitRenderingCommandBuffer()
 	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 	submitInfo.waitSemaphoreCount = 1;			 // 대기 세마포어 개수
 	submitInfo.pWaitSemaphores = waitSemaphores; // 대기 세마포어 등록
-	submitInfo.pWaitDstStageMask = waitStages;	 // 대기할 시점 등록 (그 전까지는 세마포어 상관없이 그냥 진행)
+	submitInfo.pWaitDstStageMask = waitStages; // 대기할 시점 등록 (그 전까지는 세마포어 상관없이 그냥 진행)
 
 	// 커맨드 버퍼 등록
-	submitInfo.commandBufferCount = 1;													// 커맨드 버퍼 개수 등록
+	submitInfo.commandBufferCount = 1; // 커맨드 버퍼 개수 등록
 	submitInfo.pCommandBuffers = commandManager->getCommandBufferPointer(currentFrame); // 커매드 버퍼 등록
 
 	// 작업이 완료된 후 신호를 보낼 세마포어 설정 (작업이 끝나면 해당 세마포어 signal 상태로 변경)
