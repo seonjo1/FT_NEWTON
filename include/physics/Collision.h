@@ -73,8 +73,8 @@ struct Transform
 	{
 		// Create a 4x4 transformation matrix
 		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position); // Translation
-		glm::mat4 rotationMatrix = glm::toMat4(orientation);					 // Rotation
-
+		glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));	 // Rotation
+		
 		// Combine translation and rotation
 		return translationMatrix * rotationMatrix;
 	}
