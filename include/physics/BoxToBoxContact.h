@@ -35,7 +35,6 @@ class BoxToBoxContact : public Contact
 	bool isContainPoint(std::vector<int32_t> points, int32_t point);
 	std::vector<glm::vec3> getProjectedEdge(const glm::vec3 &normal, const std::vector<glm::vec3> &edge);
 	float findIntersectionRatio(const std::vector<glm::vec3> &edgeA, const std::vector<glm::vec3> &edgeB);
-	bool isDuplicate(const std::vector<glm::vec3> &axes, const glm::vec3 &axis, int length);
 };
 } // namespace ale
 

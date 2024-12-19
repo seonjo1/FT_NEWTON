@@ -65,8 +65,19 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 		glm::normalize(pointsB[3] - pointsB[0]),
 	};
 
+	// for (int i = 0; i < 8; i++)
+	// {
+	// 	std::cout << "pointsA[" << i << "]: " << pointsA[i].x << " " << pointsA[i].y << " " << pointsA[i].z << "\n";
+	// }
+
+	// for (int i = 0; i < 8; i++)
+	// {
+	// 	std::cout << "pointsB[" << i << "]: " << pointsB[i].x << " " << pointsB[i].y << " " << pointsB[i].z << "\n";
+	// }
+
 	// 검사할 축 생성
 	std::vector<glm::vec3> axes = {axesA[0], axesA[1], axesA[2], axesB[0], axesB[1], axesB[2]};
+	// int i = 0;
 	for (const glm::vec3 &axisA : axesA)
 	{
 		for (const glm::vec3 &axisB : axesB)
@@ -81,6 +92,8 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 				crossAxis = glm::normalize(crossAxis);
 			}
 			axes.push_back(crossAxis);
+			// std::cout << "axes[" << i << "]: " << axes[i].x << " " << axes[i].y << " " << axes[i].z << "\n";
+			// i++;
 		}
 	}
 
@@ -112,6 +125,13 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 		manifoldPoint.normal = info.normal;
 		manifoldPoint.seperation = info.overlap;
 
+		// std::cout << "BoxToBox\n";
+		// std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " << manifoldPoint.pointA.z << "\n";
+		// std::cout << "pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " " << manifoldPoint.pointB.z << "\n";
+		// std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " " << manifoldPoint.normal.z << "\n";
+		// std::cout << "overlap: " << manifoldPoint.seperation << "\n";
+		// std::cout << "type: " << info.axisType << "\n";
+
 		int64_t proxyIdA = m_fixtureA->getFixtureProxy()->proxyId;
 		int64_t proxyIdB = m_fixtureB->getFixtureProxy()->proxyId;
 
@@ -140,7 +160,7 @@ BoxToBoxInfo BoxToBoxContact::boxToBoxSAT(const std::vector<glm::vec3> &pointsA,
 	for (int32_t i = 0; i < 15; i++)
 	{
 		glm::vec3 axis = axes[i];
-		if (glm::length(axis) == 0 || isDuplicate(axes, axis, i))
+		if (glm::length(axis) == 0)
 		{
 			continue;
 		}
@@ -155,21 +175,10 @@ BoxToBoxInfo BoxToBoxContact::boxToBoxSAT(const std::vector<glm::vec3> &pointsA,
 	return info; // 충돌 정보 반환
 }
 
-bool BoxToBoxContact::isDuplicate(const std::vector<glm::vec3> &axes, const glm::vec3 &axis, int length)
-{
-	for (int i = 0; i < length; i++)
-	{
-		if (glm::abs(glm::dot(axes[i], axis)) > 1.0f - 1e-6f)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 bool BoxToBoxContact::isOverlapped(BoxToBoxInfo &info, const glm::vec3 &axis, const std::vector<glm::vec3> &pointsA,
 								   const std::vector<glm::vec3> &pointsB, int32_t axisType)
 {
+	// std::cout << "overlap start\n";
 	// 박스 A와 B의 최소/최대 투영 값 계산
 	float minA = std::numeric_limits<float>::max();
 	float maxA = std::numeric_limits<float>::lowest();
@@ -219,13 +228,15 @@ bool BoxToBoxContact::isOverlapped(BoxToBoxInfo &info, const glm::vec3 &axis, co
 			maxTypeB = i;
 		}
 	}
-
+	// std::cout << "minA: " << minA << "\n";
+	// std::cout << "maxA: " << maxA << "\n";
+	// std::cout << "minB: " << minB << "\n";
+	// std::cout << "maxB: " << maxB<< "\n";
 	// 충돌하지 않음
 	if (maxA < minB || maxB < minA)
 	{
 		return false;
 	}
-
 	// 충돌 발생 - 겹침 길이 계산
 	float overlap = 0.0f;
 	if ((minA < minB && maxB < maxA) || (minB < minA && maxA < maxB))
@@ -263,6 +274,7 @@ bool BoxToBoxContact::isOverlapped(BoxToBoxInfo &info, const glm::vec3 &axis, co
 			changeInfo(info, overlap, minTypeA, maxTypeB, axisType);
 		}
 	}
+	// std::cout << "axisType[" << axisType << "] overlap: " << overlap << "\n";
 	return true;
 }
 
@@ -286,6 +298,7 @@ void BoxToBoxContact::fillFaceToPointInfo(BoxToBoxInfo &info, std::vector<glm::v
 	info.normal =
 		glm::normalize(glm::cross(pointsA[faceA[1]] - pointsA[faceA[0]], pointsA[faceA[2]] - pointsA[faceA[0]]));
 	info.pointA = pointB - info.normal * info.overlap;
+	// std::cout << "axisType 0 ~ 2\n"; 
 }
 
 void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -319,7 +332,7 @@ void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::ve
 		}
 	}
 
-	glm::vec3 normal = glm::cross(edgeA[1] - edgeA[0], edgeB[1] - edgeB[0]);
+	glm::vec3 normal = glm::normalize(glm::cross(edgeA[1] - edgeA[0], edgeB[1] - edgeB[0]));
 
 	if (glm::dot(normal, edgeA[0] - edgeB[0]) < 0)
 	{
@@ -333,6 +346,7 @@ void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::ve
 
 	info.normal = normal;
 	info.pointA = edgeA[0] + (edgeA[1] - edgeA[0]) * ratio;
+	// std::cout << "axis type: 6 ~ 15\n";
 }
 
 void BoxToBoxContact::fillPointToFaceInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -348,6 +362,7 @@ void BoxToBoxContact::fillPointToFaceInfo(BoxToBoxInfo &info, std::vector<glm::v
 	info.pointA = pointA;
 	info.normal =
 		-glm::normalize(glm::cross(pointsB[faceB[1]] - pointsB[faceB[0]], pointsB[faceB[2]] - pointsB[faceB[0]]));
+	// std::cout << "axisType 3 ~ 5\n"; 
 }
 
 bool BoxToBoxContact::isContainPoint(std::vector<int32_t> points, int32_t point)
