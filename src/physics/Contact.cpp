@@ -110,6 +110,8 @@ void Contact::update()
 	evaluate(m_manifold, transformA, transformB);
 	int32_t pointCount = m_manifold.points.size();
 	touching = pointCount > 0;
+	if (touching)
+		std::cout << "touching!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	std::cout << "contact update check\n";
 	std::cout << "bodyA: " << m_nodeB.other->getBodyId() << "\n";
 	std::cout << "bodyB: " << m_nodeA.other->getBodyId() << "\n";
