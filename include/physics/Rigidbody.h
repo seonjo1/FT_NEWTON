@@ -115,6 +115,8 @@ class Rigidbody
 	bool shouldCollide(const Rigidbody *other) const;
 	bool hasFlag(EBodyFlag flag);
 	void updateSweep();
+	
+	static glm::vec3 gravity;
 
   protected:
 	static int32_t BODY_COUNT;

@@ -23,6 +23,7 @@ static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::mat3 
 }
 
 int32_t Rigidbody::BODY_COUNT = 0;
+glm::vec3 Rigidbody::gravity = glm::vec3(0.0f, -15.0f, 0.0f);
 
 Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {
@@ -74,11 +75,13 @@ void Rigidbody::integrate(float duration)
 		return;
 	}
 	// gravity
-	addGravity();
+	// addGravity();
 
 	// Set acceleration by F = ma
 	lastFrameAcceleration = acceleration;
-	lastFrameAcceleration += (forceAccum * inverseMass);
+	lastFrameAcceleration += ((forceAccum * inverseMass) + gravity);
+
+	// lastFrameAcceleration += ((forceAccum * inverseMass));
 
 	// set angular acceleration
 	glm::vec3 angularAcceleration = inverseInertiaTensorWorld * torqueAccum;
@@ -88,8 +91,8 @@ void Rigidbody::integrate(float duration)
 	angularVelocity += (angularAcceleration * duration);
 
 	// impose drag
-	/// linearDamping
-	// angularDamping
+	linearVelocity *= (1.0f - linearDamping);
+	angularVelocity *= (1.0f - angularDamping);
 
 	// set sweep (previous Transform)
 	sweep.p = xf.position;
