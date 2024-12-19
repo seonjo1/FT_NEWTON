@@ -94,6 +94,30 @@ template <typename T> void BroadPhase::updatePairs(T *callback)
 			++it;
 		}
 	}
+
+	// void *userDataA = m_tree.GetUserData(0);
+	// void *userDataB = m_tree.GetUserData(1);
+	// callback->addPair(userDataA, userDataB);
+
+	// void *userDataC = m_tree.GetUserData(0);
+	// void *userDataD = m_tree.GetUserData(3);
+	// callback->addPair(userDataC, userDataD);
+
+	// void *userDataE = m_tree.GetUserData(0);
+	// void *userDataF = m_tree.GetUserData(5);
+	// callback->addPair(userDataE, userDataF);
+
+	// void *userDataG = m_tree.GetUserData(1);
+	// void *userDataH = m_tree.GetUserData(3);
+	// callback->addPair(userDataG, userDataH);
+
+	// void *userData6 = m_tree.GetUserData(1);
+	// void *userData7 = m_tree.GetUserData(5);
+	// callback->addPair(userData6, userData7);
+
+	// void *userData8 = m_tree.GetUserData(3);
+	// void *userData9 = m_tree.GetUserData(5);
+	// callback->addPair(userData8, userData9);
 }
 } // namespace ale
 #endif
