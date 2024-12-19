@@ -4,8 +4,8 @@
 namespace ale
 {
 
-const int32_t Island::VELOCITY_ITERATION = 6;
-const int32_t Island::POSITION_ITERATION = 2;
+const int32_t Island::VELOCITY_ITERATION = 1;
+const int32_t Island::POSITION_ITERATION = 1;
 const float Island::MAX_TRANSLATION = 2.0f;
 const float Island::MAX_ROTATION = 0.5f * glm::pi<float>();
 const float Island::MAX_TRANSLATION_SQUARED = Island::MAX_TRANSLATION * Island::MAX_TRANSLATION;
@@ -102,7 +102,9 @@ void Island::solve(float duration)
 		body->synchronizeFixtures();
 		std::cout << "body: " << body->getBodyId() << "\n";
 		std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
-		std::cout << "Final bodyVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
+
 	}
 }
 
