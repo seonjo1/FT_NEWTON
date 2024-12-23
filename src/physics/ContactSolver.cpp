@@ -144,16 +144,9 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 												  velocityConstraint.invIA * glm::cross(manifoldPoint.normal, rA));
 			float normalEffectiveMassB = glm::dot(glm::cross(manifoldPoint.normal, rB),
 												  velocityConstraint.invIB * glm::cross(manifoldPoint.normal, rB));
-			// std::cout << "rA : " << rA.x << " " << rA.y << " " << rA.z << "\n";
-			// std::cout << "invIA\n";
-			// for (int k = 0; k < 3; k++)
-			// {
-			// 	for (int l = 0; l < 3; l++)
-			// 	{
-			// 		std::cout << velocityConstraint.invIA[k][l];
-			// 	}
-			// 	std::cout << "\n";
-			// }
+			std::cout << "rA : " << rA.x << " " << rA.y << " " << rA.z << "\n";
+			std::cout << "rB : " << rB.x << " " << rB.y << " " << rB.z << "\n";
+			
 			normalImpulse = normalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
 			normalImpulse = normalImpulse * alpha;
 			// std::cout << "normalEffectiveMassA: " << normalEffectiveMassA << "\n";

@@ -65,19 +65,19 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 		glm::normalize(pointsB[3] - pointsB[0]),
 	};
 
-	// for (int i = 0; i < 8; i++)
-	// {
-	// 	std::cout << "pointsA[" << i << "]: " << pointsA[i].x << " " << pointsA[i].y << " " << pointsA[i].z << "\n";
-	// }
+	for (int i = 0; i < 8; i++)
+	{
+		std::cout << "pointsA[" << i << "]: " << pointsA[i].x << " " << pointsA[i].y << " " << pointsA[i].z << "\n";
+	}
 
-	// for (int i = 0; i < 8; i++)
-	// {
-	// 	std::cout << "pointsB[" << i << "]: " << pointsB[i].x << " " << pointsB[i].y << " " << pointsB[i].z << "\n";
-	// }
+	for (int i = 0; i < 8; i++)
+	{
+		std::cout << "pointsB[" << i << "]: " << pointsB[i].x << " " << pointsB[i].y << " " << pointsB[i].z << "\n";
+	}
 
 	// 검사할 축 생성
 	std::vector<glm::vec3> axes = {axesA[0], axesA[1], axesA[2], axesB[0], axesB[1], axesB[2]};
-	// int i = 0;
+	int i = 0;
 	for (const glm::vec3 &axisA : axesA)
 	{
 		for (const glm::vec3 &axisB : axesB)
@@ -92,8 +92,8 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 				crossAxis = glm::normalize(crossAxis);
 			}
 			axes.push_back(crossAxis);
-			// std::cout << "axes[" << i << "]: " << axes[i].x << " " << axes[i].y << " " << axes[i].z << "\n";
-			// i++;
+			std::cout << "axes[" << i << "]: " << axes[i].x << " " << axes[i].y << " " << axes[i].z << "\n";
+			i++;
 		}
 	}
 
@@ -106,7 +106,7 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 		ManifoldPoint manifoldPoint;
 		if (info.axisType < 3)
 		{
-			fillFaceToPointInfo(info, pointsA, pointsB);
+			fillPointToFaceInfo(info, pointsA, pointsB);
 			manifoldPoint.type = EManifoldType::FACE_A_TO_POINT_B;
 		}
 		else if (info.axisType > 5)
@@ -116,7 +116,7 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 		}
 		else
 		{
-			fillPointToFaceInfo(info, pointsA, pointsB);
+			fillFaceToPointInfo(info, pointsA, pointsB);
 			manifoldPoint.type = EManifoldType::POINT_A_TO_FACE_B;
 		}
 
@@ -125,12 +125,12 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 		manifoldPoint.normal = info.normal;
 		manifoldPoint.seperation = info.overlap;
 
-		// std::cout << "BoxToBox\n";
-		// std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " << manifoldPoint.pointA.z << "\n";
-		// std::cout << "pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " " << manifoldPoint.pointB.z << "\n";
-		// std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " " << manifoldPoint.normal.z << "\n";
-		// std::cout << "overlap: " << manifoldPoint.seperation << "\n";
-		// std::cout << "type: " << info.axisType << "\n";
+		std::cout << "BoxToBox\n";
+		std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " << manifoldPoint.pointA.z << "\n";
+		std::cout << "pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " " << manifoldPoint.pointB.z << "\n";
+		std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " " << manifoldPoint.normal.z << "\n";
+		std::cout << "overlap: " << manifoldPoint.seperation << "\n";
+		std::cout << "type: " << info.axisType << "\n";
 
 		int64_t proxyIdA = m_fixtureA->getFixtureProxy()->proxyId;
 		int64_t proxyIdB = m_fixtureB->getFixtureProxy()->proxyId;
@@ -228,10 +228,10 @@ bool BoxToBoxContact::isOverlapped(BoxToBoxInfo &info, const glm::vec3 &axis, co
 			maxTypeB = i;
 		}
 	}
-	// std::cout << "minA: " << minA << "\n";
-	// std::cout << "maxA: " << maxA << "\n";
-	// std::cout << "minB: " << minB << "\n";
-	// std::cout << "maxB: " << maxB<< "\n";
+	std::cout << "minA: " << minA << "\n";
+	std::cout << "maxA: " << maxA << "\n";
+	std::cout << "minB: " << minB << "\n";
+	std::cout << "maxB: " << maxB<< "\n";
 	// 충돌하지 않음
 	if (maxA < minB || maxB < minA)
 	{
@@ -274,7 +274,7 @@ bool BoxToBoxContact::isOverlapped(BoxToBoxInfo &info, const glm::vec3 &axis, co
 			changeInfo(info, overlap, minTypeA, maxTypeB, axisType);
 		}
 	}
-	// std::cout << "axisType[" << axisType << "] overlap: " << overlap << "\n";
+	std::cout << "axisType[" << axisType << "] overlap: " << overlap << "\n";
 	return true;
 }
 
@@ -284,6 +284,9 @@ void BoxToBoxContact::changeInfo(BoxToBoxInfo &info, float overlap, int32_t type
 	info.typeA = typeA;
 	info.typeB = typeB;
 	info.axisType = axisType;
+	std::cout << "typeA: " << typeA << "\n";
+	std::cout << "typeB: " << typeB << "\n";
+	std::cout << "changeInfo: " << axisType << "\n";
 }
 
 void BoxToBoxContact::fillFaceToPointInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -291,14 +294,17 @@ void BoxToBoxContact::fillFaceToPointInfo(BoxToBoxInfo &info, std::vector<glm::v
 {
 	static const std::vector<std::vector<std::vector<int32_t>>> faceVector = {
 		{{0, 2, 3, 6}, {1, 5, 4, 7}}, {{0, 3, 1, 5}, {2, 4, 6, 7}}, {{0, 1, 2, 4}, {3, 6, 5, 7}}};
-	std::vector<int32_t> faceA = isContainPoint(faceVector[info.axisType][0], info.typeA)
-									 ? faceVector[info.axisType][0]
-									 : faceVector[info.axisType][1];
+
+	int32_t axisType = info.axisType - 3;
+
+	std::vector<int32_t> faceA = isContainPoint(faceVector[axisType][0], info.typeA)
+									 ? faceVector[axisType][0]
+									 : faceVector[axisType][1];
 	glm::vec3 &pointB = pointsB[info.typeB];
 	info.normal =
 		glm::normalize(glm::cross(pointsA[faceA[1]] - pointsA[faceA[0]], pointsA[faceA[2]] - pointsA[faceA[0]]));
 	info.pointA = pointB - info.normal * info.overlap;
-	// std::cout << "axisType 0 ~ 2\n"; 
+	std::cout << "axisType 3 ~ 5\n"; 
 }
 
 void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -346,7 +352,7 @@ void BoxToBoxContact::fillEdgeToEdgeInfo(BoxToBoxInfo &info, std::vector<glm::ve
 
 	info.normal = normal;
 	info.pointA = edgeA[0] + (edgeA[1] - edgeA[0]) * ratio;
-	// std::cout << "axis type: 6 ~ 15\n";
+	std::cout << "axis type: 6 ~ 15\n";
 }
 
 void BoxToBoxContact::fillPointToFaceInfo(BoxToBoxInfo &info, std::vector<glm::vec3> &pointsA,
@@ -355,14 +361,14 @@ void BoxToBoxContact::fillPointToFaceInfo(BoxToBoxInfo &info, std::vector<glm::v
 	static const std::vector<std::vector<std::vector<int32_t>>> faceVector = {
 		{{0, 2, 3, 6}, {1, 5, 4, 7}}, {{0, 3, 1, 5}, {2, 4, 6, 7}}, {{0, 1, 2, 4}, {3, 6, 5, 7}}};
 
-	int32_t axisType = info.axisType - 3;
+	int32_t axisType = info.axisType;
 	glm::vec3 &pointA = pointsA[info.typeA];
 	std::vector<int32_t> faceB =
 		isContainPoint(faceVector[axisType][0], info.typeB) ? faceVector[axisType][0] : faceVector[axisType][1];
 	info.pointA = pointA;
 	info.normal =
 		-glm::normalize(glm::cross(pointsB[faceB[1]] - pointsB[faceB[0]], pointsB[faceB[2]] - pointsB[faceB[0]]));
-	// std::cout << "axisType 3 ~ 5\n"; 
+	std::cout << "axisType 0 ~ 2\n"; 
 }
 
 bool BoxToBoxContact::isContainPoint(std::vector<int32_t> points, int32_t point)
