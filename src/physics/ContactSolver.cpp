@@ -27,25 +27,25 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 		glm::vec3 gravity = Rigidbody::gravity;
 		bool isStopContact = true;
 
-		if (bodyA->getType() == BodyType::e_dynamic)
-		{
-			float gravityVelocity = glm::dot((gravity * m_duration), manifold.points[0].normal);
-			float normalVelocity =
-				glm::dot(m_velocities[bodyA->getIslandIndex()].linearVelocity, manifold.points[0].normal);
-			// std::cout << "A gravityVelocity: " << gravityVelocity << "\n";
-			// std::cout << "A normalVelocity: " << normalVelocity << "\n";
-			isStopContact = (m_stopVelocity >= std::abs(normalVelocity - gravityVelocity));
-		}
+		// if (bodyA->getType() == BodyType::e_dynamic)
+		// {
+		// 	float gravityVelocity = glm::dot((gravity * m_duration), manifold.points[0].normal);
+		// 	float normalVelocity =
+		// 		glm::dot(m_velocities[bodyA->getIslandIndex()].linearVelocity, manifold.points[0].normal);
+		// 	// std::cout << "A gravityVelocity: " << gravityVelocity << "\n";
+		// 	// std::cout << "A normalVelocity: " << normalVelocity << "\n";
+		// 	isStopContact = (m_stopVelocity >= std::abs(normalVelocity - gravityVelocity));
+		// }
 
-		if (bodyB->getType() == BodyType::e_dynamic)
-		{
-			float gravityVelocity = glm::dot((gravity * m_duration), -manifold.points[0].normal);
-			float normalVelocity =
-				glm::dot(m_velocities[bodyB->getIslandIndex()].linearVelocity, -manifold.points[0].normal);
-			// std::cout << "B gravityVelocity: " << gravityVelocity << "\n";
-			// std::cout << "B normalVelocity: " << normalVelocity << "\n";
-			isStopContact = (m_stopVelocity >= std::abs(normalVelocity - gravityVelocity));
-		}
+		// if (bodyB->getType() == BodyType::e_dynamic)
+		// {
+		// 	float gravityVelocity = glm::dot((gravity * m_duration), -manifold.points[0].normal);
+		// 	float normalVelocity =
+		// 		glm::dot(m_velocities[bodyB->getIslandIndex()].linearVelocity, -manifold.points[0].normal);
+		// 	// std::cout << "B gravityVelocity: " << gravityVelocity << "\n";
+		// 	// std::cout << "B normalVelocity: " << normalVelocity << "\n";
+		// 	isStopContact = (m_stopVelocity >= std::abs(normalVelocity - gravityVelocity));
+		// }
 
 		// if (isStopContact)
 		// 	std::cout << "STOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
@@ -68,7 +68,8 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 		velocityConstraint.points = manifold.points;
 		velocityConstraint.isStopContact = isStopContact;
 
-		// std::cout << "worldCenterA: " << velocityConstraint.worldCenterA.x << " " << velocityConstraint.worldCenterA.y << " " << velocityConstraint.worldCenterA.z << "\n"; 
+		// std::cout << "worldCenterA: " << velocityConstraint.worldCenterA.x << " " <<
+		// velocityConstraint.worldCenterA.y << " " << velocityConstraint.worldCenterA.z << "\n";
 
 		// 위치 제약 설정
 		ContactPositionConstraint positionConstraint;
@@ -89,8 +90,6 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 
 void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 {
-	const float alpha = 0.1f / velocityIteration;
-
 	int32_t length = m_contacts.size();
 	for (int32_t i = 0; i < length; i++)
 	{
@@ -113,24 +112,24 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			ManifoldPoint &manifoldPoint = velocityConstraint.points[j];
 			glm::vec3 rA = manifoldPoint.pointA - velocityConstraint.worldCenterA; // bodyA의 충돌 지점까지의 벡터
 			glm::vec3 rB = manifoldPoint.pointB - velocityConstraint.worldCenterB; // bodyB의 충돌 지점까지의 벡터
-			// std::cout << "RARARA pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " << manifoldPoint.pointA.z << "\n";
-			// std::cout << "worldCenterA: " << velocityConstraint.worldCenterA.x << " " << velocityConstraint.worldCenterA.y << " " << velocityConstraint.worldCenterA.z << "\n";
-			// std::cout << "rB: " << rB.x << " " << rB.y << " " << rB.z << "\n";
+			// std::cout << "RARARA pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " <<
+			// manifoldPoint.pointA.z << "\n"; std::cout << "worldCenterA: " << velocityConstraint.worldCenterA.x << " "
+			// << velocityConstraint.worldCenterA.y << " " << velocityConstraint.worldCenterA.z << "\n"; std::cout <<
+			// "rB: " << rB.x << " " << rB.y << " " << rB.z << "\n";
 
 			// 상대 속도 계산
 			// A에서 본 B의 상대속도
 			glm::vec3 relativeVelocity =
 				(m_velocities[indexB].linearVelocity + glm::cross(m_velocities[indexB].angularVelocity, rB)) -
 				(m_velocities[indexA].linearVelocity + glm::cross(m_velocities[indexA].angularVelocity, rA));
-			// std::cout << "relativeVelocity: " << relativeVelocity.x << " " << relativeVelocity.y << " "
-			// 		  << relativeVelocity.z << "\n";
-			// std::cout << "normalVector: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
-			// 		  << manifoldPoint.normal.z << "\n";
+			std::cout << "relativeVelocity: " << relativeVelocity.x << " " << relativeVelocity.y << " "
+					  << relativeVelocity.z << "\n";
+			std::cout << "normalVector: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
+					  << manifoldPoint.normal.z << "\n";
 
-			
 			// 법선 방향 속도
 			float normalVelocity = glm::dot(relativeVelocity, manifoldPoint.normal); // 음수
-			// std::cout << "normalVelocity: " << normalVelocity << "\n";
+			std::cout << "normalVelocity: " << normalVelocity << "\n";
 
 			if (normalVelocity > -m_stopVelocity)
 			{
@@ -146,22 +145,24 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 												  velocityConstraint.invIB * glm::cross(manifoldPoint.normal, rB));
 			std::cout << "rA : " << rA.x << " " << rA.y << " " << rA.z << "\n";
 			std::cout << "rB : " << rB.x << " " << rB.y << " " << rB.z << "\n";
-			
+
 			normalImpulse = normalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
-			normalImpulse = normalImpulse * alpha;
-			// std::cout << "normalEffectiveMassA: " << normalEffectiveMassA << "\n";
-			// std::cout << "normalImpulse: " << normalImpulse << "\n";
+			std::cout << "inverseMasses: " << inverseMasses << "\n";
+			std::cout << "normalEffectiveMassA: " << normalEffectiveMassA << "\n";
+			std::cout << "normalEffectiveMassB: " << normalEffectiveMassB << "\n";
+			std::cout << "normalImpulse: " << normalImpulse << "\n";
 
 			glm::vec3 tangent(0.0f);
 			glm::vec3 tangentVelocity = relativeVelocity + (std::abs(normalVelocity) * manifoldPoint.normal);
-			// std::cout << "tangentVelocity: " << tangentVelocity.x << " " << tangentVelocity.y << " " << tangentVelocity.z << "\n";
-			if (glm::length2(tangentVelocity) != 0)
+			std::cout << "tangentVelocity: " << tangentVelocity.x << " " << tangentVelocity.y << " "
+					  << tangentVelocity.z << "\n";
+			if (glm::length2(tangentVelocity) > 0.00001)
 			{
 				tangent = glm::normalize(tangentVelocity);
 			}
 
 			float tangentImpulse = -glm::dot(relativeVelocity, tangent);
-			// std::cout << "tangent: " << tangent.x << " " << tangent.y << " " << tangent.z << "\n";
+			std::cout << "tangent: " << tangent.x << " " << tangent.y << " " << tangent.z << "\n";
 
 			float tangentEffectiveMassA =
 				glm::dot(glm::cross(tangent, rA), velocityConstraint.invIA * glm::cross(tangent, rA));
@@ -171,7 +172,7 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			tangentImpulse = tangentImpulse / (inverseMasses + tangentEffectiveMassA + tangentEffectiveMassB);
 			tangentImpulse = glm::clamp(tangentImpulse, -maxFriction, maxFriction);
 
-			// std::cout << "tangentImpulse: " << tangentImpulse << "\n";
+			std::cout << "tangentImpulse: " << tangentImpulse << "\n";
 
 			// if (velocityConstraint.isStopContact)
 			// {
@@ -217,7 +218,6 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			// 		  << m_velocities[indexB].angularVelocity.y << " " << m_velocities[indexB].angularVelocity.z
 			// 		  << "\n";
 
-
 			// std::cout << "normalA power: "
 			// 		  << (velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal)).x << " "
 			// 		  << (velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal)).y << " "
@@ -226,11 +226,11 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			// 		  << (velocityConstraint.invIB * glm::cross(rB, normalImpulse * manifoldPoint.normal)).x << " "
 			// 		  << (velocityConstraint.invIB * glm::cross(rB, normalImpulse * manifoldPoint.normal)).y << " "
 			// 		  << (velocityConstraint.invIB * glm::cross(rB, normalImpulse * manifoldPoint.normal)).z << "\n";
-					  
+
 			// std::cout << "tangentA power: "
 			// 		  << (velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)).x << " "
 			// 		  << (velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)).y << " "
-			// 		  << (velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)).z << "\n";					  
+			// 		  << (velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)).z << "\n";
 			// std::cout << "tangentB power: "
 			// 		  << (velocityConstraint.invIB * glm::cross(rB, std::abs(tangentImpulse) * tangent)).x << " "
 			// 		  << (velocityConstraint.invIB * glm::cross(rB, std::abs(tangentImpulse) * tangent)).y << " "
