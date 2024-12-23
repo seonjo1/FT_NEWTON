@@ -4,8 +4,8 @@
 namespace ale
 {
 
-const int32_t Island::VELOCITY_ITERATION = 1;
-const int32_t Island::POSITION_ITERATION = 1;
+const int32_t Island::VELOCITY_ITERATION = 6;
+const int32_t Island::POSITION_ITERATION = 4;
 const float Island::MAX_TRANSLATION = 2.0f;
 const float Island::MAX_ROTATION = 0.5f * glm::pi<float>();
 const float Island::MAX_TRANSLATION_SQUARED = Island::MAX_TRANSLATION * Island::MAX_TRANSLATION;
