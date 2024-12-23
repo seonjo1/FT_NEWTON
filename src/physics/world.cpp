@@ -204,7 +204,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	float Izz = (1.0f / 12.0f) * (w * w + h * h);
 	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
 
-	float mass = 10.0f;
+	float mass = 30.0f;
 	body->setMassData(mass, m);
 
 	BoxShape *box = shape->clone();
