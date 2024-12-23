@@ -45,11 +45,16 @@ void SphereToSphereContact::evaluate(Manifold &manifold, const Transform &transf
 	glm::vec3 worldCenterB = transformB.toMatrix() * glm::vec4(shapeB->localCenter, 1.0f);
 
 	manifoldPoint.normal = glm::normalize(worldCenterB - worldCenterA);
-	manifoldPoint.pointA = worldCenterB - shapeB->getLocalRadius() * manifoldPoint.normal;
-	manifoldPoint.pointB = worldCenterA + shapeA->getLocalRadius() * manifoldPoint.normal;
+	manifoldPoint.pointA = worldCenterA + shapeA->getLocalRadius() * manifoldPoint.normal;
+	manifoldPoint.pointB = worldCenterB - shapeB->getLocalRadius() * manifoldPoint.normal;
 	manifoldPoint.seperation = glm::length(manifoldPoint.pointA - manifoldPoint.pointB);
 
-	manifold.points.push_back(manifoldPoint);
+
+	if (glm::length2(manifoldPoint.pointA - worldCenterB) < shapeB->getLocalRadius() * shapeB->getLocalRadius() &&
+		glm::length2(manifoldPoint.pointB - worldCenterA) < shapeA->getLocalRadius() * shapeA->getLocalRadius())
+	{
+		manifold.points.push_back(manifoldPoint);
+	}
 }
 
 } // namespace ale
