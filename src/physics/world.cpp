@@ -196,18 +196,19 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	glm::vec3 upper = *std::prev(shape->m_vertices.end());
 	glm::vec3 lower = *shape->m_vertices.begin();
 	glm::vec3 diff = upper - lower;
+	float mass = 30.0f;
 	float h = abs(diff.y);
 	float w = abs(diff.x);
 	float d = abs(diff.z);
-	float Ixx = (1.0f / 12.0f) * (h * h + d * d);
-	float Iyy = (1.0f / 12.0f) * (w * w + d * d);
-	float Izz = (1.0f / 12.0f) * (w * w + h * h);
+	float Ixx = (1.0f / 12.0f) * (h * h + d * d) * mass;
+	float Iyy = (1.0f / 12.0f) * (w * w + d * d) * mass;
+	float Izz = (1.0f / 12.0f) * (w * w + h * h) * mass;
 	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
 
-	float mass = 30.0f;
 	body->setMassData(mass, m);
 
-	BoxShape *box = shape->clone();
+	// BoxShape *box = shape->clone();
+	BoxShape *box = shape;
 	body->createFixture(box);
 	rigidbodies.push_back(body);
 }
@@ -230,12 +231,13 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new Rigidbody(&bd, this);
 
 	// calculate inersiaTensor - (2 / 5) * m * r * r
-	float val = (2.0f / 5.0f) * 1 * 1;
-	glm::mat3 m(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
 	float mass = 10.0f;
+	float val = (2.0f / 5.0f) * mass * 1;
+	glm::mat3 m(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
 	body->setMassData(mass, m);
 
-	SphereShape *sphere = shape->clone();
+	// SphereShape *sphere = shape->clone();
+	SphereShape *sphere = shape;
 	body->createFixture(sphere);
 	rigidbodies.push_back(body);
 	// std::cout << "World:: Create Sphere end\n";
@@ -265,7 +267,8 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	float mass = 0;
 	body->setMassData(mass, m);
 
-	BoxShape *box = shape->clone();
+	// BoxShape *box = shape->clone();
+	BoxShape *box = shape;
 	body->createFixture(box);
 	rigidbodies.push_back(body);
 }
