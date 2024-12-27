@@ -202,7 +202,7 @@ void TextureImage::createBlackTextureImage(DeviceManager* deviceManager, VkComma
 	int texHeight = 256; // 텍스처 높이
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	mipLevels = 1;
-	std::vector<uint8_t> blackImage(imageSize, 0);
+	std::vector<uint8_t> blackImage(imageSize, 50);
 
 	// 스테이징 버퍼 생성
 	std::unique_ptr<StagingBuffer> stagingBuffer = StagingBuffer::create(deviceManager, imageSize);

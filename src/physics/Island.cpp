@@ -13,6 +13,7 @@ const float Island::MAX_ROTATION_SQUARED = Island::MAX_ROTATION * Island::MAX_RO
 
 void Island::solve(float duration)
 {
+	std::cout << "\n\n\nIsland Solve Start!!!!!\n";
 	int32_t bodyLength = m_bodies.size();
 	m_positions.resize(bodyLength);
 	m_velocities.resize(bodyLength);

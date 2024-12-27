@@ -47,6 +47,7 @@ class Shape
 	glm::vec3 m_center;
 	glm::vec3 localCenter;
 	Type m_type;
+	bool isCollide {false}; // tmp variable
 };
 
 } // namespace ale

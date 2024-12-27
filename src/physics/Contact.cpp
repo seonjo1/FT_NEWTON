@@ -40,6 +40,8 @@ contactMemberFunction Contact::createContactFunctions[8] = {
 Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
 	: m_fixtureA(fixtureA), m_fixtureB(fixtureB), m_indexA(indexA), m_indexB(indexB)
 {
+	m_fixtureA->getShape()->isCollide = true;
+	m_fixtureB->getShape()->isCollide = true;
 	m_flags = static_cast<int32_t>(EContactFlag::TOUCHING);
 
 	m_fixtureA = fixtureA;
@@ -110,8 +112,10 @@ void Contact::update()
 	evaluate(m_manifold, transformA, transformB);
 	int32_t pointCount = m_manifold.points.size();
 	touching = pointCount > 0;
-	if (touching)
-		std::cout << "touching!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+	// if (bodyA->getType() != BodyType::e_static && bodyB->getType() != BodyType::e_static && touching)
+	// 	std::cout << "touching!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+	// else if (touching)
+	// 	std::cout << "floor\n";
 	std::cout << "contact update check\n";
 	std::cout << "bodyA: " << m_nodeB.other->getBodyId() << "\n";
 	std::cout << "bodyB: " << m_nodeA.other->getBodyId() << "\n";
@@ -141,11 +145,15 @@ void Contact::update()
 	{
 		// touching시 touching flag on
 		m_flags = m_flags | EContactFlag::TOUCHING;
+		m_fixtureA->getShape()->isCollide = true;
+		m_fixtureB->getShape()->isCollide = true;
 	}
 	else
 	{
 		// touching이 아니면 touching flag off
 		m_flags = m_flags & ~EContactFlag::TOUCHING;
+		m_fixtureA->getShape()->isCollide = false;
+		m_fixtureB->getShape()->isCollide = false;
 	}
 
 }
