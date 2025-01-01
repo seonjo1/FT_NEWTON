@@ -31,9 +31,9 @@ void World::runPhysics()
 
 		body->synchronizeFixtures();
 	}
-	
 	// update Possible Contact Pairs - BroadPhase
 	contactManager.findNewContacts();
+
 	// Process Contacts
 	contactManager.collide();
 	solve(duration);
@@ -41,6 +41,7 @@ void World::runPhysics()
 	for (Rigidbody *body : rigidbodies)
 	{
 		app.setTransformById(body->getTransformId(), body->getTransform());
+		body->updateIsCollide();
 	}
 }
 
