@@ -48,6 +48,7 @@ class BoxToBoxContact : public Contact
 	bool getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, Simplex &simplex);
 	bool isDuplicatedPoint(const std::vector<glm::vec3> &points, const glm::vec3 &supportPoint);
 	bool isSameDirection(glm::vec3 v1, glm::vec3 v2);
+	bool isSimilarDirection(glm::vec3 v1, glm::vec3 v2);
 	bool isContained(const glm::vec3 &point, const BoxInfo &box, float seperation, float distance);
 
 };
