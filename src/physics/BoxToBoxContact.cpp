@@ -80,7 +80,7 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 				  << "\n";
 	}
 
-	Simplex simplex;
+	std::vector<Simplex> simplex;
 	bool isCollide = getGjkResult(boxA, boxB, simplex);
 
 	if (isCollide)
@@ -161,22 +161,20 @@ std::vector<glm::vec4> BoxToBoxContact::getCandidates(const BoxInfo &box, const 
 	return candidates;
 }
 
-glm::vec3 BoxToBoxContact::getSupportPoint(const BoxInfo &boxA, const BoxInfo &boxB, glm::vec3 &dir)
+Simplex BoxToBoxContact::getSupportPoint(const BoxInfo &boxA, const BoxInfo &boxB, glm::vec3 &dir)
 {
-	// std::cout << "dir: " << dir.x << " " << dir.y << " " << dir.z << "\n";
-	glm::vec3 supA = supportBox(boxA, dir);
-	// std::cout << "supA: " << supA.x << " " << supA.y << " " << supA.z << "\n";
-	glm::vec3 supB = supportBox(boxB, -dir);
-	// std::cout << "supB: " << supB.x << " " << supB.y << " " << supB.z << "\n";
-	// std::cout << "supportPoint: " << (supA - supB).x << " " << (supA - supB).y << " " << (supA - supB).z << "\n";
-	return supA - supB;
+	Simplex simplex;
+	simplex.a = supportBox(boxA, dir);
+	simplex.b = supportBox(boxB, -dir);
+	simplex.diff = simplex.a - simplex.b;
+	return simplex;
 }
 
-bool BoxToBoxContact::handleLineSimplex(Simplex &simplex, glm::vec3 &dir)
+bool BoxToBoxContact::handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
 {
 	std::cout << "Line GJK\n";
-	glm::vec3 &a = simplex.points[0];
-	glm::vec3 &b = simplex.points[1];
+	glm::vec3 &a = simplexVector[0].diff;
+	glm::vec3 &b = simplexVector[1].diff;
 
 	glm::vec3 ab = b - a;
 	glm::vec3 ao = -a;
@@ -203,21 +201,22 @@ bool BoxToBoxContact::handleLineSimplex(Simplex &simplex, glm::vec3 &dir)
 	return false;
 }
 
-bool BoxToBoxContact::handleTriangleSimplex(Simplex &simplex, glm::vec3 &dir)
+bool BoxToBoxContact::handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
 {
 	std::cout << "Triangle GJK\n";
-	glm::vec3 &a = simplex.points[0];
-	glm::vec3 &b = simplex.points[1];
-	glm::vec3 &c = simplex.points[2];
+	glm::vec3 &a = simplexVector[0].diff;
+	glm::vec3 &b = simplexVector[1].diff;
+	glm::vec3 &c = simplexVector[2].diff;
 
 	glm::vec3 ab = b - a;
 	glm::vec3 ac = c - a;
 	glm::vec3 bc = c - b;
 	glm::vec3 abc = glm::cross(ac, ab);
 
+	// 면적이 없으면 반대 dir로 세 번째 점 다시 찾기기
 	if (glm::length2(abc) == 0)
 	{
-		simplex.points.pop_back();
+		simplexVector.pop_back();
 		dir = -dir;
 		return false;
 	}
@@ -226,7 +225,7 @@ bool BoxToBoxContact::handleTriangleSimplex(Simplex &simplex, glm::vec3 &dir)
 	if (glm::dot(dir, -c) > 0.0f)
 	{
 		// a 제거
-		simplex.points.erase(simplex.points.begin());
+		simplexVector.erase(simplexVector.begin());
 		return false;
 	}
 
@@ -234,7 +233,7 @@ bool BoxToBoxContact::handleTriangleSimplex(Simplex &simplex, glm::vec3 &dir)
 	if (glm::dot(dir, -c) > 0.0f)
 	{
 		// b 제거
-		simplex.points.erase(simplex.points.begin() + 1);
+		simplexVector.erase(simplexVector.begin() + 1);
 		return false;
 	}
 
@@ -250,18 +249,19 @@ bool BoxToBoxContact::handleTriangleSimplex(Simplex &simplex, glm::vec3 &dir)
 	return false;
 }
 
-bool BoxToBoxContact::handleTetrahedronSimplex(Simplex &simplex, glm::vec3 &dir)
+bool BoxToBoxContact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
 {
 	std::cout << "Tetrahedron GJK\n";
-	glm::vec3 &a = simplex.points[0];
-	glm::vec3 &b = simplex.points[1];
-	glm::vec3 &c = simplex.points[2];
-	glm::vec3 &d = simplex.points[3];
+	glm::vec3 &a = simplexVector[0].diff;
+	glm::vec3 &b = simplexVector[1].diff;
+	glm::vec3 &c = simplexVector[2].diff;
+	glm::vec3 &d = simplexVector[3].diff;
 
 	glm::vec3 abc = glm::cross((b - a), (c - a));
+	// 부피가 없으면 반대 방향으로 4번째 점 다시 찾기기
 	if (glm::dot((d - a), abc) == 0.0f)
 	{
-		simplex.points.pop_back();
+		simplexVector.pop_back();
 		dir = -dir;
 		return false;
 	}
@@ -277,7 +277,7 @@ bool BoxToBoxContact::handleTetrahedronSimplex(Simplex &simplex, glm::vec3 &dir)
 
 	if (glm::dot(bcd, -d) > 0.0f)
 	{
-		simplex.points.erase(simplex.points.begin());
+		simplexVector.erase(simplexVector.begin());
 		dir = glm::normalize(bcd);
 		return false;
 	}
@@ -293,7 +293,7 @@ bool BoxToBoxContact::handleTetrahedronSimplex(Simplex &simplex, glm::vec3 &dir)
 
 	if (glm::dot(acd, -d) > 0.0f)
 	{
-		simplex.points.erase(simplex.points.begin() + 1);
+		simplexVector.erase(simplexVector.begin() + 1);
 		dir = glm::normalize(acd);
 		return false;
 	}
@@ -310,7 +310,7 @@ bool BoxToBoxContact::handleTetrahedronSimplex(Simplex &simplex, glm::vec3 &dir)
 
 	if (glm::dot(abd, -d) > 0.0f)
 	{
-		simplex.points.erase(simplex.points.begin() + 2);
+		simplexVector.erase(simplexVector.begin() + 2);
 		dir = glm::normalize(abd);
 		return false;
 	}
@@ -320,25 +320,26 @@ bool BoxToBoxContact::handleTetrahedronSimplex(Simplex &simplex, glm::vec3 &dir)
 
 // 가장 최근에 추가된 점 A = simplex.points.back() 로 가정
 // simplex가 2, 3, 4개 점일 때 각각 처리 달라짐
-bool BoxToBoxContact::handleSimplex(Simplex &simplex, glm::vec3 &dir)
+bool BoxToBoxContact::handleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
 {
-	switch (simplex.points.size())
+	switch (simplexVector.size())
 	{
 	case 2:
-		return handleLineSimplex(simplex, dir);
+		return handleLineSimplex(simplexVector, dir);
 	case 3:
-		return handleTriangleSimplex(simplex, dir);
+		return handleTriangleSimplex(simplexVector, dir);
 	case 4:
-		return handleTetrahedronSimplex(simplex, dir);
+		return handleTetrahedronSimplex(simplexVector, dir);
 	}
 	return false;
 }
 
-bool BoxToBoxContact::isDuplicatedPoint(const std::vector<glm::vec3> &points, const glm::vec3 &supportPoint)
+bool BoxToBoxContact::isDuplicatedPoint(const std::vector<Simplex> &simplexVector, const glm::vec3 &supportPoint)
 {
-	for (const glm::vec3 &point : points)
+	int32_t size = simplexVector.size();
+	for (int32_t i = 0; i < size; i++)
 	{
-		if (glm::length2(point - supportPoint) < 1e-6f)
+		if (glm::length2(simplexVector[i].diff - supportPoint) < 1e-6f)
 		{
 			return true;
 		}
@@ -346,7 +347,7 @@ bool BoxToBoxContact::isDuplicatedPoint(const std::vector<glm::vec3> &points, co
 	return false;
 }
 
-bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, Simplex &simplex)
+bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, std::vector<Simplex> &simplexVector)
 {
 	// 첫 번째 support point 구하기
 	glm::vec3 dir = glm::normalize(boxB.center - boxA.center);
@@ -355,8 +356,8 @@ bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, Sim
 		dir = glm::vec3(1.0f, 0.0f, 0.0f);
 	}
 
-	glm::vec3 supportPoint = getSupportPoint(boxA, boxB, dir);
-	simplex.points.push_back(supportPoint);
+	simplexVector.push_back(getSupportPoint(boxA, boxB, dir));
+	glm::vec3 supportPoint = simplexVector.back().diff;
 
 	// 두 번째 support point 구하기
 	dir = glm::normalize(-supportPoint);
@@ -364,20 +365,21 @@ bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, Sim
 	while (true)
 	{
 		// 새로운 서포트 점
-		supportPoint = getSupportPoint(boxA, boxB, dir);
+		Simplex simplex = getSupportPoint(boxA, boxB, dir);
+		supportPoint = simplex.diff;
 
 		// 만약 newSupport가 direction과 내적(dot)했을 때 0 이하라면
 		// 더 이상 원점을 "방향 dir" 쪽에서 감쌀 수 없음 => 충돌X
-		if (glm::dot(supportPoint, dir) < 0 || isDuplicatedPoint(simplex.points, supportPoint))
+		if (glm::dot(supportPoint, dir) < 0 || isDuplicatedPoint(simplexVector, supportPoint))
 		{
 			return false; // 교차하지 않음
 		}
 
 		// 심플렉스에 추가
-		simplex.points.push_back(supportPoint);
+		simplexVector.push_back(simplex);
 
 		// 원점을 포함하는지 체크 및 simplex 갱신
-		if (handleSimplex(simplex, dir))
+		if (handleSimplex(simplexVector, dir))
 		{
 			// 원점 포함 => 충돌
 			return true;
@@ -401,20 +403,13 @@ bool BoxToBoxContact::isSameDirection(glm::vec3 v1, glm::vec3 v2)
 }
 
 std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, const BoxInfo &boxB,
-														   const Simplex &simplex)
+														   std::vector<Simplex> &simplexVector)
 {
-	std::vector<glm::vec3> polytope(simplex.points.begin(), simplex.points.end());
 	std::vector<int32_t> faces = {0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2};
-
-	// std::cout << "polytope\n";
-	// for (const glm::vec3& poly : polytope)
-	// {
-	// 	std::cout << poly.x << " " << poly.y << " " << poly.z << "\n";
-	// }
 
 	// GJK에서 구한 simplex들중 원점에서 가장 가까운 삼각형의 법선과 최소 거리
 	std::vector<glm::vec4> normals;
-	int32_t minFace = getFaceNormals(normals, polytope, faces);
+	int32_t minFace = getFaceNormals(normals, simplexVector, faces);
 	glm::vec3 minNormal;
 	// std::cout << "minFace: " << minFace << "\n";
 	float minDistance = FLT_MAX;
@@ -426,14 +421,15 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 		minDistance = normals[minFace].w;
 
 		// 최소 거리의 법선에 해당하는 supportPoint 쿼리
-		glm::vec3 supportPoint = getSupportPoint(boxA, boxB, minNormal);
+		Simplex simplex = getSupportPoint(boxA, boxB, minNormal);
+		glm::vec3 supportPoint = simplex.diff;
 
 		// 원점에서 supportPoint까지의 거리
 		float supportDistance = glm::dot(minNormal, supportPoint);
 
 		// supportPoint가 현재 minDistance보다 원점에서 더 멀리있는 경우
 		// 다시 원점에서부터 최소거리의 삼각형을 찾음
-		if (std::abs(supportDistance - minDistance) > 1e-8f && !isDuplicatedPoint(polytope, supportPoint))
+		if (std::abs(supportDistance - minDistance) > 1e-8f && !isDuplicatedPoint(simplexVector, supportPoint))
 		{
 			minDistance = FLT_MAX;
 			std::vector<std::pair<int32_t, int32_t>> uniqueEdges;
@@ -441,17 +437,18 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 			// "\n"; std::cout << "start make unique edges\n";
 			for (int32_t i = 0; i < normals.size(); i++)
 			{
-				// std::cout << "normals[" << i << "]: " << normals[i].x << " " << normals[i].y << " " << normals[i].z << "\n"; 
-				// std::cout << "check same direction\n";
-				// 새로운 점에서 해당 평면이 보이는지 판단. 면의
-				// 중심에서 새로운 점까지의 벡터와 면의 법선벡터가 같은 방향인지 판단 
+				// std::cout << "normals[" << i << "]: " << normals[i].x << " " << normals[i].y << " " << normals[i].z
+				// << "\n"; std::cout << "check same direction\n"; 새로운 점에서 해당 평면이 보이는지 판단. 면의
+				// 중심에서 새로운 점까지의 벡터와 면의 법선벡터가 같은 방향인지 판단
 				// std::cout << "this plane idx!!\n";
 				// std::cout << faces[i] << " " << faces[i + 1] << " " << faces[i + 2] << "\n";
-				// std::cout << "face 1: " << polytope[faces[i]].x << " " << polytope[faces[i]].y << " " << polytope[faces[i]].z << "\n"; 
-				// std::cout << "face 2: " << polytope[faces[i + 1]].x << " " << polytope[faces[i + 1]].y << " " << polytope[faces[i + 1]].z << "\n"; 
-				// std::cout << "face 3: " << polytope[faces[i + 2]].x << " " << polytope[faces[i + 2]].y << " " << polytope[faces[i + 2]].z << "\n";
+				// std::cout << "face 1: " << polytope[faces[i]].x << " " << polytope[faces[i]].y << " " <<
+				// polytope[faces[i]].z << "\n"; std::cout << "face 2: " << polytope[faces[i + 1]].x << " " <<
+				// polytope[faces[i + 1]].y << " " << polytope[faces[i + 1]].z << "\n"; std::cout << "face 3: " <<
+				// polytope[faces[i + 2]].x << " " << polytope[faces[i + 2]].y << " " << polytope[faces[i + 2]].z <<
+				// "\n";
 				glm::vec3 center =
-					(polytope[faces[i * 3]] + polytope[faces[i * 3 + 1]] + polytope[faces[i * 3 + 2]]) / 3.0f;
+					(simplexVector[faces[i * 3]].diff + simplexVector[faces[i * 3 + 1]].diff + simplexVector[faces[i * 3 + 2]].diff) / 3.0f;
 				if (isSimilarDirection(normals[i], supportPoint - center))
 				{
 					// std::cout << "add uniqueEdge\n";
@@ -487,16 +484,17 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 			{
 				newFaces.push_back(edgeIndex1);
 				newFaces.push_back(edgeIndex2);
-				newFaces.push_back(polytope.size());
+				newFaces.push_back(simplexVector.size());
 			}
 			// 새로 추가되는 면이 없다면 종료료
 			if (newFaces.size() == 0)
 			{
+				minNormal = glm::vec3(normals[minFace]);
 				minDistance = normals[minFace].w;
 				continue;
 			}
 			// 새로운 점 추가
-			polytope.push_back(supportPoint);
+			simplexVector.push_back(simplex);
 
 			// std::cout << "renew polytope\n";
 			// for (const glm::vec3& poly : polytope)
@@ -506,7 +504,7 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 
 			// 새로운 삼각형의 normal 벡터들과 최소 거리 쿼리
 			std::vector<glm::vec4> newNormals;
-			int32_t newMinFace = getFaceNormals(newNormals, polytope, newFaces);
+			int32_t newMinFace = getFaceNormals(newNormals, simplexVector, newFaces);
 			float oldMinDistance = FLT_MAX;
 
 			// 기존 삼각형들 중 가장 거리가 짧은 삼각형 쿼리
@@ -543,68 +541,117 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 		}
 	}
 
+	// 바리센트릭 방법
 	std::vector<CollisionPoints> pointsVector;
 
-	std::cout << "dir: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
-	std::cout << "seperation: " << minDistance << "\n";
+	float u, v, w;
+	int32_t idx0 = faces[minFace * 3];
+	int32_t idx1 = faces[minFace * 3 + 1];
+	int32_t idx2 = faces[minFace * 3 + 2];
 
-	std::vector<glm::vec4> candidatesA = getCandidates(boxA, minNormal);
-	std::vector<glm::vec4> candidatesB = getCandidates(boxB, -minNormal);
+	glm::vec3 projectedO = minNormal * minDistance;
+	barycentric(simplexVector[idx0].diff, simplexVector[idx1].diff, simplexVector[idx2].diff, projectedO, u, v, w);
+	
+	glm::vec3 pointA = simplexVector[idx0].a * u + simplexVector[idx1].a * v + simplexVector[idx2].a * w;
+	glm::vec3 pointB = simplexVector[idx0].b * u + simplexVector[idx1].b * v + simplexVector[idx2].b * w;
 
-	// std::cout << "candidateA start\n";
-	int32_t lengthA = candidatesA.size();
-	for (int32_t i = 0; i < lengthA; i++)
-	{
-		std::cout << "A judge\n";
-		CollisionPoints points;
-		glm::vec3 candidate = candidatesA[i];
-		float distance = candidatesA[i].w;
-		// std::cout << "distance: " << distance << "\n";
-		points.normal = minNormal;
-		points.seperation = minDistance - (candidatesA[0].w - distance);
-		float moveDistance = glm::dot(boxB.center - candidate, points.normal);
-		// std::cout << "moveDistance: " << moveDistance << "\n";
-		glm::vec3 movedPoint = candidate + moveDistance * points.normal;
-		// std::cout << "movePoint: " << movedPoint.x << " " << movedPoint.y << " " << movedPoint.z << "\n";
-		if (isContained(movedPoint, boxB, points.seperation, moveDistance))
-		{
-			std::cout << "AAAAAAAAAAA isContained!!\n";
-			std::cout << "candidate[" << i << "]: " << candidate.x << " " << candidate.y << " " << candidate.z << "\n";
-			std::cout << "seperation: " << points.seperation << "\n";
-			std::cout << "normal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
+	float distance = glm::length(pointA - pointB);
 
-			points.pointA = candidate;
-			points.pointB = candidate - points.normal * points.seperation;
-			pointsVector.push_back(points);
-		}
-	}
+	glm::vec3 normal = glm::normalize(pointA - pointB);
 
-	// std::cout << "candidateB start\n";
+	CollisionPoints points;
+	points.normal = normal;
+	points.pointA = pointA;
+	points.pointB = pointB;
+	points.seperation = distance;
 
-	int32_t lengthB = candidatesB.size();
-	for (int32_t i = 0; i < lengthB; i++)
-	{
-		std::cout << "B judge\n";
-		CollisionPoints points;
-		glm::vec3 candidate = candidatesB[i];
-		float distance = candidatesB[i].w;
-		points.normal = minNormal;
-		points.seperation = minDistance - (candidatesB[0].w - distance);
-		float moveDistance = glm::dot(boxA.center - candidate, -points.normal);
-		glm::vec3 movedPoint = candidate + moveDistance * -points.normal;
-		if (isContained(movedPoint, boxA, points.seperation, moveDistance))
-		{
-			std::cout << "BBBBBBBBBBBB isContained!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-			std::cout << "candidate[" << i << "]: " << candidate.x << " " << candidate.y << " " << candidate.z << "\n";
-			std::cout << "seperation: " << points.seperation << "\n";
-			std::cout << "normal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
-			points.pointB = candidate;
-			points.pointA = candidate + points.normal * points.seperation;
-			pointsVector.push_back(points);
-		}
-	}
+	std::cout << "contact point!!!!!!!!!!!!\n";
+	std::cout << "contact A : " << pointA.x << " " << pointA.y << " " << pointA.z << "\n";
+	std::cout << "contact B : " << pointB.x << " " << pointB.y << " " << pointB.z << "\n";
+	std::cout << "contact normal : " << normal.x << " " << normal.y << " " << normal.z << "\n";
+	std::cout << "seperation: " << points.seperation << "\n";
+	pointsVector.push_back(points);
 
 	return pointsVector;
+
+	// seonjo 방법
+	// std::vector<CollisionPoints> pointsVector;
+
+	// std::cout << "dir: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
+	// std::cout << "seperation: " << minDistance << "\n";
+
+	// std::vector<glm::vec4> candidatesA = getCandidates(boxA, minNormal);
+	// std::vector<glm::vec4> candidatesB = getCandidates(boxB, -minNormal);
+
+	// // std::cout << "candidateA start\n";
+	// int32_t lengthA = candidatesA.size();
+	// for (int32_t i = 0; i < lengthA; i++)
+	// {
+	// 	std::cout << "A judge\n";
+	// 	CollisionPoints points;
+	// 	glm::vec3 candidate = candidatesA[i];
+	// 	float distance = candidatesA[i].w;
+	// 	// std::cout << "distance: " << distance << "\n";
+	// 	points.normal = minNormal;
+	// 	points.seperation = minDistance - (candidatesA[0].w - distance);
+	// 	float moveDistance = glm::dot(boxB.center - candidate, points.normal);
+	// 	// std::cout << "moveDistance: " << moveDistance << "\n";
+	// 	glm::vec3 movedPoint = candidate + moveDistance * points.normal;
+	// 	// std::cout << "movePoint: " << movedPoint.x << " " << movedPoint.y << " " << movedPoint.z << "\n";
+	// 	if (isContained(movedPoint, boxB, points.seperation, moveDistance))
+	// 	{
+	// 		std::cout << "AAAAAAAAAAA isContained!!\n";
+	// 		std::cout << "candidate[" << i << "]: " << candidate.x << " " << candidate.y << " " << candidate.z << "\n";
+	// 		std::cout << "seperation: " << points.seperation << "\n";
+	// 		std::cout << "normal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
+
+	// 		points.pointA = candidate;
+	// 		points.pointB = candidate - points.normal * points.seperation;
+	// 		pointsVector.push_back(points);
+	// 	}
+	// }
+
+	// // std::cout << "candidateB start\n";
+
+	// int32_t lengthB = candidatesB.size();
+	// for (int32_t i = 0; i < lengthB; i++)
+	// {
+	// 	std::cout << "B judge\n";
+	// 	CollisionPoints points;
+	// 	glm::vec3 candidate = candidatesB[i];
+	// 	float distance = candidatesB[i].w;
+	// 	points.normal = minNormal;
+	// 	points.seperation = minDistance - (candidatesB[0].w - distance);
+	// 	float moveDistance = glm::dot(boxA.center - candidate, -points.normal);
+	// 	glm::vec3 movedPoint = candidate + moveDistance * -points.normal;
+	// 	if (isContained(movedPoint, boxA, points.seperation, moveDistance))
+	// 	{
+	// 		std::cout << "BBBBBBBBBBBB isContained!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+	// 		std::cout << "candidate[" << i << "]: " << candidate.x << " " << candidate.y << " " << candidate.z << "\n";
+	// 		std::cout << "seperation: " << points.seperation << "\n";
+	// 		std::cout << "normal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
+	// 		points.pointB = candidate;
+	// 		points.pointA = candidate + points.normal * points.seperation;
+	// 		pointsVector.push_back(points);
+	// 	}
+	// }
+
+	// return pointsVector;
+}
+
+void BoxToBoxContact::barycentric(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &p,
+								  float &u, float &v, float &w)
+{
+	glm::vec3 v0 = b - a, v1 = c - a, v2 = p - a;
+	float d00 = glm::dot(v0, v0);
+	float d01 = glm::dot(v0, v1);
+	float d11 = glm::dot(v1, v1);
+	float d20 = glm::dot(v2, v0);
+	float d21 = glm::dot(v2, v1);
+	float denom = d00 * d11 - d01 * d01;
+	v = (d11 * d20 - d01 * d21) / denom;
+	w = (d00 * d21 - d01 * d20) / denom;
+	u = 1.0f - v - w;
 }
 
 bool BoxToBoxContact::isContained(const glm::vec3 &point, const BoxInfo &box, float seperation, float distance)
@@ -630,7 +677,7 @@ bool BoxToBoxContact::isContained(const glm::vec3 &point, const BoxInfo &box, fl
 }
 
 // simplex의 삼각형들의 법선벡터와 삼각형들중 원점에서 가장 멀리 떨어져있는 놈을 찾아서 반환
-int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<glm::vec3> &polytope,
+int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
 										const std::vector<int32_t> &faces)
 {
 	int32_t minTriangle = 0;
@@ -641,9 +688,9 @@ int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const s
 	for (int32_t i = 0; i < faces.size(); i = i + 3)
 	{
 		// 삼각형 꼭짓점들
-		glm::vec3 a = polytope[faces[i]];
-		glm::vec3 b = polytope[faces[i + 1]];
-		glm::vec3 c = polytope[faces[i + 2]];
+		glm::vec3 a = simplexVector[faces[i]].diff;
+		glm::vec3 b = simplexVector[faces[i + 1]].diff;
+		glm::vec3 c = simplexVector[faces[i + 2]].diff;
 
 		// std::cout << "face[" << i << "]\n";
 		// std::cout << "a: " << a.x << " " << a.y << " " << a.z << "\n";
@@ -668,12 +715,12 @@ int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const s
 		// 법선 방향이 반대인 경우 -1 곱해주기
 		if (distance == 0)
 		{
-			int32_t polytopeSize = polytope.size();
+			int32_t simplexVectorSize = simplexVector.size();
 			int32_t maxIdx = -1;
 			float maxDistance = -FLT_MAX;
-			for (int32_t j = 0; j < polytopeSize; j++)
+			for (int32_t j = 0; j < simplexVectorSize; j++)
 			{
-				float dotResult = glm::dot(polytope[j], normal);
+				float dotResult = glm::dot(simplexVector[j].diff, normal);
 				if (maxDistance < dotResult)
 				{
 					maxDistance = dotResult;
