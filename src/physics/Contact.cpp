@@ -40,8 +40,6 @@ contactMemberFunction Contact::createContactFunctions[8] = {
 Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
 	: m_fixtureA(fixtureA), m_fixtureB(fixtureB), m_indexA(indexA), m_indexB(indexB)
 {
-	m_fixtureA->getShape()->isCollide = true;
-	m_fixtureB->getShape()->isCollide = true;
 	m_flags = static_cast<int32_t>(EContactFlag::TOUCHING);
 
 	m_fixtureA = fixtureA;
@@ -143,17 +141,14 @@ void Contact::update()
 
 	if (touching)
 	{
+		std::cout << "touching!!\n";
 		// touching시 touching flag on
 		m_flags = m_flags | EContactFlag::TOUCHING;
-		m_fixtureA->getShape()->isCollide = true;
-		m_fixtureB->getShape()->isCollide = true;
 	}
 	else
 	{
 		// touching이 아니면 touching flag off
 		m_flags = m_flags & ~EContactFlag::TOUCHING;
-		m_fixtureA->getShape()->isCollide = false;
-		m_fixtureB->getShape()->isCollide = false;
 	}
 
 }
