@@ -19,15 +19,11 @@ bool ContactManager::isSameContact(ContactLink *link, Fixture *fixtureA, Fixture
 	// 같은 충돌인 경우 충돌 생성 x
 	if (fixtureX == fixtureA && fixtureY == fixtureB && indexX == indexA && indexY == indexB)
 	{
-		fixtureA->getShape()->isCollide = true;
-		fixtureB->getShape()->isCollide = true;
 		link->contact->setFlag(EContactFlag::TOUCHING);
 		return true;
 	}
 	if (fixtureX == fixtureB && fixtureY == fixtureA && indexX == indexB && indexY == indexA)
 	{
-		fixtureA->getShape()->isCollide = true;
-		fixtureB->getShape()->isCollide = true;
 		link->contact->setFlag(EContactFlag::TOUCHING);
 		return true;
 	}
