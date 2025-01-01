@@ -124,8 +124,8 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 
 glm::vec3 BoxToBoxContact::supportBox(const BoxInfo &box, glm::vec3 dir)
 {
-	float dotAxes[3] = {glm::dot(box.axes[0], dir) >= 0 ? 1.f : -1.f, glm::dot(box.axes[1], dir) >= 0 ? 1.f : -1.f,
-						glm::dot(box.axes[2], dir) >= 0 ? 1.f : -1.f};
+	float dotAxes[3] = {glm::dot(box.axes[0], dir) > 0 ? 1.0f : -1.0f, glm::dot(box.axes[1], dir) > 0 ? 1.0f : -1.0f,
+						glm::dot(box.axes[2], dir) > 0 ? 1.0f : -1.0f};
 
 	glm::vec3 point = box.center;
 	for (int i = 0; i < 3; ++i)
