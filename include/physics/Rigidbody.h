@@ -116,6 +116,8 @@ class Rigidbody
 	bool hasFlag(EBodyFlag flag);
 	void updateSweep();
 	
+	void updateIsCollide();
+
 	static glm::vec3 gravity;
 
   protected:
