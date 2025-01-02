@@ -47,7 +47,7 @@ void World::runPhysics()
 
 void World::solve(float duration)
 {
-	std::cout << "solve start\n";
+	// std::cout << "solve start\n";
 	// island 초기화
 	Island island;
 
@@ -69,7 +69,7 @@ void World::solve(float duration)
 	// body 순회
 	for (Rigidbody *body : rigidbodies)
 	{
-		std::cout << "body id: " << body->getBodyId() << "\n";
+		// std::cout << "body id: " << body->getBodyId() << "\n";
 		// 이미 island에 포함된 경우 continue
 		if (body->hasFlag(EBodyFlag::ISLAND))
 		{
@@ -118,9 +118,9 @@ void World::solve(float duration)
 				{
 					continue;
 				}
-				std::cout << "add Contact\n";
-				std::cout << "bodyA : " << contact->getNodeB()->other->getBodyId() << "\n";
-				std::cout << "bodyB : " << contact->getNodeA()->other->getBodyId() << "\n";
+				// std::cout << "add Contact\n";
+				// std::cout << "bodyA : " << contact->getNodeB()->other->getBodyId() << "\n";
+				// std::cout << "bodyB : " << contact->getNodeA()->other->getBodyId() << "\n";
 				// 위 조건을 다 충족하는 경우 island에 추가 후 island 플래그 on
 				island.add(contact);
 				contact->setFlag(EContactFlag::ISLAND);
@@ -151,7 +151,7 @@ void World::solve(float duration)
 			}
 		}
 	}
-	std::cout << "finish solve\n\n\n";
+	// std::cout << "finish solve\n\n\n";
 }
 
 void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
@@ -212,8 +212,8 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	BoxShape *box = shape;
 	FixtureDef fd;
 	fd.shape = shape;
-	fd.friction = 0.5f;
-	fd.restitution = 0.5f;
+	fd.friction = 0.6f;
+	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
 	rigidbodies.push_back(body);
@@ -256,7 +256,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 
 void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 {
-	std::cout << "World::Create Box\n";
+	// std::cout << "World::Create Box\n";
 	Shape *s = model->getShape();
 	BoxShape *shape = dynamic_cast<BoxShape *>(s);
 	BodyDef bd;
