@@ -15,7 +15,6 @@ struct ContactPositionConstraint
 	int32_t indexA;
 	int32_t indexB;
 	float invMassA, invMassB;
-	EManifoldType type;
 	bool isStopContact;
 };
 
