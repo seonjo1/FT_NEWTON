@@ -46,7 +46,6 @@ void World::runPhysics()
 	for (Rigidbody *body : rigidbodies)
 	{
 		app.setTransformById(body->getTransformId(), body->getTransform());
-		// body->updateIsCollide();
 	}
 }
 
