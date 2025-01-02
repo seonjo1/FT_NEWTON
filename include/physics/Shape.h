@@ -24,6 +24,8 @@ struct MassData
 	float I;
 };
 
+struct ConvexInfo;
+
 class Shape
 {
   public:
@@ -34,6 +36,7 @@ class Shape
 	virtual void computeMass(MassData *massData, float density) const = 0;
 	virtual float getLocalRadius() const = 0;
 	virtual const glm::vec3 &getLocalHalfSize() const = 0;
+	virtual ConvexInfo getShapeInfo(const Transform &transform) const = 0;
 
 	Type getType() const
 	{
