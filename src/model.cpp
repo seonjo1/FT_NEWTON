@@ -178,14 +178,6 @@ void Model::recordDrawCommand(VkCommandBuffer commandBuffer, VkPipelineLayout pi
 
 void Model::updateUniformBuffer(UniformBufferObject &ubo, uint32_t currentFrame)
 {	
-	if (shape->isCollide)
-	{
-		ubo.isCollide = 1;
-	}
-	else
-	{
-		ubo.isCollide = 0;
-	}
 	for (std::unique_ptr<Mesh> &mesh : meshes)
 	{
 		mesh->getUniformBuffer()->update(ubo, currentFrame);
