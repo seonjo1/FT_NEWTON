@@ -114,15 +114,15 @@ void Contact::update()
 	// 	std::cout << "touching!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	// else if (touching)
 	// 	std::cout << "floor\n";
-	std::cout << "contact update check\n";
-	std::cout << "bodyA: " << m_nodeB.other->getBodyId() << "\n";
-	std::cout << "bodyB: " << m_nodeA.other->getBodyId() << "\n";
+	// std::cout << "contact update check\n";
+	// std::cout << "bodyA: " << m_nodeB.other->getBodyId() << "\n";
+	// std::cout << "bodyB: " << m_nodeA.other->getBodyId() << "\n";
 	// manifold의 충격량 0으로 초기화 및 old manifold 중
 	// 같은 충돌이 있는경우 Impulse 재사용
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 	for (ManifoldPoint &manifoldPoint : m_manifold.points)
 	{
-		std::cout << "seperation: " << manifoldPoint.seperation << "\n";
+		// std::cout << "seperation: " << manifoldPoint.seperation << "\n";
 		manifoldPoint.normalImpulse = 0.0f;
 		manifoldPoint.tangentImpulse = 0.0f;
 		uint32_t manifoldPointId = manifoldPoint.id;
@@ -141,7 +141,7 @@ void Contact::update()
 
 	if (touching)
 	{
-		std::cout << "touching!!\n";
+		// std::cout << "touching!!\n";
 		// touching시 touching flag on
 		m_flags = m_flags | EContactFlag::TOUCHING;
 	}
