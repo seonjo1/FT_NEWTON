@@ -18,15 +18,13 @@ class SphereToBoxContact : public Contact
 {
   public:
 	static Contact *create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
-
 	SphereToBoxContact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
-	virtual void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB) override;
-	void getPointToEdgeDistance(const glm::vec3 &center, const glm::vec3 &p1, const glm::vec3 &p2, int32_t type,
-								SphereToBoxInfo &info);
-	void getPointToFaceDistance(const glm::vec3 &center, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3,
-								const glm::vec3 &p4, int32_t type, SphereToBoxInfo &info, bool isInvolved);
-	bool isSphereInside(const glm::vec3 &sphereCenter, const glm::vec3 &boxCenter,
-						const std::vector<glm::vec3> &points);
+
+	virtual glm::vec3 supportA(const ConvexInfo &sphere, glm::vec3 dir) override;
+	virtual glm::vec3 supportB(const ConvexInfo &box, glm::vec3 dir) override;
+	virtual void findCollisionPoints(const ConvexInfo &sphere, const ConvexInfo &box,
+									 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
+									 std::vector<Simplex> &simplexVector) override;
 };
 } // namespace ale
 
