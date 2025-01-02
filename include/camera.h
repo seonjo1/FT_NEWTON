@@ -11,6 +11,8 @@ public:
 	void rotate(glm::vec2& pos);
 	void saveCurrentPos(float x, float y);
 	glm::mat4 getViewMatrix();
+	glm::vec3 getCameraPos();
+	glm::vec3 getCameraFront();
 
 private:
 	float cameraPitch { 0.0f };
