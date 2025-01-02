@@ -350,26 +350,4 @@ bool Rigidbody::shouldCollide(const Rigidbody *other) const
 	return true;
 }
 
-void Rigidbody::updateIsCollide()
-{
-	bool isCollide = false;
-	
-	ContactLink* link = m_contactLinks;
-	while (link != nullptr)
-	{
-		if (link->contact->hasFlag(EContactFlag::TOUCHING))
-		{
-			isCollide = true;
-			break;
-		}
-		link = link->next;
-	}
-
-	for (Fixture* fixture : fixtures)
-	{
-		fixture->getShape()->isCollide = isCollide;
-	}
-}
-
-
 } // namespace ale
