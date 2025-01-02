@@ -16,7 +16,7 @@ struct FixtureDef
 	{
 		shape = nullptr;
 		userData = nullptr;
-		friction = 0.2f;
+		friction = 0.5f;
 		restitution = 0.6f;
 		density = 0.0f;
 	}
