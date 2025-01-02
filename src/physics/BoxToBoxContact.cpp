@@ -47,11 +47,11 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 
 	boxA.axes = {axisX, axisY, axisZ};
 
-	for (int k = 0; k < 8; k++)
-	{
-		std::cout << "pointA[" << k << "]: " << boxA.points[k].x << " " << boxA.points[k].y << " " << boxA.points[k].z
-				  << "\n";
-	}
+	// for (int k = 0; k < 8; k++)
+	// {
+	// 	std::cout << "pointA[" << k << "]: " << boxA.points[k].x << " " << boxA.points[k].y << " " << boxA.points[k].z
+	// 			  << "\n";
+	// }
 
 	// 박스 B 정의
 	glm::vec3 localCenterB = shapeB->localCenter;
@@ -74,18 +74,18 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 
 	boxB.axes = {axisX, axisY, axisZ};
 
-	for (int k = 0; k < 8; k++)
-	{
-		std::cout << "pointB[" << k << "]: " << boxB.points[k].x << " " << boxB.points[k].y << " " << boxB.points[k].z
-				  << "\n";
-	}
+	// for (int k = 0; k < 8; k++)
+	// {
+	// 	std::cout << "pointB[" << k << "]: " << boxB.points[k].x << " " << boxB.points[k].y << " " << boxB.points[k].z
+	// 			  << "\n";
+	// }
 
 	std::vector<Simplex> simplex;
 	bool isCollide = getGjkResult(boxA, boxB, simplex);
 
 	if (isCollide)
 	{
-		std::cout << "GJK COLLIDE OK\n";
+		// std::cout << "GJK COLLIDE OK\n";
 		std::vector<CollisionPoints> collisionPointsVector = getEpaResult(boxA, boxB, simplex);
 		for (const CollisionPoints &collisionPoints : collisionPointsVector)
 		{
@@ -172,7 +172,7 @@ Simplex BoxToBoxContact::getSupportPoint(const BoxInfo &boxA, const BoxInfo &box
 
 bool BoxToBoxContact::handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
 {
-	std::cout << "Line GJK\n";
+	// std::cout << "Line GJK\n";
 	glm::vec3 &a = simplexVector[0].diff;
 	glm::vec3 &b = simplexVector[1].diff;
 
@@ -181,7 +181,7 @@ bool BoxToBoxContact::handleLineSimplex(std::vector<Simplex> &simplexVector, glm
 
 	if (isSameDirection(ab, ao))
 	{
-		std::cout << "sameDirection!!\n";
+		// std::cout << "sameDirection!!\n";
 		glm::vec3 tmpAxis(0, 1, 0);
 		if (isSameDirection(ab, tmpAxis))
 		{
@@ -203,7 +203,7 @@ bool BoxToBoxContact::handleLineSimplex(std::vector<Simplex> &simplexVector, glm
 
 bool BoxToBoxContact::handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
 {
-	std::cout << "Triangle GJK\n";
+	// std::cout << "Triangle GJK\n";
 	glm::vec3 &a = simplexVector[0].diff;
 	glm::vec3 &b = simplexVector[1].diff;
 	glm::vec3 &c = simplexVector[2].diff;
@@ -251,7 +251,7 @@ bool BoxToBoxContact::handleTriangleSimplex(std::vector<Simplex> &simplexVector,
 
 bool BoxToBoxContact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
 {
-	std::cout << "Tetrahedron GJK\n";
+	// std::cout << "Tetrahedron GJK\n";
 	glm::vec3 &a = simplexVector[0].diff;
 	glm::vec3 &b = simplexVector[1].diff;
 	glm::vec3 &c = simplexVector[2].diff;
@@ -549,12 +549,12 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 	// 클리핑
 	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
 
-	std::cout << "contactPolygon\n";
-	std::cout << "contactPolygon size : " << contactPolygon.size() << "\n";
-	for (glm::vec3 point : contactPolygon)
-	{
-		std::cout << point.x << " " << point.y << " " << point.z << "\n";
-	}
+	// std::cout << "contactPolygon\n";
+	// std::cout << "contactPolygon size : " << contactPolygon.size() << "\n";
+	// for (glm::vec3 point : contactPolygon)
+	// {
+	// 	std::cout << point.x << " " << point.y << " " << point.z << "\n";
+	// }
 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
 	std::vector<CollisionPoints> manifolds =
