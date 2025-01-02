@@ -340,6 +340,8 @@ bool BoxToBoxContact::isDuplicatedPoint(const std::vector<Simplex> &simplexVecto
 
 bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, std::vector<Simplex> &simplexVector)
 {
+	static const int32_t ITERATION = 64;
+
 	// 첫 번째 support point 구하기
 	glm::vec3 dir = glm::normalize(boxB.center - boxA.center);
 	if (glm::length2(dir) < 1e-8f)
@@ -354,7 +356,8 @@ bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, std
 	// 두 번째 support point 구하기
 	dir = glm::normalize(-supportPoint);
 
-	while (true)
+	int32_t iter = 0;
+	while (iter < ITERATION)
 	{
 		// 새로운 서포트 점
 		Simplex simplex = getSupportPoint(boxA, boxB, dir);
@@ -376,6 +379,7 @@ bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, std
 			// 원점 포함 => 충돌
 			return true;
 		}
+		iter++;
 	}
 
 	return false;
