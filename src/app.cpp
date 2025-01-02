@@ -243,18 +243,19 @@ void App::createModels()
 		for (int32_t j = 0; j < N; j++)
 		{
 			ale::Transform boxXf(glm::vec3(x, y, 0.0f),
-								glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
-			models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf,
-											"models/container.png", "models/collisionBox.jpg"));
+								 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+			models.push_back(
+				Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf, "models/container.png"));
 			transforms.push_back(boxXf);
 			x = x + 1.0f;
 		}
 		y = y + 1.0f;
 	}
-	ale::Transform boxXf2(glm::vec3(1.4f, 100.0f, 0.0f), glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(80.0f))));
+	ale::Transform boxXf2(glm::vec3(1.4f, 100.0f, 0.0f),
+						  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(80.0f))));
 	models.push_back(
-		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png",
-	"models/collisionBox.jpg")); transforms.push_back(boxXf2);
+		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png"));
+	transforms.push_back(boxXf2);
 }
 
 void App::createWorld()
