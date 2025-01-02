@@ -98,6 +98,8 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 		int32_t pointCount = velocityConstraint.pointCount;
 		int32_t indexA = velocityConstraint.indexA;
 		int32_t indexB = velocityConstraint.indexB;
+		// std::cout << "\n\nbodyA: " << contact->getFixtureA()->getBody()->getBodyId() << "\n";
+		// std::cout << "bodyB: " << contact->getFixtureB()->getBody()->getBodyId() << "\n";
 		// std::cout << "before velocityA: " << m_velocities[indexA].linearVelocity.x << " "
 		// 		  << m_velocities[indexA].linearVelocity.y << " " << m_velocities[indexA].linearVelocity.z << "\n";
 		// std::cout << "before velocityB: " << m_velocities[indexB].linearVelocity.x << " "
@@ -111,6 +113,10 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 		for (int32_t j = 0; j < pointCount; j++)
 		{
 			seperationSum += velocityConstraint.points[j].seperation;
+		}
+		if (seperationSum < 1e-8)
+		{
+			seperationSum = 1.0f;
 		}
 
 		glm::vec3 initLinearVelocityA = m_velocities[indexA].linearVelocity;
@@ -131,10 +137,10 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			// 		  << manifoldPoint.pointB.z << "\n";
 			glm::vec3 rA = manifoldPoint.pointA - velocityConstraint.worldCenterA; // bodyA의 충돌 지점까지의 벡터
 			glm::vec3 rB = manifoldPoint.pointB - velocityConstraint.worldCenterB; // bodyB의 충돌 지점까지의 벡터
-			// std::cout << "RARARA pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " <<
-			// manifoldPoint.pointA.z << "\n"; std::cout << "worldCenterA: " << velocityConstraint.worldCenterA.x << " "
-			// << velocityConstraint.worldCenterA.y << " " << velocityConstraint.worldCenterA.z << "\n"; std::cout <<
-			// "rB: " << rB.x << " " << rB.y << " " << rB.z << "\n";
+			// std::cout << "RARARA pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " << manifoldPoint.pointA.z << "\n"; 
+			// std::cout << "worldCenterA: " << velocityConstraint.worldCenterA.x << " " << velocityConstraint.worldCenterA.y << " " << velocityConstraint.worldCenterA.z << "\n"; 
+			// std::cout << "worldCenterB: " << velocityConstraint.worldCenterB.x << " " << velocityConstraint.worldCenterB.y << " " << velocityConstraint.worldCenterB.z << "\n"; 
+			// std::cout << "rB: " << rB.x << " " << rB.y << " " << rB.z << "\n";
 
 			// 상대 속도 계산
 			// A에서 본 B의 상대속도
@@ -167,7 +173,7 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			// 법선 방향 충격량 계산
 			float normalImpulse =
 				-(1.0f + velocityConstraint.restitution) * normalVelocity * (manifoldPoint.seperation / seperationSum);
-
+			// std::cout << "before normalImpulse: " << normalImpulse << "\n";
 			float inverseMasses = (velocityConstraint.invMassA + velocityConstraint.invMassB);
 			float normalEffectiveMassA = glm::dot(glm::cross(manifoldPoint.normal, rA),
 												  velocityConstraint.invIA * glm::cross(manifoldPoint.normal, rA));
@@ -175,6 +181,9 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 												  velocityConstraint.invIB * glm::cross(manifoldPoint.normal, rB));
 			// std::cout << "rA : " << rA.x << " " << rA.y << " " << rA.z << "\n";
 			// std::cout << "rB : " << rB.x << " " << rB.y << " " << rB.z << "\n";
+			// std::cout << "inverseMasses: " << inverseMasses << "\n";
+			// std::cout << "normalEffectiveMassA: " << normalEffectiveMassA << "\n";
+			// std::cout << "normalEffectiveMassB: " << normalEffectiveMassB << "\n";
 
 			normalImpulse = normalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
 			float normalImpulseForFriction =  normalImpulse;
@@ -182,9 +191,6 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			{
 				normalImpulse = 0.0f;
 			}
-			// std::cout << "inverseMasses: " << inverseMasses << "\n";
-			// std::cout << "normalEffectiveMassA: " << normalEffectiveMassA << "\n";
-			// std::cout << "normalEffectiveMassB: " << normalEffectiveMassB << "\n";
 			// std::cout << "normalImpulse: " << normalImpulse << "\n";
 
 			glm::vec3 tangent(0.0f);
