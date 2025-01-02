@@ -225,15 +225,16 @@ void App::createModels()
 		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
 	transforms.push_back(groundXf);
 
-	// ale::Transform sphereXf(glm::vec3(0.6f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	// models.push_back(
-	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
-	// transforms.push_back(sphereXf);
+	ale::Transform sphereXf(glm::vec3(0.3f, 4.0f, 1.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
+	transforms.push_back(sphereXf);
 
-	// ale::Transform sphereXf1(glm::vec3(0.0f, 3.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	// models.push_back(
-	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf1, "models/sphere.png"));
-	// transforms.push_back(sphereXf1);
+	ale::Transform sphereXf1(glm::vec3(0.0f, 50.0f, 1.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf1, "models/sphere.png"));
+	transforms.push_back(sphereXf1);
+
 	int32_t N = 2;
 	float y = 0.0f;
 	for (int32_t i = 0; i < N; i++)
@@ -250,7 +251,7 @@ void App::createModels()
 		}
 		y = y + 1.0f;
 	}
-	ale::Transform boxXf2(glm::vec3(0.5f, 10.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	ale::Transform boxXf2(glm::vec3(1.4f, 100.0f, 0.0f), glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(80.0f))));
 	models.push_back(
 		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png",
 	"models/collisionBox.jpg")); transforms.push_back(boxXf2);
