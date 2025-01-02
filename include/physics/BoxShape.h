@@ -29,6 +29,7 @@ class BoxShape : public Shape
 	void setVertices(const std::vector<Vertex> &v);
 	virtual float getLocalRadius() const override;
 	virtual const glm::vec3& getLocalHalfSize() const override;
+	virtual ConvexInfo getShapeInfo(const Transform &transform) const override;
 
 	// Vertex Info needed
 	std::set<glm::vec3, Vec3Comparator> m_vertices;
