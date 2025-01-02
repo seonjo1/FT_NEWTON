@@ -126,7 +126,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 
 void ContactManager::findNewContacts()
 {
-	std::cout << "ContactManager::findNewContacts\n";
+	// std::cout << "ContactManager::findNewContacts\n";
 	broadPhase.updatePairs(this);
 }
 
