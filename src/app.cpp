@@ -220,7 +220,7 @@ void App::drawFrame()
 
 void App::createModels()
 {
-	ale::Transform groundXf(glm::vec3(0.0f, -0.4f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	ale::Transform groundXf(glm::vec3(0.0f, -0.51f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 	models.push_back(
 		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
 	transforms.push_back(groundXf);
@@ -234,14 +234,23 @@ void App::createModels()
 	// models.push_back(
 	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf1, "models/sphere.png"));
 	// transforms.push_back(sphereXf1);
-
-	ale::Transform boxXf1(glm::vec3(0.0f, 15.0f, 0.0f),
-						  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(30.0f))));
-	models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf1,
-									  "models/container.png", "models/collisionBox.jpg"));
-	transforms.push_back(boxXf1);
-
-	ale::Transform boxXf2(glm::vec3(0.5f, 2.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	int32_t N = 2;
+	float y = 0.0f;
+	for (int32_t i = 0; i < N; i++)
+	{
+		float x = 0.0f;
+		for (int32_t j = 0; j < N; j++)
+		{
+			ale::Transform boxXf(glm::vec3(x, y, 0.0f),
+								glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+			models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf,
+											"models/container.png", "models/collisionBox.jpg"));
+			transforms.push_back(boxXf);
+			x = x + 1.0f;
+		}
+		y = y + 1.0f;
+	}
+	ale::Transform boxXf2(glm::vec3(0.5f, 10.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 	models.push_back(
 		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png",
 	"models/collisionBox.jpg")); transforms.push_back(boxXf2);
