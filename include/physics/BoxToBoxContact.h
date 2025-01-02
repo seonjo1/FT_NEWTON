@@ -5,6 +5,12 @@
 
 namespace ale
 {
+struct Face
+{
+	glm::vec3 normal;				 // 면 법선(월드 좌표)
+	float distance;					 // 면 방정식: dot(normal, X) - distance = 0
+	std::vector<glm::vec3> vertices; // 면의 꼭지점(4개)
+};
 
 struct CollisionPoints
 {
@@ -41,8 +47,6 @@ class BoxToBoxContact : public Contact
 	Simplex getSupportPoint(const BoxInfo &boxA, const BoxInfo &boxB, glm::vec3 &dir);
 	int32_t getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
 						   const std::vector<int32_t> &faces);
-	void barycentric(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &p, float &u, float &v,
-					 float &w);
 	void addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const std::vector<int32_t> &faces, int32_t a,
 						 int32_t b);
 	bool handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
@@ -53,7 +57,15 @@ class BoxToBoxContact : public Contact
 	bool isDuplicatedPoint(const std::vector<Simplex> &simplexVector, const glm::vec3 &supportPoint);
 	bool isSameDirection(glm::vec3 v1, glm::vec3 v2);
 	bool isSimilarDirection(glm::vec3 v1, glm::vec3 v2);
-	bool isContained(const glm::vec3 &point, const BoxInfo &box, float seperation, float distance);
+	Face getPolygonFace(const BoxInfo &box, const glm::vec3 &normal);
+	std::vector<glm::vec3> computeContactPolygon(const Face &refFace, const Face &incFace);
+	std::vector<glm::vec3> clipPolygonAgainstPlane(const std::vector<glm::vec3> &polygon, const glm::vec3 &planeNormal,
+												   float planeDist);
+
+	std::vector<CollisionPoints> buildManifoldFromPolygon(const Face &refFace, const Face &incFace,
+														  std::vector<glm::vec3> &polygon, const glm::vec3 &normal,
+														  float maxPenetration);
+	void sortPointsClockwise(std::vector<glm::vec3> &points, const glm::vec3 &center, const glm::vec3 &normal);
 };
 } // namespace ale
 

@@ -447,8 +447,9 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 				// polytope[faces[i + 1]].y << " " << polytope[faces[i + 1]].z << "\n"; std::cout << "face 3: " <<
 				// polytope[faces[i + 2]].x << " " << polytope[faces[i + 2]].y << " " << polytope[faces[i + 2]].z <<
 				// "\n";
-				glm::vec3 center =
-					(simplexVector[faces[i * 3]].diff + simplexVector[faces[i * 3 + 1]].diff + simplexVector[faces[i * 3 + 2]].diff) / 3.0f;
+				glm::vec3 center = (simplexVector[faces[i * 3]].diff + simplexVector[faces[i * 3 + 1]].diff +
+									simplexVector[faces[i * 3 + 2]].diff) /
+								   3.0f;
 				if (isSimilarDirection(normals[i], supportPoint - center))
 				{
 					// std::cout << "add uniqueEdge\n";
@@ -541,139 +542,247 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 		}
 	}
 
-	// 바리센트릭 방법
-	std::vector<CollisionPoints> pointsVector;
+	// clipping 방법
+	Face refFace = getPolygonFace(boxA, minNormal);
+	Face incFace = getPolygonFace(boxB, -minNormal);
 
-	float u, v, w;
-	int32_t idx0 = faces[minFace * 3];
-	int32_t idx1 = faces[minFace * 3 + 1];
-	int32_t idx2 = faces[minFace * 3 + 2];
+	// 클리핑
+	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
 
-	glm::vec3 projectedO = minNormal * minDistance;
-	barycentric(simplexVector[idx0].diff, simplexVector[idx1].diff, simplexVector[idx2].diff, projectedO, u, v, w);
-	
-	glm::vec3 pointA = simplexVector[idx0].a * u + simplexVector[idx1].a * v + simplexVector[idx2].a * w;
-	glm::vec3 pointB = simplexVector[idx0].b * u + simplexVector[idx1].b * v + simplexVector[idx2].b * w;
-
-	float distance = glm::length(pointA - pointB);
-
-	glm::vec3 normal = glm::normalize(pointA - pointB);
-
-	CollisionPoints points;
-	points.normal = normal;
-	points.pointA = pointA;
-	points.pointB = pointB;
-	points.seperation = distance;
-
-	std::cout << "contact point!!!!!!!!!!!!\n";
-	std::cout << "contact A : " << pointA.x << " " << pointA.y << " " << pointA.z << "\n";
-	std::cout << "contact B : " << pointB.x << " " << pointB.y << " " << pointB.z << "\n";
-	std::cout << "contact normal : " << normal.x << " " << normal.y << " " << normal.z << "\n";
-	std::cout << "seperation: " << points.seperation << "\n";
-	pointsVector.push_back(points);
-
-	return pointsVector;
-
-	// seonjo 방법
-	// std::vector<CollisionPoints> pointsVector;
-
-	// std::cout << "dir: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
-	// std::cout << "seperation: " << minDistance << "\n";
-
-	// std::vector<glm::vec4> candidatesA = getCandidates(boxA, minNormal);
-	// std::vector<glm::vec4> candidatesB = getCandidates(boxB, -minNormal);
-
-	// // std::cout << "candidateA start\n";
-	// int32_t lengthA = candidatesA.size();
-	// for (int32_t i = 0; i < lengthA; i++)
-	// {
-	// 	std::cout << "A judge\n";
-	// 	CollisionPoints points;
-	// 	glm::vec3 candidate = candidatesA[i];
-	// 	float distance = candidatesA[i].w;
-	// 	// std::cout << "distance: " << distance << "\n";
-	// 	points.normal = minNormal;
-	// 	points.seperation = minDistance - (candidatesA[0].w - distance);
-	// 	float moveDistance = glm::dot(boxB.center - candidate, points.normal);
-	// 	// std::cout << "moveDistance: " << moveDistance << "\n";
-	// 	glm::vec3 movedPoint = candidate + moveDistance * points.normal;
-	// 	// std::cout << "movePoint: " << movedPoint.x << " " << movedPoint.y << " " << movedPoint.z << "\n";
-	// 	if (isContained(movedPoint, boxB, points.seperation, moveDistance))
-	// 	{
-	// 		std::cout << "AAAAAAAAAAA isContained!!\n";
-	// 		std::cout << "candidate[" << i << "]: " << candidate.x << " " << candidate.y << " " << candidate.z << "\n";
-	// 		std::cout << "seperation: " << points.seperation << "\n";
-	// 		std::cout << "normal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
-
-	// 		points.pointA = candidate;
-	// 		points.pointB = candidate - points.normal * points.seperation;
-	// 		pointsVector.push_back(points);
-	// 	}
-	// }
-
-	// // std::cout << "candidateB start\n";
-
-	// int32_t lengthB = candidatesB.size();
-	// for (int32_t i = 0; i < lengthB; i++)
-	// {
-	// 	std::cout << "B judge\n";
-	// 	CollisionPoints points;
-	// 	glm::vec3 candidate = candidatesB[i];
-	// 	float distance = candidatesB[i].w;
-	// 	points.normal = minNormal;
-	// 	points.seperation = minDistance - (candidatesB[0].w - distance);
-	// 	float moveDistance = glm::dot(boxA.center - candidate, -points.normal);
-	// 	glm::vec3 movedPoint = candidate + moveDistance * -points.normal;
-	// 	if (isContained(movedPoint, boxA, points.seperation, moveDistance))
-	// 	{
-	// 		std::cout << "BBBBBBBBBBBB isContained!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-	// 		std::cout << "candidate[" << i << "]: " << candidate.x << " " << candidate.y << " " << candidate.z << "\n";
-	// 		std::cout << "seperation: " << points.seperation << "\n";
-	// 		std::cout << "normal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
-	// 		points.pointB = candidate;
-	// 		points.pointA = candidate + points.normal * points.seperation;
-	// 		pointsVector.push_back(points);
-	// 	}
-	// }
-
-	// return pointsVector;
-}
-
-void BoxToBoxContact::barycentric(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &p,
-								  float &u, float &v, float &w)
-{
-	glm::vec3 v0 = b - a, v1 = c - a, v2 = p - a;
-	float d00 = glm::dot(v0, v0);
-	float d01 = glm::dot(v0, v1);
-	float d11 = glm::dot(v1, v1);
-	float d20 = glm::dot(v2, v0);
-	float d21 = glm::dot(v2, v1);
-	float denom = d00 * d11 - d01 * d01;
-	v = (d11 * d20 - d01 * d21) / denom;
-	w = (d00 * d21 - d01 * d20) / denom;
-	u = 1.0f - v - w;
-}
-
-bool BoxToBoxContact::isContained(const glm::vec3 &point, const BoxInfo &box, float seperation, float distance)
-{
-	glm::vec3 centerToPoint = point - box.center;
-
-	if (seperation < distance)
+	std::cout << "contactPolygon\n";
+	std::cout << "contactPolygon size : " << contactPolygon.size() << "\n";
+	for (glm::vec3 point : contactPolygon)
 	{
-		return false;
+		std::cout << point.x << " " << point.y << " " << point.z << "\n";
 	}
 
-	for (int32_t i = 0; i < 3; i++)
+	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
+	std::vector<CollisionPoints> manifolds =
+		buildManifoldFromPolygon(refFace, incFace, contactPolygon, minNormal, minDistance);
+
+	return manifolds;
+}
+
+std::vector<CollisionPoints> BoxToBoxContact::buildManifoldFromPolygon(const Face &refFace, const Face &incFace,
+																	   std::vector<glm::vec3> &polygon,
+																	   const glm::vec3 &normal, float maxPenetration)
+{
+	std::vector<CollisionPoints> contacts;
+	if (polygon.empty())
 	{
-		const glm::vec3 &axis = box.axes[i];
-		float projection = glm::dot(centerToPoint, axis);
-		if (std::abs(projection) > box.halfSize[i])
+		return contacts;
+	}
+
+	// Incident 면의 plane 구하기 (간단히 incFace.normal, incFace.distance)
+	// 혹은 실제로 dot(incFace.normal, incFace.vertices[0]) 등으로 distance를 구해도 됨
+	float refPlaneDist = refFace.distance;
+	float incPlaneDist = incFace.distance;
+	glm::vec3 refN = refFace.normal;
+	glm::vec3 incN = incFace.normal;
+
+	std::sort(polygon.begin(), polygon.end(),
+			  [&refN](const glm::vec3 &a, const glm::vec3 &b) { return glm::dot(a, refN) < glm::dot(b, refN); });
+
+	// 각 꼭지점마다 물체 A,B에서의 좌표를 구해 penetration 등 계산
+	// 여기서는 "Ref Face plane에서 A 물체 좌표, Incident Face plane에서 B 물체 좌표" 라고 가정
+
+	float ratio = maxPenetration / (-(glm::dot(polygon[0], refN) - refPlaneDist));
+
+	for (const glm::vec3 &point : polygon)
+	{
+		// B측 point:
+		glm::vec3 pointB = point;
+
+		// 침투깊이
+		float penentration = ratio * (-(glm::dot(point, refN) - refPlaneDist));
+
+		// A측 point:
+		glm::vec3 pointA = point + normal * penentration;
+
+		// 접촉 정보
+		CollisionPoints collisionPoints;
+		collisionPoints.normal = refN;
+		collisionPoints.pointA = pointA;
+		collisionPoints.pointB = pointB;
+		collisionPoints.seperation = penentration;
+		contacts.push_back(collisionPoints);
+	}
+
+	return contacts;
+}
+
+std::vector<glm::vec3> BoxToBoxContact::clipPolygonAgainstPlane(const std::vector<glm::vec3> &polygon,
+																const glm::vec3 &planeNormal, float planeDist)
+{
+	std::vector<glm::vec3> out;
+	if (polygon.empty())
+		return out;
+
+	for (size_t i = 0; i < polygon.size(); i++)
+	{
+		const glm::vec3 &curr = polygon[i];
+		const glm::vec3 &next = polygon[(i + 1) % polygon.size()];
+
+		float distCurr = glm::dot(planeNormal, curr) - planeDist;
+		float distNext = glm::dot(planeNormal, next) - planeDist;
+		// std::cout << "distCurr: " << distCurr << "\n";
+		// std::cout << "distNext: " << distNext << "\n";
+		bool currInside = (distCurr <= 0.0f);
+		bool nextInside = (distNext <= 0.0f);
+
+		// CASE1: 둘 다 내부
+		if (currInside && nextInside)
 		{
-			return false;
+			// std::cout << "case1!!\n";
+			out.push_back(next);
+			// std::cout << "next: " << next.x << " " << next.y << " " << next.z << "\n";
+		}
+		// CASE2: 밖->안
+		else if (!currInside && nextInside)
+		{
+			// std::cout << "case2!!\n";
+			float t = distCurr / (distCurr - distNext);
+			glm::vec3 intersect = curr + t * (next - curr);
+			out.push_back(intersect);
+			out.push_back(next);
+			// std::cout << "intersect: " << intersect.x << " " << intersect.y << " " << intersect.z << "\n";
+			// std::cout << "next: " << next.x << " " << next.y << " " << next.z << "\n";
+		}
+		// CASE3: 안->밖
+		else if (currInside && !nextInside)
+		{
+			// std::cout << "case3!!\n";
+			float t = distCurr / (distCurr - distNext);
+			glm::vec3 intersect = curr + t * (next - curr);
+			out.push_back(intersect);
+			// std::cout << "intersect: " << intersect.x << " " << intersect.y << " " << intersect.z << "\n";
+		}
+		// CASE4: 둘 다 밖 => nothing
+	}
+
+	return out;
+}
+
+std::vector<glm::vec3> BoxToBoxContact::computeContactPolygon(const Face &refFace, const Face &incFace)
+{
+	// 초기 polygon: Incident Face의 4점
+	std::vector<glm::vec3> poly = incFace.vertices;
+
+	// Ref Face의 4개 엣지로 만들어지는 '4개 사이드 평면'에 대해 클리핑
+	// refFace.vertices = v0,v1,v2,v3 라고 가정, CCW 형태
+	const std::vector<glm::vec3> &vertices = refFace.vertices;
+	for (int32_t i = 0; i < 4; i++)
+	{
+		glm::vec3 start = vertices[i];
+		glm::vec3 end = vertices[(i + 1) % 4];
+		// std::cout << "start: " << start.x << " " << start.y << " " << start.z << "\n";
+		// std::cout << "end: " << end.x << " " << end.y << " " << end.z << "\n";
+
+		// edge
+		glm::vec3 edge = end - start;
+		// refFace.normal과 edge의 cross => 사이드 plane normal
+		glm::vec3 sideN = glm::cross(refFace.normal, edge);
+		sideN = glm::normalize(sideN);
+		// std::cout << "sideN: " << sideN.x << " " << sideN.y << " " << sideN.z << "\n";
+
+		float planeDist = glm::dot(sideN, start);
+		// std::cout << "planeDist: " << planeDist << "\n";
+		poly = clipPolygonAgainstPlane(poly, sideN, planeDist);
+
+		if (poly.empty())
+			break;
+	}
+	// std::cout << "poly\n";
+	// std::cout << "poly size : " << poly.size() << "\n";
+	// for (glm::vec3 point : poly)
+	// {
+	// 	std::cout << point.x << " " << point.y << " " << point.z << "\n";
+	// }
+	// 마지막으로 "Ref Face 자체" 평면에 대해서도 클리핑(뒤집힌 면 제거)
+	// refFace 평면: dot(refFace.normal, X) - refFace.distance >= 0
+	poly = clipPolygonAgainstPlane(poly, refFace.normal, refFace.distance);
+
+	return poly;
+}
+
+Face BoxToBoxContact::getPolygonFace(const BoxInfo &box, const glm::vec3 &normal)
+{
+	// 1) box의 6개 면 중, worldNormal과 가장 유사한 면( dot > 0 ) 찾기
+	// 2) 그 면의 4개 꼭지점을 구함
+	// 여기서는 '법선이 박스의 +Y축과 가장 가까우면 top face' 식으로 단순화 예시
+	// 실제 구현은 회전/transform 고려해야 함
+
+	Face face;
+
+	glm::vec3 axes[6] = {-box.axes[0], -box.axes[1], -box.axes[2], box.axes[0], box.axes[1], box.axes[2]};
+
+	float maxDotRes = -FLT_MAX;
+	int32_t maxIdx = -1;
+	for (int32_t i = 0; i < 6; i++)
+	{
+		float nowDotRes = glm::dot(axes[i], normal);
+		if (nowDotRes > maxDotRes)
+		{
+			maxDotRes = nowDotRes;
+			maxIdx = i;
 		}
 	}
 
-	return true;
+	glm::vec3 axis = axes[maxIdx];
+	float centerDotRes = glm::dot(box.center, axis);
+	glm::vec3 center(0.0f);
+
+	for (const glm::vec3 point : box.points)
+	{
+		if (glm::dot(point, axis) > centerDotRes)
+		{
+			center += point;
+			face.vertices.push_back(point);
+		}
+	}
+
+	center = glm::vec3((center.x / face.vertices.size()), (center.y / face.vertices.size()),
+					   (center.z / face.vertices.size()));
+	face.normal = axis;
+	face.distance = glm::dot(axis, face.vertices[0]);
+
+	sortPointsClockwise(face.vertices, center, face.normal);
+
+	// std::cout << "Generate Face!!\n";
+	// std::cout << "points\n";
+	// for (const glm::vec3 point : face.vertices)
+	// {
+	// 	std::cout << point.x << " " << point.y << " " << point.z << "\n";
+	// }
+	// std::cout << "distance: " << face.distance << "\n";
+	// std::cout << "normal: " << face.normal.x << " " << face.normal.y << " " << face.normal.z << "\n";
+
+	return face;
+}
+
+void BoxToBoxContact::sortPointsClockwise(std::vector<glm::vec3> &points, const glm::vec3 &center,
+										  const glm::vec3 &normal)
+{
+	// 1. 법선 벡터 기준으로 평면의 두 축 정의
+	glm::vec3 u = glm::normalize(glm::cross(normal, glm::vec3(1.0f, 0.0f, 0.0f)));
+	if (glm::length(u) < 1e-6)
+	{ // normal이 x축과 평행한 경우 y축 사용
+		u = glm::normalize(glm::cross(normal, glm::vec3(0.0f, 1.0f, 0.0f)));
+	}
+	glm::vec3 v = glm::normalize(glm::cross(normal, u)); // 법선과 u의 외적
+
+	// 2. 각도 계산 및 정렬
+	auto angleComparator = [&center, &u, &v](const glm::vec3 &a, const glm::vec3 &b) {
+		// a와 b를 u, v 축 기준으로 투영
+		glm::vec3 da = a - center;
+		glm::vec3 db = b - center;
+
+		float angleA = atan2(glm::dot(da, v), glm::dot(da, u));
+		float angleB = atan2(glm::dot(db, v), glm::dot(db, u));
+
+		return angleA > angleB; // 시계 방향 정렬
+	};
+	std::sort(points.begin(), points.end(), angleComparator);
 }
 
 // simplex의 삼각형들의 법선벡터와 삼각형들중 원점에서 가장 멀리 떨어져있는 놈을 찾아서 반환
@@ -683,7 +792,7 @@ int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const s
 	int32_t minTriangle = 0;
 	float minDistance = FLT_MAX;
 
-	std::cout << "faces Size: " << faces.size() << "\n";
+	// std::cout << "faces Size: " << faces.size() << "\n";
 	// 삼각형 순회
 	for (int32_t i = 0; i < faces.size(); i = i + 3)
 	{
