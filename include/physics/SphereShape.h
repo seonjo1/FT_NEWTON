@@ -3,6 +3,8 @@
 
 #include "physics/Shape.h"
 
+struct ConvexInfo;
+
 namespace ale
 {
 class SphereShape : public Shape
@@ -19,7 +21,7 @@ class SphereShape : public Shape
 	void setShapeFeatures(std::vector<Vertex>& vertices);
 	virtual float getLocalRadius() const override;
 	virtual const glm::vec3& getLocalHalfSize() const override;
-
+	virtual ConvexInfo getShapeInfo(const Transform &transform) const override;
 
 	float m_radius;
 	float localRadius;

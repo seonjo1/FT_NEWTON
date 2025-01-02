@@ -1,4 +1,5 @@
 #include "physics/SphereShape.h"
+#include "physics/Contact.h"
 
 namespace ale
 {
@@ -69,6 +70,14 @@ float SphereShape::getLocalRadius() const
 const glm::vec3 &SphereShape::getLocalHalfSize() const
 {
 	return glm::vec3(0.0f);
+}
+
+ConvexInfo SphereShape::getShapeInfo(const Transform &transform) const
+{
+	ConvexInfo sphere;
+	sphere.radius = localRadius;
+	sphere.center = transform.toMatrix() * glm::vec4(localCenter, 1.0f);
+	return sphere;
 }
 
 } // namespace ale
