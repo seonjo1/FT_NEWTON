@@ -151,7 +151,7 @@ void App::mainLoop()
 {
 	// // 힘 등록
 	// world->registerBodyForce(0, glm::vec3(500.0f, 0.0f, 0.0f));
-	
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
@@ -235,16 +235,16 @@ void App::createModels()
 	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf1, "models/sphere.png"));
 	// transforms.push_back(sphereXf1);
 
-	ale::Transform boxXf1(glm::vec3(0.01f, 1.0f, 0.0f),
-						  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	ale::Transform boxXf1(glm::vec3(0.0f, 15.0f, 0.0f),
+						  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(30.0f))));
 	models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf1,
 									  "models/container.png", "models/collisionBox.jpg"));
 	transforms.push_back(boxXf1);
 
-	// ale::Transform boxXf2(glm::vec3(0.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	// models.push_back(
-	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png",
-	// "models/collisionBox.jpg")); transforms.push_back(boxXf2);
+	ale::Transform boxXf2(glm::vec3(0.5f, 2.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	models.push_back(
+		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf2, "models/container.png",
+	"models/collisionBox.jpg")); transforms.push_back(boxXf2);
 }
 
 void App::createWorld()
