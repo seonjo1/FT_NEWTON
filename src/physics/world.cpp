@@ -197,7 +197,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	glm::vec3 upper = *std::prev(shape->m_vertices.end());
 	glm::vec3 lower = *shape->m_vertices.begin();
 	glm::vec3 diff = upper - lower;
-	float mass = 10.0f;
+	float mass = 30.0f;
 	float h = abs(diff.y);
 	float w = abs(diff.x);
 	float d = abs(diff.z);
@@ -210,7 +210,12 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// BoxShape *box = shape->clone();
 	BoxShape *box = shape;
-	body->createFixture(box);
+	FixtureDef fd;
+	fd.shape = shape;
+	fd.friction = 0.5f;
+	fd.restitution = 0.5f;
+
+	body->createFixture(&fd);
 	rigidbodies.push_back(body);
 }
 
@@ -239,7 +244,12 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// SphereShape *sphere = shape->clone();
 	SphereShape *sphere = shape;
-	body->createFixture(sphere);
+
+	FixtureDef fd;
+	fd.shape = shape;
+	fd.friction = 0.2f;
+	fd.restitution = 0.8f;
+	body->createFixture(&fd);
 	rigidbodies.push_back(body);
 	// std::cout << "World:: Create Sphere end\n";
 }
@@ -270,7 +280,12 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// BoxShape *box = shape->clone();
 	BoxShape *box = shape;
-	body->createFixture(box);
+	FixtureDef fd;
+	fd.shape = shape;
+	fd.friction = 0.7f;
+	fd.restitution = 0.3f;
+
+	body->createFixture(&fd);
 	rigidbodies.push_back(body);
 }
 
