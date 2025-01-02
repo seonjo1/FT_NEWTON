@@ -46,7 +46,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	Rigidbody *bodyA = fixtureA->getBody();
 	Rigidbody *bodyB = fixtureB->getBody();
 
-	std::cout << "addPair\n" << "bodyA: " << bodyA->getBodyId() << "\nbodyB: " << bodyB->getBodyId() << "\n";
+	// std::cout << "addPair\n" << "bodyA: " << bodyA->getBodyId() << "\nbodyB: " << bodyB->getBodyId() << "\n";
 
 	// 같은 Body간 충돌인 경우 return
 	if (bodyA == bodyB)
@@ -77,7 +77,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	{
 		throw std::runtime_error("Generating Contact fail!");
 	}
-	std::cout << "create Contact\n" << "bodyA: " << bodyA->getBodyId() << "\nbodyB: " << bodyB->getBodyId() << "\n";
+	// std::cout << "create Contact\n" << "bodyA: " << bodyA->getBodyId() << "\nbodyB: " << bodyB->getBodyId() << "\n";
 
 	fixtureA = contact->getFixtureA();
 	fixtureB = contact->getFixtureB();
