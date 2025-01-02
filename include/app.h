@@ -51,6 +51,9 @@ class App
 	void mouseMove(double x, double y);
 	void mouseButton(int button, int action, double x, double y);
 
+	// event process 함수
+	void processEvents();
+
 	GLFWwindow *window;
 	VkDevice device;
 
@@ -67,6 +70,11 @@ class App
 
 	Camera camera;
 	bool cameraControl{false};
+
+	bool shootControl{false};
+	bool canShoot{true};
+	int32_t shootNum{0};
+	const int32_t SHOOT_MAX{100};
 
 	ale::World *world;
 
