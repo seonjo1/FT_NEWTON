@@ -27,6 +27,9 @@ fclean: clean
 re: fclean all
 
 t: all
+	@./$(NAME)_debug
+
+w: all
 	@./$(NAME)_debug > test
-	
+
 .PHONY: all clean fclean re debug release
