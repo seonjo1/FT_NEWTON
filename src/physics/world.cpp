@@ -22,6 +22,7 @@ void World::startFrame()
 
 void World::runPhysics()
 {
+	// std::cout << "start runPhysics\n";
 	float duration = 0.0005f;
 	for (Rigidbody *body : rigidbodies)
 	{
@@ -31,11 +32,15 @@ void World::runPhysics()
 
 		body->synchronizeFixtures();
 	}
+
+	// std::cout << "broad phase\n";
 	// update Possible Contact Pairs - BroadPhase
 	contactManager.findNewContacts();
 
+	// std::cout << "narrow phase\n";
 	// Process Contacts
 	contactManager.collide();
+	// std::cout << "solve\n";
 	solve(duration);
 	
 	for (Rigidbody *body : rigidbodies)
