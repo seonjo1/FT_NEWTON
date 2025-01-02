@@ -41,7 +41,7 @@ void World::runPhysics()
 	for (Rigidbody *body : rigidbodies)
 	{
 		app.setTransformById(body->getTransformId(), body->getTransform());
-		body->updateIsCollide();
+		// body->updateIsCollide();
 	}
 }
 
@@ -197,7 +197,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	glm::vec3 upper = *std::prev(shape->m_vertices.end());
 	glm::vec3 lower = *shape->m_vertices.begin();
 	glm::vec3 diff = upper - lower;
-	float mass = 30.0f;
+	float mass = 10.0f;
 	float h = abs(diff.y);
 	float w = abs(diff.x);
 	float d = abs(diff.z);
