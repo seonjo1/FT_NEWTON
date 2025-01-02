@@ -31,6 +31,15 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 	glm::vec3 localCenterA = shapeA->localCenter;
 	glm::vec3 halfSizeA = shapeA->getLocalHalfSize();
 	glm::mat4 matrixA = transformA.toMatrix();
+	// std::cout << "materixA\n";
+	// for (int i = 0; i < 4; i++)
+	// {
+	// 	for (int j = 0; j < 4; j++)
+	// 	{
+	// 		std::cout << matrixA[i][j] << " ";
+	// 	}
+	// 	std::cout << "\n";
+	// }
 	boxA.center = matrixA * glm::vec4(localCenterA, 1.0f);
 	boxA.halfSize = halfSizeA;
 	boxA.points = {matrixA * glm::vec4(localCenterA - halfSizeA, 1.0f),
@@ -81,11 +90,13 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 	// }
 
 	std::vector<Simplex> simplex;
+	// std::cout << "GJK start\n";
 	bool isCollide = getGjkResult(boxA, boxB, simplex);
 
 	if (isCollide)
 	{
 		// std::cout << "GJK COLLIDE OK\n";
+		// std::cout << "EPA start\n";
 		std::vector<CollisionPoints> collisionPointsVector = getEpaResult(boxA, boxB, simplex);
 		for (const CollisionPoints &collisionPoints : collisionPointsVector)
 		{
@@ -95,12 +106,13 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 			manifoldPoint.pointB = collisionPoints.pointB;
 			manifoldPoint.normal = collisionPoints.normal;
 			manifoldPoint.seperation = collisionPoints.seperation;
-			// std::cout << "\n\nResult!!\npointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " "
-			// 		<< manifoldPoint.pointA.z << "\n";
+			// std::cout << "\n\nResult!!\n";
+			// std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " "
+			// 		  << manifoldPoint.pointA.z << "\n";
 			// std::cout << "pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " "
-			// 		<< manifoldPoint.pointB.z << "\n";
+			// 		  << manifoldPoint.pointB.z << "\n";
 			// std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
-			// 		<< manifoldPoint.normal.z << "\n";
+			// 		  << manifoldPoint.normal.z << "\n";
 			// std::cout << "seperation: " << manifoldPoint.seperation << "\n\n";
 
 			int64_t proxyIdA = m_fixtureA->getFixtureProxy()->proxyId;
@@ -120,6 +132,7 @@ void BoxToBoxContact::evaluate(Manifold &manifold, const Transform &transformA, 
 			manifold.points.push_back(manifoldPoint);
 		}
 	}
+	// std::cout << "evalulate end!!\n";
 }
 
 glm::vec3 BoxToBoxContact::supportBox(const BoxInfo &box, glm::vec3 dir)
@@ -133,39 +146,17 @@ glm::vec3 BoxToBoxContact::supportBox(const BoxInfo &box, glm::vec3 dir)
 		point += box.axes[i] * (dotAxes[i] * box.halfSize[i]);
 	}
 
-	// std::cout << "support dir: " << dir.x << " " << dir.y << " " << dir.z << "\n";
-	// std::cout << "support box point: " << point.x  << " " << point.y << " " << point.z << "\n";
 	return point;
-}
-
-std::vector<glm::vec4> BoxToBoxContact::getCandidates(const BoxInfo &box, const glm::vec3 &dir)
-{
-	std::vector<glm::vec4> candidates;
-
-	for (const glm::vec3 &point : box.points)
-	{
-		float distance = glm::dot(point, dir);
-
-		candidates.push_back(glm::vec4(point, distance));
-	}
-
-	std::sort(candidates.begin(), candidates.end(),
-			  [](const glm::vec4 &v1, const glm::vec4 &v2) { return v1.w > v2.w; });
-
-	// for (int i = 0; i < candidates.size(); i++)
-	// {
-	// 	std::cout << "candidates[" << i << "]: " << candidates[i].x << " " << candidates[i].y << " " << candidates[i].z
-	// << "\n"; 	std::cout << "distance: " << candidates[i].w << "\n";
-	// }
-
-	return candidates;
 }
 
 Simplex BoxToBoxContact::getSupportPoint(const BoxInfo &boxA, const BoxInfo &boxB, glm::vec3 &dir)
 {
+	// std::cout << "support dir: " << dir.x << " " << dir.y << " " << dir.z << "\n";
 	Simplex simplex;
 	simplex.a = supportBox(boxA, dir);
 	simplex.b = supportBox(boxB, -dir);
+	// std::cout << "support boxA point: " << simplex.a.x  << " " << simplex.a.y << " " << simplex.a.z << "\n";
+	// std::cout << "support boxB point: " << simplex.b.x  << " " << simplex.b.y << " " << simplex.b.z << "\n";
 	simplex.diff = simplex.a - simplex.b;
 	return simplex;
 }
@@ -355,6 +346,7 @@ bool BoxToBoxContact::getGjkResult(const BoxInfo &boxA, const BoxInfo &boxB, std
 	{
 		dir = glm::vec3(1.0f, 0.0f, 0.0f);
 	}
+	// std::cout << "start normal: " << dir.x << " " << dir.y << " " << dir.z << "\n";
 
 	simplexVector.push_back(getSupportPoint(boxA, boxB, dir));
 	glm::vec3 supportPoint = simplexVector.back().diff;
@@ -416,11 +408,14 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 
 	while (minDistance == FLT_MAX)
 	{
+		// std::cout << "while start\n";
 		// 최소 거리의 법선, 거리 쿼리
 		minNormal = glm::vec3(normals[minFace]);
 		minDistance = normals[minFace].w;
 
 		// 최소 거리의 법선에 해당하는 supportPoint 쿼리
+		// std::cout << "front getSupportPoint!!!\n";
+
 		Simplex simplex = getSupportPoint(boxA, boxB, minNormal);
 		glm::vec3 supportPoint = simplex.diff;
 
@@ -434,7 +429,8 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 			minDistance = FLT_MAX;
 			std::vector<std::pair<int32_t, int32_t>> uniqueEdges;
 			// std::cout << "new supportPoint: " << supportPoint.x << " " << supportPoint.y << " " << supportPoint.z <<
-			// "\n"; std::cout << "start make unique edges\n";
+			// "\n";
+			// std::cout << "start make unique edges\n";
 			for (int32_t i = 0; i < normals.size(); i++)
 			{
 				// std::cout << "normals[" << i << "]: " << normals[i].x << " " << normals[i].y << " " << normals[i].z
@@ -541,7 +537,8 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 			// }
 		}
 	}
-
+	// std::cout << "clipping start!!\n";
+	// std::cout << "minNormal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
 	// clipping 방법
 	Face refFace = getPolygonFace(boxA, minNormal);
 	Face incFace = getPolygonFace(boxB, -minNormal);
@@ -559,7 +556,7 @@ std::vector<CollisionPoints> BoxToBoxContact::getEpaResult(const BoxInfo &boxA, 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
 	std::vector<CollisionPoints> manifolds =
 		buildManifoldFromPolygon(refFace, incFace, contactPolygon, minNormal, minDistance);
-
+	// std::cout << "clipping end!!\n";
 	return manifolds;
 }
 
@@ -585,8 +582,16 @@ std::vector<CollisionPoints> BoxToBoxContact::buildManifoldFromPolygon(const Fac
 
 	// 각 꼭지점마다 물체 A,B에서의 좌표를 구해 penetration 등 계산
 	// 여기서는 "Ref Face plane에서 A 물체 좌표, Incident Face plane에서 B 물체 좌표" 라고 가정
-
-	float ratio = maxPenetration / (-(glm::dot(polygon[0], refN) - refPlaneDist));
+	float denominator = (-(glm::dot(polygon[0], refN) - refPlaneDist));
+	float ratio;
+	if (denominator < 1e-8)
+	{
+		ratio = 0.0f; 
+	}
+	else
+	{
+		ratio = maxPenetration / denominator;
+	}
 
 	for (const glm::vec3 &point : polygon)
 	{
@@ -595,7 +600,7 @@ std::vector<CollisionPoints> BoxToBoxContact::buildManifoldFromPolygon(const Fac
 
 		// 침투깊이
 		float penentration = ratio * (-(glm::dot(point, refN) - refPlaneDist));
-
+		
 		// A측 point:
 		glm::vec3 pointA = point + normal * penentration;
 
@@ -787,7 +792,7 @@ void BoxToBoxContact::sortPointsClockwise(std::vector<glm::vec3> &points, const 
 
 // simplex의 삼각형들의 법선벡터와 삼각형들중 원점에서 가장 멀리 떨어져있는 놈을 찾아서 반환
 int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
-										const std::vector<int32_t> &faces)
+										std::vector<int32_t> &faces)
 {
 	int32_t minTriangle = 0;
 	float minDistance = FLT_MAX;
@@ -805,6 +810,8 @@ int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const s
 		// std::cout << "a: " << a.x << " " << a.y << " " << a.z << "\n";
 		// std::cout << "b: " << b.x << " " << b.y << " " << b.z << "\n";
 		// std::cout << "c: " << c.x << " " << c.y << " " << c.z << "\n";
+		// std::cout << "b - a: " << (b - a).x << " " << (b - a).y << " " << (b - a).z << "\n";
+		// std::cout << "c - a: " << (c - a).x << " " << (c - a).y << " " << (c - a).z << "\n";
 		// 삼각형의 법선
 		glm::vec3 crossResult = glm::cross(b - a, c - a);
 
@@ -818,10 +825,12 @@ int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const s
 		// 	continue;
 		// }
 
+		// std::cout << "crossResult: " << crossResult.x << " " << crossResult.y << " " << crossResult.z << "\n";
 		glm::vec3 normal = glm::normalize(crossResult);
+		// std::cout << "face normal: " << normal.x << " " << normal.y << " " << normal.z << "\n";
+
 		// 삼각형과 원점 사이의 거리
 		float distance = glm::dot(normal, a);
-		// 법선 방향이 반대인 경우 -1 곱해주기
 		if (distance == 0)
 		{
 			int32_t simplexVectorSize = simplexVector.size();
@@ -843,11 +852,11 @@ int32_t BoxToBoxContact::getFaceNormals(std::vector<glm::vec4> &normals, const s
 		}
 		else if (distance < 0)
 		{
+			// 법선 방향이 반대인 경우 -1 곱해주기
 			normal *= -1;
 			distance *= -1;
 		}
 
-		// std::cout << "face normal: " << normal.x << " " << normal.y << " " << normal.z << "\n";
 		// std::cout << "face to o distance: " << distance << "\n";
 
 		// 법선 벡터 저장

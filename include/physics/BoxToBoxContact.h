@@ -43,10 +43,9 @@ class BoxToBoxContact : public Contact
 	virtual void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB) override;
 	std::vector<CollisionPoints> getEpaResult(const BoxInfo &boxA, const BoxInfo &boxB, std::vector<Simplex> &simplex);
 	glm::vec3 supportBox(const BoxInfo &box, glm::vec3 dir);
-	std::vector<glm::vec4> getCandidates(const BoxInfo &box, const glm::vec3 &dir);
 	Simplex getSupportPoint(const BoxInfo &boxA, const BoxInfo &boxB, glm::vec3 &dir);
 	int32_t getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
-						   const std::vector<int32_t> &faces);
+						   std::vector<int32_t> &faces);
 	void addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const std::vector<int32_t> &faces, int32_t a,
 						 int32_t b);
 	bool handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
