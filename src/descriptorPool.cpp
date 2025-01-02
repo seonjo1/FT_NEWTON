@@ -1,16 +1,16 @@
 #include "../include/descriptorPool.h"
 
-std::unique_ptr<DescriptorPool> DescriptorPool::create(VkDevice device, std::vector<std::unique_ptr<Model>>& models)
+std::unique_ptr<DescriptorPool> DescriptorPool::create(VkDevice device, std::vector<std::unique_ptr<Model>>& models, int32_t shootMax)
 {
 	std::unique_ptr<DescriptorPool> descriptorPool(new DescriptorPool());
-	descriptorPool->init(device, models);
+	descriptorPool->init(device, models, shootMax);
 	return descriptorPool;
 }
 
-void DescriptorPool::init(VkDevice device, std::vector<std::unique_ptr<Model>>& models)
+void DescriptorPool::init(VkDevice device, std::vector<std::unique_ptr<Model>>& models, int32_t shootMax)
 {
 	this->device = device;
-	createDescriptorPool(models);
+	createDescriptorPool(models, shootMax);
 }
 
 void DescriptorPool::clear()
@@ -23,10 +23,10 @@ VkDescriptorPool DescriptorPool::get()
 	return descriptorPool;
 }
 
-void DescriptorPool::createDescriptorPool( std::vector<std::unique_ptr<Model>>& models)
+void DescriptorPool::createDescriptorPool( std::vector<std::unique_ptr<Model>>& models, int32_t shootMax)
 {
 
-	uint32_t meshNum = 0;
+	uint32_t meshNum = shootMax;
 
 	for (std::unique_ptr<Model>& model : models)
 	{
