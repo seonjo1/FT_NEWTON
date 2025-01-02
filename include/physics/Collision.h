@@ -104,19 +104,8 @@ inline bool testOverlap(const AABB &a, const AABB &b)
 	return true;
 }
 
-enum class EManifoldType
-{
-	FACE_A_TO_POINT_B,
-	POINT_A_TO_FACE_B,
-	EDGE_A_TO_FACE_B,
-	FACE_A_TO_EDGE_B,
-	EDGE_A_TO_EDGE_B,
-	FACE_A_TO_FACE_B,
-};
-
 struct ManifoldPoint
 {
-	bool isInvolved;
 	float normalImpulse;  // 법선 방향 충격량
 	float tangentImpulse; // 접촉면 충격량
 	float seperation;	  // 관통 깊이
@@ -124,7 +113,6 @@ struct ManifoldPoint
 	glm::vec3 pointA;	  // 충돌 지점의 위치
 	glm::vec3 pointB;	  // 충돌 지점의 위치
 	glm::vec3 normal;	  // 법선 벡터
-	EManifoldType type;	  // 타입
 };
 
 struct Manifold
