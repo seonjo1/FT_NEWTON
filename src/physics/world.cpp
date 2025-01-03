@@ -23,7 +23,7 @@ void World::startFrame()
 void World::runPhysics()
 {
 	// std::cout << "start runPhysics\n";
-	float duration = 0.0005f;
+	float duration = 0.0007f;
 	for (Rigidbody *body : rigidbodies)
 	{
 		body->calculateForceAccum();
