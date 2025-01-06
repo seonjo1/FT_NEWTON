@@ -129,6 +129,8 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 	ConvexInfo cylinder;
 	cylinder.radius = m_radius;
 	cylinder.center = transform.toMatrix() * glm::vec4(localCenter, 1.0f);
+	cylinder.axes[0] = transform.toMatrix() * glm::vec4(m_axis, 0.0f);
+	cylinder.height = m_height;
 	return cylinder;
 }
 
