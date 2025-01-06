@@ -12,6 +12,7 @@ enum class Type
 	SPHERE = (1 << 0),
 	BOX = (1 << 1),
 	GROUND = (1 << 2),
+	CYLINDER = (1 << 3),
 };
 
 int32_t operator|(Type type1, Type type2);
