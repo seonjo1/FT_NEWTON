@@ -5,15 +5,6 @@
 
 namespace ale
 {
-
-struct SphereToBoxInfo
-{
-	int32_t type;
-	float distance;
-	glm::vec3 pointB;
-	glm::vec3 normal;
-};
-
 class SphereToBoxContact : public Contact
 {
   public:
