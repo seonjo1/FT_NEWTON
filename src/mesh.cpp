@@ -332,7 +332,7 @@ std::unique_ptr<Mesh> Mesh::createGround(DeviceManager *deviceManager, VkCommand
 		Vertex{glm::vec3(100.0f, -0.01f, 100.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 
 		Vertex{glm::vec3(-100.0f, -0.01f, -100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 100.0f)},
-		Vertex{glm::vec3(100.0f, -0.01f, -100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(100.0f,100.0f)},
+		Vertex{glm::vec3(100.0f, -0.01f, -100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(100.0f, 100.0f)},
 		Vertex{glm::vec3(100.0f, -0.01f, 100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(100.0f, 0.0f)},
 		Vertex{glm::vec3(-100.0f, -0.01f, 100.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 
@@ -342,40 +342,6 @@ std::unique_ptr<Mesh> Mesh::createGround(DeviceManager *deviceManager, VkCommand
 		Vertex{glm::vec3(-100.0f, 0.01f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 	};
 
-	// narrow ground
-	// std::vector<Vertex> vertices = {
-	// 	Vertex{glm::vec3(-0.5f, -0.01f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-	// 	Vertex{glm::vec3(0.5f, -0.01f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.5f, 0.0f)},
-	// 	Vertex{glm::vec3(0.5f, 0.01f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.5f, 0.5f)},
-	// 	Vertex{glm::vec3(-0.5f, 0.01f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.5f)},
-
-	// 	Vertex{glm::vec3(-0.5f, -0.01f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-	// 	Vertex{glm::vec3(0.5f, -0.01f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.5f, 0.0f)},
-	// 	Vertex{glm::vec3(0.5f, 0.01f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.5f, 0.5f)},
-	// 	Vertex{glm::vec3(-0.5f, 0.01f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.5f)},
-
-	// 	Vertex{glm::vec3(-0.5f, 0.01f, 0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
-	// 	Vertex{glm::vec3(-0.5f, 0.01f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.5f)},
-	// 	Vertex{glm::vec3(-0.5f, -0.01f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
-	// 	Vertex{glm::vec3(-0.5f, -0.01f, 0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-
-	// 	Vertex{glm::vec3(0.5f, 0.01f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
-	// 	Vertex{glm::vec3(0.5f, 0.01f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.5f)},
-	// 	Vertex{glm::vec3(0.5f, -0.01f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
-	// 	Vertex{glm::vec3(0.5f, -0.01f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-
-	// 	Vertex{glm::vec3(-0.5f, -0.01f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
-	// 	Vertex{glm::vec3(0.5f, -0.01f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.5f,0.5f)},
-	// 	Vertex{glm::vec3(0.5f, -0.01f, 0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
-	// 	Vertex{glm::vec3(-0.5f, -0.01f, 0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-
-	// 	Vertex{glm::vec3(-0.5f, 0.01f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
-	// 	Vertex{glm::vec3(0.5f, 0.01f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, 0.5f)},
-	// 	Vertex{glm::vec3(0.5f, 0.01f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
-	// 	Vertex{glm::vec3(-0.5f, 0.01f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-	// };
-
-
 	shape->m_center = xf.position;
 	shape->setVertices(vertices);
 
@@ -383,6 +349,101 @@ std::unique_ptr<Mesh> Mesh::createGround(DeviceManager *deviceManager, VkCommand
 		0,	2,	1,	2,	0,	3,	4,	5,	6,	6,	7,	4,	8,	9,	10, 10, 11, 8,
 		12, 14, 13, 14, 12, 15, 16, 17, 18, 18, 19, 16, 20, 22, 21, 22, 20, 23,
 	};
+
+	return create(deviceManager, commandPool, vertices, indices);
+}
+
+std::unique_ptr<Mesh> Mesh::createCylinder(DeviceManager *deviceManager, VkCommandPool commandPool,
+										   ale::CylinderShape *shape, const ale::Transform &xf)
+{
+	std::vector<Vertex> vertices;
+
+	int32_t segments = 36.0f;
+	float halfHeight = 1.0f / 2.0f;
+	float radius = 0.5f;
+
+	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
+
+	// Top cap center
+	glm::vec3 topCenter(0.0f, halfHeight, 0.0f);
+	vertices.push_back({topCenter, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, 0.5f)});
+
+	// Top cap vertices
+	for (int i = 0; i <= segments; ++i)
+	{
+		float theta = i * angleStep;
+		glm::vec3 position(radius * cos(theta), halfHeight, radius * sin(theta));
+		glm::vec2 texCoord(0.5f + 0.5f * cos(theta), 0.5f + 0.5f * sin(theta));
+		vertices.push_back({position, glm::vec3(0.0f, 1.0f, 0.0f), texCoord});
+	}
+
+	// Bottom cap center
+	glm::vec3 bottomCenter(0.0f, -halfHeight, 0.0f);
+	vertices.push_back({bottomCenter, glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.5f, 0.5f)});
+
+	// Bottom cap vertices
+	for (int i = 0; i <= segments; ++i)
+	{
+		float theta = i * angleStep;
+		glm::vec3 position(radius * cos(theta), -halfHeight, radius * sin(theta));
+		glm::vec2 texCoord(0.5f + 0.5f * cos(theta), 0.5f + 0.5f * sin(theta));
+		vertices.push_back({position, glm::vec3(0.0f, -1.0f, 0.0f), texCoord});
+	}
+
+	// Side vertices
+	for (int i = 0; i <= segments; ++i)
+	{
+		float theta = i * angleStep;
+		glm::vec3 normal(cos(theta), 0.0f, sin(theta));
+		glm::vec3 topPosition(radius * cos(theta), halfHeight, radius * sin(theta));
+		glm::vec3 bottomPosition(radius * cos(theta), -halfHeight, radius * sin(theta));
+		glm::vec2 topTexCoord(static_cast<float>(i) / static_cast<float>(segments), 1.0f);
+		glm::vec2 bottomTexCoord(static_cast<float>(i) / static_cast<float>(segments), 0.0f);
+		vertices.push_back({topPosition, normal, topTexCoord});
+		vertices.push_back({bottomPosition, normal, bottomTexCoord});
+	}
+
+	std::vector<uint32_t> indices;
+
+	// Top cap indices
+	uint32_t topCenterIndex = 0;
+	for (int i = 0; i < segments; ++i)
+	{
+		indices.push_back(topCenterIndex);
+		indices.push_back(i + 1);
+		indices.push_back((i + 1) % segments + 1);
+	}
+
+	// Bottom cap indices
+	uint32_t bottomCenterIndex = segments + 2;
+	for (int i = 0; i < segments; ++i)
+	{
+		indices.push_back(bottomCenterIndex);
+		indices.push_back((i + 1) % segments + bottomCenterIndex + 1);
+		indices.push_back(i + bottomCenterIndex + 1);
+	}
+
+	// Side indices
+	for (int i = 0; i < segments; ++i)
+	{
+		uint32_t top1 = i + 1;
+		uint32_t top2 = (i + 1) % segments + 1;
+		uint32_t bottom1 = top1 + segments + 1;
+		uint32_t bottom2 = top2 + segments + 1;
+
+		// First triangle
+		indices.push_back(top1);
+		indices.push_back(bottom1);
+		indices.push_back(top2);
+
+		// Second triangle
+		indices.push_back(top2);
+		indices.push_back(bottom1);
+		indices.push_back(bottom2);
+	}
+
+	shape->m_center = xf.position;
+	shape->setShapeFeatures(vertices);
 
 	return create(deviceManager, commandPool, vertices, indices);
 }

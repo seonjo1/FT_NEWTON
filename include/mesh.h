@@ -4,6 +4,7 @@
 #include "buffer.h"
 #include "image.h"
 #include "physics/BoxShape.h"
+#include "physics/CylinderShape.h"
 #include "physics/SphereShape.h"
 
 #include <assimp/Importer.hpp>
@@ -28,6 +29,8 @@ class Mesh
 											  ale::SphereShape *shape, const ale::Transform &xf);
 	static std::unique_ptr<Mesh> createGround(DeviceManager *deviceManager, VkCommandPool commandPool,
 											  ale::BoxShape *shape, const ale::Transform &xf);
+	static std::unique_ptr<Mesh> Mesh::createCylinder(DeviceManager *deviceManager, VkCommandPool commandPool,
+													  ale::CylinderShape *shape, const ale::Transform &xf);
 	void setMaterial(Material *material);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
 							  VkDescriptorSetLayout descriptorSetLayout);
