@@ -60,13 +60,6 @@ struct ContactLink
 	ContactLink() : other(nullptr), contact(nullptr), prev(nullptr), next(nullptr) {};
 };
 
-enum class EContactType
-{
-	SPHERE_TO_SPHERE = (1 << 0),
-	BOX_TO_BOX = (1 << 1),
-	SphereToBox = (1 << 0) | (1 << 1),
-};
-
 enum class EContactFlag
 {
 	ISLAND = (1 << 0),
@@ -106,7 +99,7 @@ class Contact
 	bool hasFlag(EContactFlag flag);
 
   protected:
-	static contactMemberFunction createContactFunctions[8];
+	static contactMemberFunction createContactFunctions[16];
 
 	Simplex getSupportPoint(const ConvexInfo &convexA, const ConvexInfo &convexB, glm::vec3 &dir);
 	bool handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);

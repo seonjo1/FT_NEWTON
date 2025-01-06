@@ -2,6 +2,9 @@
 #include "physics/BoxToBoxContact.h"
 #include "physics/SphereToBoxContact.h"
 #include "physics/SphereToSphereContact.h"
+#include "physics/SphereToCylinderContact.h"
+#include "physics/BoxToCylinderContact.h"
+#include "physics/CylinderToCylinderContact.h"
 
 namespace ale
 {
@@ -26,14 +29,23 @@ bool operator==(int32_t val, EContactFlag flag)
 	return static_cast<int32_t>(flag) == val;
 }
 
-contactMemberFunction Contact::createContactFunctions[8] = {nullptr,
+contactMemberFunction Contact::createContactFunctions[16] = {nullptr,
 															&SphereToSphereContact::create,
 															&BoxToBoxContact::create,
 															&SphereToBoxContact::create,
 															&BoxToBoxContact::create,
 															&SphereToBoxContact::create,
 															&BoxToBoxContact::create,
-															nullptr};
+															nullptr,
+															&CylinderToCylinderContact::create,
+															&SphereToCylinderContact::create,
+															&BoxToCylinderContact::create,
+															nullptr,
+															&SphereToCylinderContact::create,
+															nullptr,
+															nullptr,
+															nullptr,
+															};
 
 Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
 	: m_fixtureA(fixtureA), m_fixtureB(fixtureB), m_indexA(indexA), m_indexB(indexB)
