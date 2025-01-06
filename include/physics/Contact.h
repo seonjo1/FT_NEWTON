@@ -36,6 +36,7 @@ struct ConvexInfo
 	glm::vec3 halfSize;
 	glm::vec3 center;
 	float radius;
+	float height;
 };
 
 struct EpaInfo
