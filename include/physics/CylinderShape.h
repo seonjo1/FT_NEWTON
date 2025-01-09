@@ -16,10 +16,10 @@ class CylinderShape : public Shape
 	int32_t getChildCount() const;
 	void computeAABB(AABB *aabb, const Transform &xf) const;
 	void computeMass(MassData *massData, float density) const;
-	void setShapeFeatures(std::vector<Vertex> &vertices);
+	void setShapeFeatures(const std::vector<Vertex> &vertices);
 	void findAxisByLongestPair(const std::vector<Vertex> &vertices);
 	void computeCylinderRadius(const std::vector<Vertex> &vertices);
-	void computeCylinderCenter(const std::vector<Vertex> &vertices);
+	void computeCylinderFeatures(const std::vector<Vertex> &vertices);
 
 	virtual float getLocalRadius() const override;
 	virtual const glm::vec3 &getLocalHalfSize() const override;
@@ -27,7 +27,8 @@ class CylinderShape : public Shape
 
 	float m_radius;
 	float m_height;
-	glm::vec3 m_axis;
+	glm::vec3 m_axis[2];
+	std::set<glm::vec3, Vec3Comparator> m_vertices;
 };
 } // namespace ale
 #endif
