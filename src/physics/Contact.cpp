@@ -99,24 +99,30 @@ Contact *Contact::create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, i
 
 void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB)
 {
+	// std::cout << "evaluate start\n";
 	Shape *shapeA = m_fixtureA->getShape();
 	Shape *shapeB = m_fixtureB->getShape();
 
+	// std::cout << "getShapeInfo!!\n";
 	ConvexInfo convexA = shapeA->getShapeInfo(transformA);
 	ConvexInfo convexB = shapeB->getShapeInfo(transformB);
 
 	std::vector<Simplex> simplexVector;
 
+	// std::cout << "GJK start\n";
 	bool isCollide = getGjkResult(convexA, convexB, simplexVector);
 
 	if (isCollide)
 	{
+		// std::cout << "EPA start\n";
 		EpaInfo epaInfo = getEpaResult(convexA, convexB, simplexVector);
 
 		std::vector<CollisionInfo> collisionInfoVector;
 
+		// std::cout << "CLIPPING start\n";
 		findCollisionPoints(convexA, convexB, collisionInfoVector, epaInfo, simplexVector);
 
+		// std::cout << "createManifold start\n";
 		generateManifolds(collisionInfoVector, manifold, m_fixtureA, m_fixtureB);
 	}
 }
@@ -134,6 +140,8 @@ void Contact::update()
 	Rigidbody *bodyB = m_fixtureB->getBody();
 	const Transform &transformA = bodyA->getTransform();
 	const Transform &transformB = bodyB->getTransform();
+
+	// std::cout << "collide bodyA: " << bodyA->getBodyId() << " bodyB: " << bodyB->getBodyId() << "\n";
 
 	// Evaluate
 	// 두 shape의 변환 상태를 적용해 world space에서의 충돌 정보를 계산
@@ -956,7 +964,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	Face face;
 
 	glm::vec3 center;
-	int32_t segments = 36;
+	int32_t segments = 20;
 	float length = glm::length2(glm::dot(normal, cylinder.axes[0]));
 	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
 
