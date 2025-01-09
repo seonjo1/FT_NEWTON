@@ -390,19 +390,6 @@ std::unique_ptr<Mesh> Mesh::createCylinder(DeviceManager *deviceManager, VkComma
 		vertices.push_back({position, glm::vec3(0.0f, -1.0f, 0.0f), texCoord});
 	}
 
-	// Side vertices
-	for (int32_t i = 0; i <= segments; ++i)
-	{
-		float theta = i * angleStep;
-		glm::vec3 normal(cos(theta), 0.0f, sin(theta));
-		glm::vec3 topPosition(radius * cos(theta), halfHeight, radius * sin(theta));
-		glm::vec3 bottomPosition(radius * cos(theta), -halfHeight, radius * sin(theta));
-		glm::vec2 topTexCoord(static_cast<float>(i) / static_cast<float>(segments), 1.0f);
-		glm::vec2 bottomTexCoord(static_cast<float>(i) / static_cast<float>(segments), 0.0f);
-		vertices.push_back({topPosition, normal, topTexCoord});
-		vertices.push_back({bottomPosition, normal, bottomTexCoord});
-	}
-
 	std::vector<uint32_t> indices;
 
 	// Top cap indices
