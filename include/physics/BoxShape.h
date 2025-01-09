@@ -3,18 +3,6 @@
 
 #include "physics/Shape.h"
 
-struct Vec3Comparator
-{
-	bool operator()(const glm::vec3 &lhs, const glm::vec3 &rhs) const
-	{
-		if (lhs.x != rhs.x)
-			return lhs.x < rhs.x;
-		if (lhs.y != rhs.y)
-			return lhs.y < rhs.y;
-		return lhs.z < rhs.z;
-	}
-};
-
 namespace ale
 {
 class BoxShape : public Shape
