@@ -23,9 +23,10 @@ void World::startFrame()
 void World::runPhysics()
 {
 	// std::cout << "start runPhysics\n";
-	float duration = 0.0007f;
+	float duration = 0.0005f;
 	for (Rigidbody *body : rigidbodies)
 	{
+		// std::cout << "body: " << body->getBodyId() << "\n";
 		body->calculateForceAccum();
 
 		body->integrate(duration);
@@ -175,6 +176,9 @@ void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 	case Type::GROUND:
 		createGround(model, xfId);
 		break;
+	case Type::CYLINDER:
+		createCylinder(model, xfId);
+		break;
 	default:
 		break;
 	}
@@ -288,6 +292,44 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.shape = shape;
 	fd.friction = 0.7f;
 	fd.restitution = 0.3f;
+
+	body->createFixture(&fd);
+	rigidbodies.push_back(body);
+}
+
+void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
+{
+	Shape *s = model->getShape();
+	CylinderShape *shape = dynamic_cast<CylinderShape *>(s);
+	BodyDef bd;
+
+	bd.type = BodyType::e_dynamic;
+
+	bd.position = app.getTransformById(xfId).position;
+	bd.orientation = app.getTransformById(xfId).orientation;
+	bd.xfId = xfId;
+	bd.linearDamping = 0.0001f;
+	bd.angularDamping = 0.0001f;
+
+	Rigidbody *body = new Rigidbody(&bd, this);
+
+	// calculate inersiaTensor
+	float mass = 30.0f;
+	float r =  shape->m_radius;
+	float h = shape->m_height;
+	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mass;
+	float Iyy = Ixx;
+	float Izz = (1.0f / 2.0f) * (r * r) * mass;
+	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
+
+	body->setMassData(mass, m);
+
+	// CylinderShape *cylinder = shape->clone();
+	CylinderShape *cylinder = shape;
+	FixtureDef fd;
+	fd.shape = shape;
+	fd.friction = 0.6f;
+	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
 	rigidbodies.push_back(body);
