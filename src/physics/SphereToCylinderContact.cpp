@@ -25,10 +25,9 @@ glm::vec3 SphereToCylinderContact::supportB(const ConvexInfo &cylinder, glm::vec
 	float radius = cylinder.radius;
 
 	// 1. 축 방향으로 윗면/아랫면 선택
-	float isUpperDir = glm::dot(dir, axis);
 	glm::vec3 base = center;
 
-	if (isUpperDir)
+	if (glm::dot(dir, axis) > 0.0f)
 	{
 		base += 0.5f * height * axis;
 	}
