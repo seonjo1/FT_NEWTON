@@ -115,12 +115,25 @@ class Contact
 						   std::vector<int32_t> &faces);
 	void addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const std::vector<int32_t> &faces, int32_t a,
 						 int32_t b);
-	void generateManifolds(std::vector<CollisionInfo> &collisionInfoVector, Manifold &manifold, Fixture *m_fixtureA, Fixture *m_fixtureB);	
+	void generateManifolds(std::vector<CollisionInfo> &collisionInfoVector, Manifold &manifold, Fixture *m_fixtureA,
+						   Fixture *m_fixtureB);
 
 	virtual glm::vec3 supportA(const ConvexInfo &box, glm::vec3 dir) = 0;
 	virtual glm::vec3 supportB(const ConvexInfo &box, glm::vec3 dir) = 0;
-	virtual void findCollisionPoints(const ConvexInfo &boxA, const ConvexInfo &boxB, std::vector<CollisionInfo> &collisionInfoVector,
-							 EpaInfo &epaInfo, std::vector<Simplex> &simplexVector) = 0;
+	virtual void findCollisionPoints(const ConvexInfo &boxA, const ConvexInfo &boxB,
+									 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
+									 std::vector<Simplex> &simplexVector) = 0;
+
+	std::vector<glm::vec3> computeContactPolygon(const Face &refFace, const Face &incFace);
+	std::vector<glm::vec3> clipPolygonAgainstPlane(const std::vector<glm::vec3> &polygon, const glm::vec3 &planeNormal,
+												   float planeDist);
+
+	void buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfoVector, const Face &refFace,
+								  const Face &incFace, std::vector<glm::vec3> &polygon, EpaInfo &epaInfo);
+	void sortPointsClockwise(std::vector<glm::vec3> &points, const glm::vec3 &center, const glm::vec3 &normal);
+
+	Face getBoxFace(const ConvexInfo &box, const glm::vec3 &normal);
+	Face getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &normal);
 
 	int32_t m_flags;
 
