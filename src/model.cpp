@@ -7,6 +7,32 @@ std::unique_ptr<Model> Model::create(std::string filename, DeviceManager *device
 	return model;
 }
 
+std::unique_ptr<Model> Model::createCylinder(DeviceManager *deviceManager, VkCommandPool commandPool,
+											 const ale::Transform &xf, std::string diffusePath,
+											 std::string specularPath)
+{
+	std::unique_ptr<Model> cylinder(new Model());
+	cylinder->createCylinderMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
+
+	return cylinder;
+}
+
+void Model::createCylinderMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
+							   std::string specularPath, const ale::Transform &xf)
+{
+	shape = new ale::CylinderShape();
+	ale::CylinderShape *cylinderShape = dynamic_cast<ale::CylinderShape *>(shape);
+
+	if (cylinderShape)
+	{
+		size = 1;
+		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
+		meshes.push_back(Mesh::createCylinder(deviceManager, commandPool, cylinderShape, xf));
+		meshes[0]->setMaterial(materials[0].get());
+		m_isStatic = false;
+	}
+}
+
 std::unique_ptr<Model> Model::createBox(DeviceManager *deviceManager, VkCommandPool commandPool,
 										const ale::Transform &xf, std::string diffusePath, std::string specularPath)
 {
@@ -177,7 +203,7 @@ void Model::recordDrawCommand(VkCommandBuffer commandBuffer, VkPipelineLayout pi
 }
 
 void Model::updateUniformBuffer(UniformBufferObject &ubo, uint32_t currentFrame)
-{	
+{
 	for (std::unique_ptr<Mesh> &mesh : meshes)
 	{
 		mesh->getUniformBuffer()->update(ubo, currentFrame);
@@ -207,4 +233,3 @@ bool Model::isStatic()
 {
 	return m_isStatic;
 }
-
