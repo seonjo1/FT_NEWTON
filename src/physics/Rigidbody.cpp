@@ -51,6 +51,7 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 
 void Rigidbody::synchronizeFixtures()
 {
+	// std::cout << "start syncronizeFixtures\n";
 	if (type == BodyType::e_static)
 	{
 		return;
@@ -59,7 +60,6 @@ void Rigidbody::synchronizeFixtures()
 	Transform xf1;
 	xf1.position = sweep.p;
 	xf1.orientation = sweep.q;
-
 	BroadPhase *broadPhase = &world->contactManager.broadPhase;
 	for (Fixture *fixture : fixtures)
 	{
@@ -70,6 +70,8 @@ void Rigidbody::synchronizeFixtures()
 // Update acceleration by Adding force to Body
 void Rigidbody::integrate(float duration)
 {
+	// std::cout << "start integrate\n";
+
 	if (type == BodyType::e_static)
 	{
 		return;
@@ -107,7 +109,6 @@ void Rigidbody::integrate(float duration)
 
 	calculateDerivedData();
 	clearAccumulators();
-
 	// if can sleep ~
 }
 
@@ -154,6 +155,7 @@ void Rigidbody::addGravity()
 
 void Rigidbody::calculateForceAccum()
 {
+	// std::cout << "start calculateForceAccum\n";
 	while (!forceRegistry.empty())
 	{
 		addForce(forceRegistry.front());
@@ -248,7 +250,6 @@ int32_t Rigidbody::getBodyId() const
 {
 	return m_bodyID;
 }
-
 
 void Rigidbody::setPosition(const glm::vec3 &position)
 {
