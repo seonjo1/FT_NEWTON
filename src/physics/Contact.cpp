@@ -42,7 +42,7 @@ contactMemberFunction Contact::createContactFunctions[16] = {
 	&SphereToCylinderContact::create,
 	&BoxToCylinderContact::create,
 	nullptr,
-	&SphereToCylinderContact::create,
+	&BoxToCylinderContact::create,
 	nullptr,
 	nullptr,
 	nullptr,
@@ -864,10 +864,11 @@ std::vector<glm::vec3> Contact::computeContactPolygon(const Face &refFace, const
 	// Ref Face의 4개 엣지로 만들어지는 '4개 사이드 평면'에 대해 클리핑
 	// refFace.vertices = v0,v1,v2,v3 라고 가정, CCW 형태
 	const std::vector<glm::vec3> &vertices = refFace.vertices;
-	for (int32_t i = 0; i < 4; i++)
+	int32_t len = vertices.size();
+	for (int32_t i = 0; i < len; i++)
 	{
 		glm::vec3 start = vertices[i];
-		glm::vec3 end = vertices[(i + 1) % 4];
+		glm::vec3 end = vertices[(i + 1) % len];
 
 		// edge
 		glm::vec3 edge = end - start;
@@ -965,11 +966,12 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 
 	glm::vec3 center;
 	int32_t segments = 20;
-	float length = glm::length2(glm::dot(normal, cylinder.axes[0]));
+	float length = glm::dot(normal, cylinder.axes[0]);
 	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
-
-	if (length + 1e8f > 1.0f)
+	// std::cout << "normal: " << normal.x << " " << normal.y << " " << normal.z << "\n";
+	if (length + 1e-4f >= 1.0f)
 	{
+		// std::cout << "top!!!\n";
 		for (int32_t i = 0; i < segments; i++)
 		{
 			float theta = i * angleStep;
@@ -981,8 +983,9 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 		face.normal = cylinder.axes[0];
 		face.distance = glm::dot(cylinder.axes[0], face.vertices[0]);
 	}
-	else if (length - 1e8f < -1.0f)
+	else if (length - 1e-4f <= -1.0f)
 	{
+		// std::cout << "bottom!!!\n";
 		for (int32_t i = 0; i < segments; i++)
 		{
 			float theta = i * angleStep;
@@ -996,6 +999,8 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	}
 	else
 	{
+		// std::cout << "radius: " << cylinder.radius << "\n";
+		// std::cout << "edge!!!\n";
 		face.normal = normal;
 		float dotResult = glm::dot(normal, cylinder.axes[0]);
 		if (dotResult != 0.0f)
