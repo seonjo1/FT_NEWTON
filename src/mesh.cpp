@@ -434,3 +434,86 @@ std::unique_ptr<Mesh> Mesh::createCylinder(DeviceManager *deviceManager, VkComma
 	
 	return create(deviceManager, commandPool, vertices, indices);
 }
+
+
+std::unique_ptr<Mesh> Mesh::createCapsule(DeviceManager *deviceManager, VkCommandPool commandPool,
+										   ale::CapsuleShape *shape, const ale::Transform &xf)
+{
+	std::vector<Vertex> vertices;
+
+	int32_t segments = 20.0f;
+	float halfHeight = 0.5f;
+	float radius = 0.5f;
+
+	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
+
+	// Top cap center
+	glm::vec3 topCenter(0.0f, halfHeight, 0.0f);
+	vertices.push_back({topCenter, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, 0.5f)});
+
+	// Top cap vertices
+	for (int32_t i = 0; i <= segments; ++i)
+	{
+		float theta = i * angleStep;
+		glm::vec3 position(radius * cos(theta), halfHeight, radius * sin(theta));
+		glm::vec2 texCoord(0.5f + 0.5f * cos(theta), 0.5f + 0.5f * sin(theta));
+		vertices.push_back({position, glm::vec3(0.0f, 1.0f, 0.0f), texCoord});
+	}
+
+	// Bottom cap center
+	glm::vec3 bottomCenter(0.0f, -halfHeight, 0.0f);
+	vertices.push_back({bottomCenter, glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.5f, 0.5f)});
+
+	// Bottom cap vertices
+	for (int32_t i = 0; i <= segments; ++i)
+	{
+		float theta = i * angleStep;
+		glm::vec3 position(radius * cos(theta), -halfHeight, radius * sin(theta));
+		glm::vec2 texCoord(0.5f + 0.5f * cos(theta), 0.5f + 0.5f * sin(theta));
+		vertices.push_back({position, glm::vec3(0.0f, -1.0f, 0.0f), texCoord});
+	}
+
+	std::vector<uint32_t> indices;
+
+	// Top cap indices
+	uint32_t topCenterIndex = 0;
+	for (int32_t i = 1; i <= segments; ++i)
+	{
+		indices.push_back(topCenterIndex);
+		indices.push_back(i + 1);
+		indices.push_back(i);
+	}
+
+	// Bottom cap indices
+	uint32_t bottomCenterIndex = segments + 2;
+	for (int32_t i = 1; i <= segments; ++i)
+	{
+		indices.push_back(bottomCenterIndex);
+		indices.push_back(bottomCenterIndex + i);
+		indices.push_back(bottomCenterIndex + i + 1);
+	}
+
+	// Side indices
+	for (int32_t i = 1; i <= segments; ++i)
+	{
+		uint32_t top1 = topCenterIndex + i;
+		uint32_t top2 = topCenterIndex + i + 1;
+		uint32_t bottom1 = bottomCenterIndex + i;
+		uint32_t bottom2 = bottomCenterIndex + i + 1;
+
+		// First triangle
+		indices.push_back(top1);
+		indices.push_back(bottom2);
+		indices.push_back(bottom1);
+
+		// Second triangle
+		indices.push_back(bottom2);
+		indices.push_back(top1);
+		indices.push_back(top2);
+	}
+
+	shape->m_center = xf.position;
+	shape->setShapeFeatures(vertices);
+	
+	return create(deviceManager, commandPool, vertices, indices);
+}

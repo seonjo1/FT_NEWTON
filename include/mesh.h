@@ -4,6 +4,7 @@
 #include "buffer.h"
 #include "image.h"
 #include "physics/BoxShape.h"
+#include "physics/CapsuleShape.h"
 #include "physics/CylinderShape.h"
 #include "physics/SphereShape.h"
 
@@ -31,6 +32,8 @@ class Mesh
 											  ale::BoxShape *shape, const ale::Transform &xf);
 	static std::unique_ptr<Mesh> Mesh::createCylinder(DeviceManager *deviceManager, VkCommandPool commandPool,
 													  ale::CylinderShape *shape, const ale::Transform &xf);
+	static std::unique_ptr<Mesh> Mesh::createCapsule(DeviceManager *deviceManager, VkCommandPool commandPool,
+													  ale::CapsuleShape *shape, const ale::Transform &xf);
 	void setMaterial(Material *material);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
 							  VkDescriptorSetLayout descriptorSetLayout);
