@@ -20,10 +20,9 @@ glm::vec3 CylinderToCylinderContact::supportA(const ConvexInfo &cylinder, glm::v
 	float radius = cylinder.radius;
 
 	// 1. 축 방향으로 윗면/아랫면 선택
-	float isUpperDir = glm::dot(dir, axis);
 	glm::vec3 base = center;
 
-	if (isUpperDir)
+	if (glm::dot(dir, axis) > 0.0f)
 	{
 		base += 0.5f * height * axis;
 	}
@@ -56,10 +55,9 @@ glm::vec3 CylinderToCylinderContact::supportB(const ConvexInfo &cylinder, glm::v
 	float radius = cylinder.radius;
 
 	// 1. 축 방향으로 윗면/아랫면 선택
-	float isUpperDir = glm::dot(dir, axis);
 	glm::vec3 base = center;
 
-	if (isUpperDir)
+	if (glm::dot(dir, axis) > 0.0f)
 	{
 		base += 0.5f * height * axis;
 	}
@@ -87,9 +85,26 @@ void CylinderToCylinderContact::findCollisionPoints(const ConvexInfo &cylinderA,
 												  std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
 												  std::vector<Simplex> &simplexVector)
 {
-	CollisionInfo collisionInfo;
+	// std::cout << "cylinder vs cylinder!!\n";
+	// clipping
+	Face refFace = getCylinderFace(cylinderA, epaInfo.normal);
+	Face incFace = getCylinderFace(cylinderB, -epaInfo.normal);
 
-	collisionInfoVector.push_back(collisionInfo);
+	// for (int i = 0; i < refFace.vertices.size(); i++)
+	// {
+	// 	std::cout << "refFace[" << i << "]: " << refFace.vertices[i].x << " " << refFace.vertices[i].y << refFace.vertices[i].z << "\n";
+	// }
+
+
+	// for (int i = 0; i < incFace.vertices.size(); i++)
+	// {
+	// 	std::cout << "incFace[" << i << "]: " << incFace.vertices[i].x << " " << incFace.vertices[i].y << incFace.vertices[i].z << "\n";
+	// }
+
+	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+
+	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
+	buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
 }
 
 } // namespace ale
