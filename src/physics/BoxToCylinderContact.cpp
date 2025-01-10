@@ -34,10 +34,9 @@ glm::vec3 BoxToCylinderContact::supportB(const ConvexInfo &cylinder, glm::vec3 d
 	float radius = cylinder.radius;
 
 	// 1. 축 방향으로 윗면/아랫면 선택
-	float isUpperDir = glm::dot(dir, axis);
 	glm::vec3 base = center;
 
-	if (isUpperDir)
+	if (glm::dot(dir, axis) > 0.0f)
 	{
 		base += 0.5f * height * axis;
 	}
@@ -65,9 +64,16 @@ void BoxToCylinderContact::findCollisionPoints(const ConvexInfo &box, const Conv
 											   std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
 											   std::vector<Simplex> &simplexVector)
 {
-	CollisionInfo collisionInfo;
+	// std::cout << "box vs cylinder!!\n";
 
-	collisionInfoVector.push_back(collisionInfo);
+	// clipping
+	Face refFace = getBoxFace(box, epaInfo.normal);
+	Face incFace = getCylinderFace(cylinder, -epaInfo.normal);
+
+	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+
+	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
+	buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
 }
 
 } // namespace ale
