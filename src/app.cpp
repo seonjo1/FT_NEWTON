@@ -262,10 +262,10 @@ void App::createModels()
 		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
 	transforms.push_back(groundXf);
 
-	ale::Transform sphereXf(glm::vec3(0.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
-	models.push_back(
-		Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
-	transforms.push_back(sphereXf);
+	// ale::Transform sphereXf(glm::vec3(0.0f, 0.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
+	// models.push_back(
+	// 	Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
+	// transforms.push_back(sphereXf);
 
 	// ale::Transform sphereXf1(glm::vec3(0.0f, 50.0f, 1.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 	// models.push_back(
@@ -288,7 +288,7 @@ void App::createModels()
 	// 	}
 	// 	y = y + 1.0f;
 	// }
-	
+
 	// ale::Transform boxXf2(glm::vec3(1.4f, 100.0f, 0.0f),
 	// 					  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(80.0f))));
 	// models.push_back(
@@ -296,10 +296,16 @@ void App::createModels()
 	// transforms.push_back(boxXf2);
 
 	ale::Transform cylinderXf(glm::vec3(0.0f, 2.0f, 0.0f),
-							glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
-	models.push_back(
-		Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(), cylinderXf, "models/container.png"));
+							  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	models.push_back(Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(), cylinderXf,
+										   "models/container.png"));
 	transforms.push_back(cylinderXf);
+
+	ale::Transform cylinderXf1(glm::vec3(0.0f, 4.0f, 0.0f),
+							  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	models.push_back(Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(), cylinderXf1,
+										   "models/container.png"));
+	transforms.push_back(cylinderXf1);
 }
 
 void App::createWorld()
