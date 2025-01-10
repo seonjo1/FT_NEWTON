@@ -123,9 +123,14 @@ void CylinderShape::computeCylinderFeatures(const std::vector<Vertex> &vertices)
 	m_axis[0] = glm::vec3(0.0f, 1.0f, 0.0f);
 	m_axis[1] = glm::vec3(1.0f, 0.0f, 0.0f);
 	m_height = max.y - min.y;
-	float radiusX = std::max(std::abs(localCenter.x - min.x), std::abs(max.x - localCenter.x));
-	float radiusZ = std::max(std::abs(localCenter.z - min.z), std::abs(max.z - localCenter.z));
-	m_radius = glm::length(glm::vec2(localCenter.x, localCenter.z) - glm::vec2(radiusX, radiusZ));
+
+	m_radius = 0.0f;
+	glm::vec2 center(localCenter.x, localCenter.z);
+	for (const Vertex &vertex : vertices)
+	{
+		m_radius = std::max(m_radius, glm::length2(glm::vec2(vertex.position.x, vertex.position.z) - center));
+	}
+	m_radius = std::sqrt(m_radius);
 }
 
 void CylinderShape::computeCylinderRadius(const std::vector<Vertex> &vertices)
@@ -184,10 +189,12 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 	cylinder.axes.push_back(transform.toMatrix() * glm::vec4(m_axis[0], 0.0f));
 
 	cylinder.height = m_height;
-	glm::vec3 topPoint = localCenter + m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius;
-	glm::vec3 bottomPoint = localCenter - m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius;
+	glm::vec3 topPoint = transform.toMatrix() * glm::vec4(localCenter + m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius, 1.0f);
+	glm::vec3 bottomPoint = transform.toMatrix() * glm::vec4(localCenter - m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius, 1.0f);
 	cylinder.points.push_back(topPoint);
 	cylinder.points.push_back(bottomPoint);
+	// std::cout << "topPoint: " << topPoint.x << " " << topPoint.y << " " << topPoint.z << "\n";
+	// std::cout << "bottomPoint: " << bottomPoint.x << " " << bottomPoint.y << " " << bottomPoint.z << "\n";
 	return cylinder;
 }
 
