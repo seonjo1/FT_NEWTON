@@ -167,12 +167,12 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			// 		  << manifoldPoint.normal.z << "\n";
 
 			// 법선 방향 속도
-			float normalVelocity = glm::dot(relativeVelocity, manifoldPoint.normal); // 음수
-			// std::cout << "normalVelocity: " << normalVelocity << "\n";
+			float normalSpeed = glm::dot(relativeVelocity, manifoldPoint.normal); // 음수
+			// std::cout << "normalSpeed: " << normalSpeed << "\n";
 
 			// 법선 방향 충격량 계산
 			float normalImpulse =
-				-(1.0f + velocityConstraint.restitution) * normalVelocity * (manifoldPoint.seperation / seperationSum);
+				-(1.0f + velocityConstraint.restitution) * normalSpeed * (manifoldPoint.seperation / seperationSum);
 			// std::cout << "before normalImpulse: " << normalImpulse << "\n";
 			float inverseMasses = (velocityConstraint.invMassA + velocityConstraint.invMassB);
 			float normalEffectiveMassA = glm::dot(glm::cross(manifoldPoint.normal, rA),
@@ -187,33 +187,42 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 
 			normalImpulse = normalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
 			float normalImpulseForFriction =  normalImpulse;
-			if (normalVelocity > -m_stopVelocity)
+			if (normalSpeed > -m_stopVelocity)
 			{
 				normalImpulse = 0.0f;
 			}
 			// std::cout << "normalImpulse: " << normalImpulse << "\n";
 
 			glm::vec3 tangent(0.0f);
-			glm::vec3 tangentVelocity = relativeVelocity - (normalVelocity * manifoldPoint.normal);
+			glm::vec3 tangentVelocity = relativeVelocity - (normalSpeed * manifoldPoint.normal);
+			float tangentSpeed = glm::length(tangentVelocity);
+			float tangentImpulse;
 			// std::cout << "tangentVelocity: " << tangentVelocity.x << " " << tangentVelocity.y << " "
 			// 		  << tangentVelocity.z << "\n";
-			if (glm::length2(tangentVelocity) > 1e-6f)
+			// std::cout << "tangentSpeed: " << tangentSpeed << "\n";
+			if (tangentSpeed > m_stopVelocity)
 			{
 				tangent = glm::normalize(tangentVelocity);
+
+				tangentImpulse = -glm::dot(relativeVelocity, tangent);
+				// std::cout << "tangent: " << tangent.x << " " << tangent.y << " " << tangent.z << "\n";
+
+				float tangentEffectiveMassA =
+					glm::dot(glm::cross(tangent, rA), velocityConstraint.invIA * glm::cross(tangent, rA));
+				float tangentEffectiveMassB =
+					glm::dot(glm::cross(tangent, rB), velocityConstraint.invIB * glm::cross(tangent, rB));
+				float maxFriction = velocityConstraint.friction * normalImpulseForFriction;
+				tangentImpulse = tangentImpulse / (inverseMasses + tangentEffectiveMassA + tangentEffectiveMassB);
+				// std::cout << "before clamp tangentImpulse: " << tangentImpulse << "\n";
+				tangentImpulse = glm::clamp(tangentImpulse, -maxFriction, maxFriction);
+				// std::cout << "after clamp tangentImpulse: " << tangentImpulse << "\n";
+			
 			}
-
-			float tangentImpulse = -glm::dot(relativeVelocity, tangent);
-			// std::cout << "tangent: " << tangent.x << " " << tangent.y << " " << tangent.z << "\n";
-
-			float tangentEffectiveMassA =
-				glm::dot(glm::cross(tangent, rA), velocityConstraint.invIA * glm::cross(tangent, rA));
-			float tangentEffectiveMassB =
-				glm::dot(glm::cross(tangent, rB), velocityConstraint.invIB * glm::cross(tangent, rB));
-			float maxFriction = velocityConstraint.friction * normalImpulseForFriction;
-			tangentImpulse = tangentImpulse / (inverseMasses + tangentEffectiveMassA + tangentEffectiveMassB);
-			// std::cout << "before clamp tangentImpulse: " << tangentImpulse << "\n";
-			tangentImpulse = glm::clamp(tangentImpulse, -maxFriction, maxFriction);
-			// std::cout << "after clamp tangentImpulse: " << tangentImpulse << "\n";
+			else
+			{
+				tangent = glm::vec3(0.0f);
+				tangentImpulse = 0.0f;
+			}
 
 			// if (velocityConstraint.isStopContact)
 			// {
