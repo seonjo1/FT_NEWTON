@@ -7,6 +7,31 @@ std::unique_ptr<Model> Model::create(std::string filename, DeviceManager *device
 	return model;
 }
 
+std::unique_ptr<Model> Model::createCapsule(DeviceManager *deviceManager, VkCommandPool commandPool,
+											 const ale::Transform &xf, std::string diffusePath,
+											 std::string specularPath)
+{
+	std::unique_ptr<Model> capsule(new Model());
+	capsule->createCapsuleMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
+
+	return capsule;
+}
+
+void Model::createCapsuleMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
+							   std::string specularPath, const ale::Transform &xf)
+{
+	shape = new ale::CapsuleShape();
+	ale::CapsuleShape *capsuleShape = dynamic_cast<ale::CapsuleShape *>(shape);
+
+	if (capsuleShape)
+	{
+		size = 1;
+		materials.push_back(Material::create(deviceManager, commandPool, diffusePath, specularPath));
+		meshes.push_back(Mesh::createCapsule(deviceManager, commandPool, capsuleShape, xf));
+		meshes[0]->setMaterial(materials[0].get());
+	}
+}
+
 std::unique_ptr<Model> Model::createCylinder(DeviceManager *deviceManager, VkCommandPool commandPool,
 											 const ale::Transform &xf, std::string diffusePath,
 											 std::string specularPath)
