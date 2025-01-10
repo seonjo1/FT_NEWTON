@@ -302,10 +302,16 @@ void App::createModels()
 	transforms.push_back(cylinderXf);
 
 	ale::Transform cylinderXf1(glm::vec3(0.0f, 4.0f, 0.0f),
-							  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+							   glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
 	models.push_back(Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(), cylinderXf1,
 										   "models/container.png"));
 	transforms.push_back(cylinderXf1);
+
+	ale::Transform capsuleXf(glm::vec3(2.0f, 0.0f, 0.0f),
+							   glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	models.push_back(Model::createCapsule(deviceManager.get(), commandManager->getCommandPool(), capsuleXf,
+										   "models/container.png"));
+	transforms.push_back(capsuleXf);
 }
 
 void App::createWorld()
