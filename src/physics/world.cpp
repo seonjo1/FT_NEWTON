@@ -51,7 +51,7 @@ void World::runPhysics()
 	contactManager.collide();
 	// std::cout << "solve\n";
 	solve(duration);
-	
+
 	for (Rigidbody *body : rigidbodies)
 	{
 		app.setTransformById(body->getTransformId(), body->getTransform());
@@ -186,6 +186,9 @@ void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 		break;
 	case Type::CYLINDER:
 		createCylinder(model, xfId);
+		break;
+	case Type::CAPSULE:
+		createCapsule(model, xfId);
 		break;
 	default:
 		break;
@@ -323,7 +326,7 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// calculate inersiaTensor
 	float mass = 30.0f;
-	float r =  shape->m_radius;
+	float r = shape->m_radius;
 	float h = shape->m_height;
 	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mass;
 	float Iyy = Ixx;
@@ -334,6 +337,44 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// CylinderShape *cylinder = shape->clone();
 	CylinderShape *cylinder = shape;
+	FixtureDef fd;
+	fd.shape = shape;
+	fd.friction = 0.6f;
+	fd.restitution = 0.4f;
+
+	body->createFixture(&fd);
+	rigidbodies.push_back(body);
+}
+
+void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
+{
+	Shape *s = model->getShape();
+	CapsuleShape *shape = dynamic_cast<CapsuleShape *>(s);
+	BodyDef bd;
+
+	bd.type = BodyType::e_dynamic;
+
+	bd.position = app.getTransformById(xfId).position;
+	bd.orientation = app.getTransformById(xfId).orientation;
+	bd.xfId = xfId;
+	bd.linearDamping = 0.0001f;
+	bd.angularDamping = 0.0001f;
+
+	Rigidbody *body = new Rigidbody(&bd, this);
+
+	// calculate inersiaTensor
+	float mass = 30.0f;
+	float r = shape->m_radius;
+	float h = shape->m_height;
+	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mass;
+	float Iyy = Ixx;
+	float Izz = (1.0f / 2.0f) * (r * r) * mass;
+	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
+
+	body->setMassData(mass, m);
+
+	// CapsuleShape *capsule = shape->clone();
+	CapsuleShape *capsule = shape;
 	FixtureDef fd;
 	fd.shape = shape;
 	fd.friction = 0.6f;

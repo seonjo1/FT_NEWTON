@@ -30,6 +30,7 @@ class World
 	void createSphere(std::unique_ptr<Model> &model, int32_t xfId);
 	void createGround(std::unique_ptr<Model> &model, int32_t xfId);
 	void createCylinder(std::unique_ptr<Model> &model, int32_t xfId);
+	void createCapsule(std::unique_ptr<Model> &model, int32_t xfId);
 	void registerBodyForce(int32_t idx, const glm::vec3 &force);
 
 	ContactManager contactManager;
