@@ -63,6 +63,7 @@ class Rigidbody
 {
   public:
 	Rigidbody(const BodyDef *bd, World *world);
+	~Rigidbody();
 
 	void synchronizeFixtures();
 	void synchronizeTransform();

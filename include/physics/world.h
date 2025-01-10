@@ -20,6 +20,8 @@ class World
 {
   public:
 	World(uint32_t size, App &app);
+	~World();
+
 	void startFrame();
 	void runPhysics();
 	void solve(float duration);

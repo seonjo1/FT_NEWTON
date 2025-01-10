@@ -36,6 +36,14 @@ void Fixture::Create(Rigidbody *body, const FixtureDef *fd)
 
 void Fixture::Destroy()
 {
+	int32_t childCount = shape->getChildCount();
+	for (int32_t i = 0; i < childCount; ++i)
+	{
+		proxies[i]->fixture = nullptr;
+		// delete userData
+		delete (proxies[i]);
+	}
+	delete shape;
 }
 
 void Fixture::CreateProxies(BroadPhase *broadPhase)

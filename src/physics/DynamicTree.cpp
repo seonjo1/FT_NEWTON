@@ -88,10 +88,10 @@ void DynamicTree::DestroyProxy(int32_t proxyId)
 
 bool DynamicTree::MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement)
 {
-	// if (nodes[proxyId].aabb.contains(aabb))
-	// {
-	// 	return false;
-	// }
+	if (nodes[proxyId].aabb.contains(aabb))
+	{
+		return false;
+	}
 
 	RemoveLeaf(proxyId);
 

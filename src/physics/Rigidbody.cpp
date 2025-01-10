@@ -49,6 +49,15 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	m_bodyID = BODY_COUNT++;
 }
 
+Rigidbody::~Rigidbody()
+{
+	for (Fixture *fixture : fixtures)
+	{
+		fixture->Destroy();
+		delete fixture;
+	}
+}
+
 void Rigidbody::synchronizeFixtures()
 {
 	// std::cout << "start syncronizeFixtures\n";
