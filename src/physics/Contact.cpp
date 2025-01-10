@@ -1,10 +1,5 @@
 #include "physics/Contact.h"
-#include "physics/BoxToBoxContact.h"
-#include "physics/BoxToCylinderContact.h"
-#include "physics/CylinderToCylinderContact.h"
-#include "physics/SphereToBoxContact.h"
-#include "physics/SphereToCylinderContact.h"
-#include "physics/SphereToSphereContact.h"
+#include "physics/ShapeCollisions.h"
 
 namespace ale
 {
@@ -29,23 +24,39 @@ bool operator==(int32_t val, EContactFlag flag)
 	return static_cast<int32_t>(flag) == val;
 }
 
-contactMemberFunction Contact::createContactFunctions[16] = {
-	nullptr,
-	&SphereToSphereContact::create,
-	&BoxToBoxContact::create,
-	&SphereToBoxContact::create,
-	&BoxToBoxContact::create,
-	&SphereToBoxContact::create,
-	&BoxToBoxContact::create,
-	nullptr,
-	&CylinderToCylinderContact::create,
-	&SphereToCylinderContact::create,
-	&BoxToCylinderContact::create,
-	nullptr,
-	&BoxToCylinderContact::create,
-	nullptr,
-	nullptr,
-	nullptr,
+contactMemberFunction Contact::createContactFunctions[32] = {
+	nullptr, 									// 0
+	&SphereToSphereContact::create,				// 01
+	&BoxToBoxContact::create,					// 10
+	&SphereToBoxContact::create,				// 11
+	&BoxToBoxContact::create,					// 100
+	&SphereToBoxContact::create,				// 101
+	&BoxToBoxContact::create,					// 110
+	nullptr,									// 111
+	&CylinderToCylinderContact::create,			// 1000
+	&SphereToCylinderContact::create,			// 1001
+	&BoxToCylinderContact::create,				// 1010
+	nullptr,									// 1011
+	&BoxToCylinderContact::create,				// 1100
+	nullptr,									// 1101
+	nullptr,									// 1110
+	nullptr,									// 1111
+	&CapsuleToCapsuleContact::create,			// 10000
+	&SphereToCapsuleContact::create,			// 10001
+	&BoxToCapsuleContact::create,				// 10010
+	nullptr,									// 10011
+	&BoxToCapsuleContact::create,				// 10100
+	nullptr,									// 10101
+	nullptr,									// 10110
+	nullptr,									// 10111
+	&CylinderToCapsuleContact::create,			// 11000
+	nullptr,	 								// 11001
+	nullptr,									// 11010
+	nullptr,									// 11011
+	nullptr,									// 11100
+	nullptr,									// 11101
+	nullptr,									// 11110
+	nullptr,									// 11111
 };
 
 Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)

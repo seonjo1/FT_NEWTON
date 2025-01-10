@@ -99,7 +99,7 @@ class Contact
 	bool hasFlag(EContactFlag flag);
 
   protected:
-	static contactMemberFunction createContactFunctions[16];
+	static contactMemberFunction createContactFunctions[32];
 
 	Simplex getSupportPoint(const ConvexInfo &convexA, const ConvexInfo &convexB, glm::vec3 &dir);
 	bool handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
