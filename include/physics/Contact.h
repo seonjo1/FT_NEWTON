@@ -107,6 +107,7 @@ class Contact
 	bool handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
 	bool handleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
 	bool getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplex);
+	bool checkSphereToSphereCollide(const ConvexInfo &convexA, const ConvexInfo &convexB);
 	bool isDuplicatedPoint(const std::vector<Simplex> &simplexVector, const glm::vec3 &supportPoint);
 	bool isSameDirection(glm::vec3 v1, glm::vec3 v2);
 	bool isSimilarDirection(glm::vec3 v1, glm::vec3 v2);

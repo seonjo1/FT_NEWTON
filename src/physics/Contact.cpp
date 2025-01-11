@@ -25,38 +25,38 @@ bool operator==(int32_t val, EContactFlag flag)
 }
 
 contactMemberFunction Contact::createContactFunctions[32] = {
-	nullptr, 									// 0
-	&SphereToSphereContact::create,				// 01
-	&BoxToBoxContact::create,					// 10
-	&SphereToBoxContact::create,				// 11
-	&BoxToBoxContact::create,					// 100
-	&SphereToBoxContact::create,				// 101
-	&BoxToBoxContact::create,					// 110
-	nullptr,									// 111
-	&CylinderToCylinderContact::create,			// 1000
-	&SphereToCylinderContact::create,			// 1001
-	&BoxToCylinderContact::create,				// 1010
-	nullptr,									// 1011
-	&BoxToCylinderContact::create,				// 1100
-	nullptr,									// 1101
-	nullptr,									// 1110
-	nullptr,									// 1111
-	&CapsuleToCapsuleContact::create,			// 10000
-	&SphereToCapsuleContact::create,			// 10001
-	&BoxToCapsuleContact::create,				// 10010
-	nullptr,									// 10011
-	&BoxToCapsuleContact::create,				// 10100
-	nullptr,									// 10101
-	nullptr,									// 10110
-	nullptr,									// 10111
-	&CylinderToCapsuleContact::create,			// 11000
-	nullptr,	 								// 11001
-	nullptr,									// 11010
-	nullptr,									// 11011
-	nullptr,									// 11100
-	nullptr,									// 11101
-	nullptr,									// 11110
-	nullptr,									// 11111
+	nullptr,							// 0
+	&SphereToSphereContact::create,		// 01
+	&BoxToBoxContact::create,			// 10
+	&SphereToBoxContact::create,		// 11
+	&BoxToBoxContact::create,			// 100
+	&SphereToBoxContact::create,		// 101
+	&BoxToBoxContact::create,			// 110
+	nullptr,							// 111
+	&CylinderToCylinderContact::create, // 1000
+	&SphereToCylinderContact::create,	// 1001
+	&BoxToCylinderContact::create,		// 1010
+	nullptr,							// 1011
+	&BoxToCylinderContact::create,		// 1100
+	nullptr,							// 1101
+	nullptr,							// 1110
+	nullptr,							// 1111
+	&CapsuleToCapsuleContact::create,	// 10000
+	&SphereToCapsuleContact::create,	// 10001
+	&BoxToCapsuleContact::create,		// 10010
+	nullptr,							// 10011
+	&BoxToCapsuleContact::create,		// 10100
+	nullptr,							// 10101
+	nullptr,							// 10110
+	nullptr,							// 10111
+	&CylinderToCapsuleContact::create,	// 11000
+	nullptr,							// 11001
+	nullptr,							// 11010
+	nullptr,							// 11011
+	nullptr,							// 11100
+	nullptr,							// 11101
+	nullptr,							// 11110
+	nullptr,							// 11111
 };
 
 Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
@@ -119,6 +119,26 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 	ConvexInfo convexB = shapeB->getShapeInfo(transformB);
 
 	std::vector<Simplex> simplexVector;
+
+	// Sphere to Sphere Collide 
+	if (shapeA->getType() == Type::SPHERE && shapeB->getType() == Type::SPHERE)
+	{
+		if (checkSphereToSphereCollide(convexA, convexB) == true)
+		{
+			std::vector<CollisionInfo> collisionInfoVector;
+			EpaInfo epaInfo;
+			glm::vec3 centerDistance = convexB.center - convexA.center;
+			epaInfo.normal = glm::normalize(centerDistance);
+			epaInfo.distance = convexA.radius + convexB.radius - glm::length(centerDistance);
+
+			// std::cout << "CLIPPING start\n";
+			findCollisionPoints(convexA, convexB, collisionInfoVector, epaInfo, simplexVector);
+
+			// std::cout << "createManifold start\n";
+			generateManifolds(collisionInfoVector, manifold, m_fixtureA, m_fixtureB);
+		}
+		return;
+	}
 
 	// std::cout << "GJK start\n";
 	bool isCollide = getGjkResult(convexA, convexB, simplexVector);
@@ -465,6 +485,18 @@ bool Contact::isDuplicatedPoint(const std::vector<Simplex> &simplexVector, const
 		}
 	}
 	return false;
+}
+
+bool Contact::checkSphereToSphereCollide(const ConvexInfo &convexA, const ConvexInfo &convexB)
+{
+	if (glm::length(convexA.center - convexB.center) < (convexA.radius + convexB.radius))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplexVector)
@@ -986,7 +1018,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 		for (int32_t i = 0; i < segments; i++)
 		{
 			float theta = i * angleStep;
-			glm::quat orientation = glm::angleAxis(theta, cylinder.axes[0]);	
+			glm::quat orientation = glm::angleAxis(theta, cylinder.axes[0]);
 			glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
 			face.vertices.push_back(rotationMatrix * glm::vec4(cylinder.points[0], 1.0f));
 		}
@@ -1000,10 +1032,11 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 		for (int32_t i = 0; i < segments; i++)
 		{
 			float theta = i * angleStep;
-			glm::quat orientation = glm::angleAxis(theta, -cylinder.axes[0]);	
+			glm::quat orientation = glm::angleAxis(theta, -cylinder.axes[0]);
 			glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
 			face.vertices.push_back(rotationMatrix * glm::vec4(cylinder.points[1], 1.0f));
-			// std::cout << "face: " << face.vertices.back().x << " " << face.vertices.back().y << " " <<  face.vertices.back().z << "\n";
+			// std::cout << "face: " << face.vertices.back().x << " " << face.vertices.back().y << " " <<
+			// face.vertices.back().z << "\n";
 		}
 		center = cylinder.center - cylinder.axes[0] * cylinder.height * 0.5f;
 		face.normal = -cylinder.axes[0];
@@ -1043,7 +1076,7 @@ Face Contact::getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal)
 
 	face.normal = normal;
 	float dotResult = glm::dot(normal, capsule.axes[0]);
-	
+
 	if (dotResult != 0.0f)
 	{
 		face.normal = glm::normalize(normal - dotResult * capsule.axes[0]);
