@@ -257,7 +257,8 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// calculate inersiaTensor - (2 / 5) * m * r * r
 	float mass = 10.0f;
-	float val = (2.0f / 5.0f) * mass * 1;
+	float r = shape->localRadius;
+	float val = (2.0f / 5.0f) * mass * r * r;
 	glm::mat3 m(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
 	body->setMassData(mass, m);
 
@@ -363,13 +364,22 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
-	float mass = 30.0f;
+	// sphere
+	float mh = 5.0f;
 	float r = shape->m_radius;
 	float h = shape->m_height;
-	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mass;
+	float val = (2.0f / 5.0f) * mh * r * r + (h / 2.0f + 3.0f * r / 8.0f);
+	glm::mat3 ih(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
+	
+	// cylinder
+	float mc = 10.0f;
+	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mc;
 	float Iyy = Ixx;
-	float Izz = (1.0f / 2.0f) * (r * r) * mass;
-	glm::mat3 m(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
+	float Izz = (1.0f / 2.0f) * (r * r) * mc;
+	glm::mat3 ic(glm::vec3(Ixx, 0.0f, 0.0f), glm::vec3(0.0f, Iyy, 0.0f), glm::vec3(0.0f, 0.0f, Izz));
+
+	float mass = mh * 2.0f + mc;
+	glm::mat3 m = ih * 2.0f + ic;
 
 	body->setMassData(mass, m);
 
