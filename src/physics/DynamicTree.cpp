@@ -26,7 +26,7 @@ DynamicTree::~DynamicTree()
 
 int DynamicTree::AllocateNode()
 {
-	if (freeNode == nodeCapacity)
+	if (freeNode == nullNode)
 	{
 		nodeCapacity *= 2;
 		nodes.resize(nodeCapacity);
