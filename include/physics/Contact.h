@@ -134,6 +134,9 @@ class Contact
 
 	Face getBoxFace(const ConvexInfo &box, const glm::vec3 &normal);
 	Face getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &normal);
+	Face getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal);
+
+	bool isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir);
 
 	int32_t m_flags;
 

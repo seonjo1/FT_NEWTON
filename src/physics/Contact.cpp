@@ -1003,14 +1003,15 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 			glm::quat orientation = glm::angleAxis(theta, -cylinder.axes[0]);	
 			glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
 			face.vertices.push_back(rotationMatrix * glm::vec4(cylinder.points[1], 1.0f));
+			// std::cout << "face: " << face.vertices.back().x << " " << face.vertices.back().y << " " <<  face.vertices.back().z << "\n";
 		}
 		center = cylinder.center - cylinder.axes[0] * cylinder.height * 0.5f;
 		face.normal = -cylinder.axes[0];
 		face.distance = glm::dot(-cylinder.axes[0], face.vertices[0]);
+		// std::cout << "distance: " << face.distance << "\n";
 	}
 	else
 	{
-		// std::cout << "radius: " << cylinder.radius << "\n";
 		// std::cout << "edge!!!\n";
 		face.normal = normal;
 		float dotResult = glm::dot(normal, cylinder.axes[0]);
@@ -1031,6 +1032,40 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	sortPointsClockwise(face.vertices, center, face.normal);
 
 	return face;
+}
+
+Face Contact::getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal)
+{
+	Face face;
+
+	int32_t segments = 20;
+	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
+
+	face.normal = normal;
+	float dotResult = glm::dot(normal, capsule.axes[0]);
+	
+	if (dotResult != 0.0f)
+	{
+		face.normal = glm::normalize(normal - dotResult * capsule.axes[0]);
+	}
+
+	glm::vec3 widthAxis = glm::normalize(glm::cross(capsule.axes[0], face.normal));
+	float halfWidth = angleStep * capsule.radius * 0.5f;
+	glm::vec3 center = capsule.center + face.normal * capsule.radius;
+	face.vertices.push_back(center + halfWidth * widthAxis + capsule.axes[0] * 0.5f * capsule.height);
+	face.vertices.push_back(center + halfWidth * widthAxis - capsule.axes[0] * 0.5f * capsule.height);
+	face.vertices.push_back(center - halfWidth * widthAxis + capsule.axes[0] * 0.5f * capsule.height);
+	face.vertices.push_back(center - halfWidth * widthAxis - capsule.axes[0] * 0.5f * capsule.height);
+	face.distance = glm::dot(face.normal, face.vertices[0]);
+
+	sortPointsClockwise(face.vertices, center, face.normal);
+
+	return face;
+}
+
+bool Contact::isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir)
+{
+	return glm::length2(glm::dot(capsule.axes[0], dir)) > 1e-4f;
 }
 
 } // namespace ale
