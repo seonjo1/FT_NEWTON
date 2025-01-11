@@ -82,7 +82,6 @@ void CapsuleShape::setShapeFeatures(const std::vector<Vertex> &vertices)
 	localCenter = (min + max) / 2.0f;
 	m_axis[0] = glm::vec3(0.0f, 1.0f, 0.0f);
 	m_axis[1] = glm::vec3(1.0f, 0.0f, 0.0f);
-	m_height = max.y - min.y;
 
 	m_radius = 0.0f;
 	glm::vec2 center(localCenter.x, localCenter.z);
@@ -91,6 +90,11 @@ void CapsuleShape::setShapeFeatures(const std::vector<Vertex> &vertices)
 		m_radius = std::max(m_radius, glm::length2(glm::vec2(vertex.position.x, vertex.position.z) - center));
 	}
 	m_radius = std::sqrt(m_radius);
+	m_height = max.y - min.y - 2.0f * m_radius;
+	if (m_height < 0.0f)
+	{
+		throw std::runtime_error("fail to create capsule shape!!");
+	}
 }
 
 float CapsuleShape::getLocalRadius() const
@@ -105,19 +109,20 @@ const glm::vec3 &CapsuleShape::getLocalHalfSize() const
 
 ConvexInfo CapsuleShape::getShapeInfo(const Transform &transform) const
 {
-	ConvexInfo cylinder;
-	cylinder.radius = m_radius;
-	cylinder.center = transform.toMatrix() * glm::vec4(localCenter, 1.0f);
-	cylinder.axes.push_back(transform.toMatrix() * glm::vec4(m_axis[0], 0.0f));
+	ConvexInfo capsule;
+	capsule.radius = m_radius;
+	capsule.center = transform.toMatrix() * glm::vec4(localCenter, 1.0f);
+	capsule.axes.push_back(transform.toMatrix() * glm::vec4(m_axis[0], 0.0f));
 
-	cylinder.height = m_height;
-	glm::vec3 topPoint = transform.toMatrix() * glm::vec4(localCenter + m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius, 1.0f);
-	glm::vec3 bottomPoint = transform.toMatrix() * glm::vec4(localCenter - m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius, 1.0f);
-	cylinder.points.push_back(topPoint);
-	cylinder.points.push_back(bottomPoint);
+	capsule.height = m_height;
+	glm::vec3 topPoint = transform.toMatrix() * glm::vec4(localCenter + m_height * 0.5f * m_axis[0], 1.0f);
+	glm::vec3 bottomPoint = transform.toMatrix() * glm::vec4(localCenter - m_height * 0.5f * m_axis[0], 1.0f);
+	capsule.points.push_back(topPoint);
+	capsule.points.push_back(bottomPoint);
 	// std::cout << "topPoint: " << topPoint.x << " " << topPoint.y << " " << topPoint.z << "\n";
 	// std::cout << "bottomPoint: " << bottomPoint.x << " " << bottomPoint.y << " " << bottomPoint.z << "\n";
-	return cylinder;
+
+	return capsule;
 }
 
 } // namespace ale
