@@ -48,12 +48,48 @@ glm::vec3 CylinderToCapsuleContact::supportA(const ConvexInfo &cylinder, glm::ve
 
 glm::vec3 CylinderToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3 dir)
 {
+	float dotResult = glm::dot(dir, capsule.axes[0]);
+	if (dotResult > 0)
+	{
+		return capsule.points[0] + dir * capsule.radius;
+	}
+	else
+	{
+		return capsule.points[1] + dir * capsule.radius;
+	}
 }
 
 void CylinderToCapsuleContact::findCollisionPoints(const ConvexInfo &cylinder, const ConvexInfo &capsule,
-											  std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-											  std::vector<Simplex> &simplexVector)
+												   std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
+												   std::vector<Simplex> &simplexVector)
 {
+	if (isCollideToHemisphere(capsule, -epaInfo.normal))
+	{
+		CollisionInfo collisionInfo;
+
+		collisionInfo.normal = epaInfo.normal;
+		collisionInfo.seperation = epaInfo.distance;
+		if (glm::dot(capsule.axes[0], collisionInfo.normal) < 0)
+		{
+			collisionInfo.pointB = capsule.points[0] + collisionInfo.normal * capsule.radius;
+			collisionInfo.pointA = collisionInfo.pointB - collisionInfo.normal * collisionInfo.seperation;
+		}
+		else
+		{
+			collisionInfo.pointB = capsule.points[1] + collisionInfo.normal * capsule.radius;
+			collisionInfo.pointA = collisionInfo.pointB - collisionInfo.normal * collisionInfo.seperation;
+		}
+
+		collisionInfoVector.push_back(collisionInfo);
+	}
+	else
+	{
+		Face refFace = getCylinderFace(cylinder, epaInfo.normal);
+		Face incFace = getCapsuleFace(capsule, -epaInfo.normal);
+
+		std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+		buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
+	}
 }
 
 } // namespace ale
