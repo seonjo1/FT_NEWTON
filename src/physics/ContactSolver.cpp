@@ -224,14 +224,6 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 				tangentImpulse = 0.0f;
 			}
 
-			// if (velocityConstraint.isStopContact)
-			// {
-			// 	std::cout << "Stop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-			// 	m_velocities[indexA].linearVelocity -=
-			// 		glm::dot(m_velocities[indexA].linearVelocity, manifoldPoint.normal) * manifoldPoint.normal;
-			// 	m_velocities[indexB].linearVelocity -=
-			// 		glm::dot(m_velocities[indexB].linearVelocity, manifoldPoint.normal) * manifoldPoint.normal;
-			// }
 
 			// std::cout << "GO!!!!!!!!!!!!!\n";
 			finalLinearVelocityA -= velocityConstraint.invMassA * normalImpulse * manifoldPoint.normal;
@@ -239,8 +231,8 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			finalLinearVelocityA += velocityConstraint.invMassA * std::abs(tangentImpulse) * tangent;
 			finalLinearVelocityB -= velocityConstraint.invMassB * std::abs(tangentImpulse) * tangent;
 
-			glm::vec3 plusLinear = -normalImpulse * velocityConstraint.invMassA * manifoldPoint.normal;
-			glm::vec3 plusLinearF = velocityConstraint.invMassA * std::abs(tangentImpulse) * tangent;
+			// glm::vec3 plusLinear = -normalImpulse * velocityConstraint.invMassA * manifoldPoint.normal;
+			// glm::vec3 plusLinearF = velocityConstraint.invMassA * std::abs(tangentImpulse) * tangent;
 			// std::cout << "A normal Linear +: " << plusLinear.x << " " << plusLinear.y << " " << plusLinear.z << "\n";
 			// std::cout << "A normal LinearF +: " << plusLinearF.x << " " << plusLinearF.y << " " << plusLinearF.z
 			// 		  << "\n";
@@ -250,9 +242,8 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			finalAngularVelocityA += velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent);
 			finalAngularVelocityB -= velocityConstraint.invIB * glm::cross(rB, std::abs(tangentImpulse) * tangent);
 
-			glm::vec3 plusAngular = -velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal);
-			glm::vec3 plusAngularT =
-				velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent) * 1.0f;
+			// glm::vec3 plusAngular = -velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal);
+			// glm::vec3 plusAngularT = velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent) * 1.0f;
 			// std::cout << "Angular +: " << plusAngular.x << " " << plusAngular.y << " " << plusAngular.z << "\n";
 			// std::cout << "AngularT +: " << plusAngularT.x << " " << plusAngularT.y << " " << plusAngularT.z << "\n";
 
