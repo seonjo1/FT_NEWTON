@@ -14,7 +14,10 @@ set(SRC src/main.cpp src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
 		src/physics/Rigidbody.cpp src/physics/Shape.cpp src/physics/SphereShape.cpp 
 		src/physics/SphereToBoxContact.cpp src/physics/SphereToSphereContact.cpp src/physics/world.cpp 
 		src/physics/SphereToCylinderContact.cpp src/physics/CylinderToCylinderContact.cpp
-		src/physics/BoxToCylinderContact.cpp src/physics/CylinderShape.cpp)
+		src/physics/BoxToCylinderContact.cpp src/physics/CylinderShape.cpp
+		src/physics/CapsuleToCapsuleContact.cpp src/physics/CapsuleShape.cpp
+		src/physics/SphereToCapsuleContact.cpp src/physics/CylinderToCapsuleContact.cpp 
+		src/physics/BoxToCapsuleContact.cpp	)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
