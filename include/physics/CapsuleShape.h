@@ -17,6 +17,8 @@ class CapsuleShape : public Shape
 	void computeAABB(AABB *aabb, const Transform &xf) const;
 	void computeMass(MassData *massData, float density) const;
 	void setShapeFeatures(const std::vector<Vertex> &vertices);
+	void computeCapsuleFeatures(const std::vector<Vertex> &vertices);
+	void createCapsulePoints();
 
 	virtual float getLocalRadius() const override;
 	virtual const glm::vec3 &getLocalHalfSize() const override;
@@ -24,7 +26,8 @@ class CapsuleShape : public Shape
 
 	float m_radius;
 	float m_height;
-	glm::vec3 m_axis[2];
+	glm::vec3 m_axes[21];
+	glm::vec3 m_points[40];
 	std::set<glm::vec3, Vec3Comparator> m_vertices;
 };
 } // namespace ale

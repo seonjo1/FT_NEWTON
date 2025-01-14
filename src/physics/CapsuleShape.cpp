@@ -61,7 +61,7 @@ void CapsuleShape::computeMass(MassData *massData, float density) const
 {
 }
 
-void CapsuleShape::setShapeFeatures(const std::vector<Vertex> &vertices)
+void CapsuleShape::computeCapsuleFeatures(const std::vector<Vertex> &vertices)
 {
 	glm::vec3 min(FLT_MAX);
 	glm::vec3 max(-FLT_MAX);
@@ -80,21 +80,63 @@ void CapsuleShape::setShapeFeatures(const std::vector<Vertex> &vertices)
 	}
 
 	localCenter = (min + max) / 2.0f;
-	m_axis[0] = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_axis[1] = glm::vec3(1.0f, 0.0f, 0.0f);
+	m_axes[0] = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	m_radius = 0.0f;
 	glm::vec2 center(localCenter.x, localCenter.z);
+	
 	for (const Vertex &vertex : vertices)
 	{
 		m_radius = std::max(m_radius, glm::length2(glm::vec2(vertex.position.x, vertex.position.z) - center));
 	}
+
 	m_radius = std::sqrt(m_radius);
 	m_height = max.y - min.y - 2.0f * m_radius;
+
 	if (m_height < 0.0f)
 	{
 		throw std::runtime_error("fail to create capsule shape!!");
 	}
+}
+
+void CapsuleShape::createCapsulePoints()
+{
+	int32_t segments = 20;
+	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
+	glm::vec3 xAxis(1.0f, 0.0f, 0.0f);
+
+	glm::vec4 topPoint = glm::vec4(localCenter + m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
+	glm::vec4 bottomPoint = glm::vec4(localCenter - m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
+	
+	
+	glm::quat quat = glm::angleAxis(angleStep / 2.0f, m_axes[0]);
+	glm::mat4 mat = glm::toMat4(glm::normalize(quat));
+    glm::vec3 dir = mat * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+
+	int32_t base = 0;
+	for (int32_t i = base; i < segments; i++)
+	{
+		float theta = i * angleStep;
+		glm::quat orientation = glm::angleAxis(theta, m_axes[0]);
+		glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
+		m_points[i] = rotationMatrix * topPoint;
+		m_axes[i + 1] = rotationMatrix * glm::vec4(dir, 1.0f);
+	}
+	
+	base = segments;
+	for (int32_t i = base; i < segments + base; i++)
+	{
+		float theta = (i - base) * angleStep;
+		glm::quat orientation = glm::angleAxis(theta, m_axes[0]);
+		glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
+		m_points[i] = rotationMatrix * bottomPoint;
+	}
+}
+
+void CapsuleShape::setShapeFeatures(const std::vector<Vertex> &vertices)
+{
+	computeCapsuleFeatures(vertices);
+	createCapsulePoints();
 }
 
 float CapsuleShape::getLocalRadius() const
@@ -109,16 +151,33 @@ const glm::vec3 &CapsuleShape::getLocalHalfSize() const
 
 ConvexInfo CapsuleShape::getShapeInfo(const Transform &transform) const
 {
+	glm::mat4 matrix = transform.toMatrix();
+
 	ConvexInfo capsule;
 	capsule.radius = m_radius;
-	capsule.center = transform.toMatrix() * glm::vec4(localCenter, 1.0f);
-	capsule.axes.push_back(transform.toMatrix() * glm::vec4(m_axis[0], 0.0f));
-
 	capsule.height = m_height;
-	glm::vec3 topPoint = transform.toMatrix() * glm::vec4(localCenter + m_height * 0.5f * m_axis[0], 1.0f);
-	glm::vec3 bottomPoint = transform.toMatrix() * glm::vec4(localCenter - m_height * 0.5f * m_axis[0], 1.0f);
-	capsule.points.push_back(topPoint);
-	capsule.points.push_back(bottomPoint);
+	capsule.center = matrix * glm::vec4(localCenter, 1.0f);
+
+	int32_t segments = 20;
+	int32_t len = segments * 2;
+
+	capsule.axes.resize(segments + 1);
+	capsule.axes[0] = glm::normalize(matrix * glm::vec4(m_axes[0], 0.0f));
+
+	for (int32_t i = 1; i <= segments; ++i)
+	{
+		capsule.axes[i] = matrix * glm::vec4(m_axes[i], 1.0f);
+	}
+
+	capsule.points.resize(len);
+	// std::cout << "points size: " << capsule.points.size() << " " << len << "\n";
+	
+	for (int32_t i = 0; i < segments; i++)
+	{
+		capsule.points[i] = matrix * glm::vec4(m_points[i], 1.0f);
+		capsule.points[i + segments] = matrix * glm::vec4(m_points[i + segments], 1.0f);
+	}
+
 	// std::cout << "topPoint: " << topPoint.x << " " << topPoint.y << " " << topPoint.z << "\n";
 	// std::cout << "bottomPoint: " << bottomPoint.x << " " << bottomPoint.y << " " << bottomPoint.z << "\n";
 
