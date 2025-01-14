@@ -617,13 +617,13 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 	// int b = 1;
 	while (minDistance == FLT_MAX)
 	{
-	// 	std::cout << "b: " << b << "\n";
-	// 	b++;
-	// 	std::cout << "simplex!!\n";
-	// 	for (Simplex &simplex : simplexVector)
-	// 	{
-	// 		std::cout << "(" << simplex.diff.x << ", " << simplex.diff.y << ", " << simplex.diff.z << ")\n";
-	// 	}
+		// 	std::cout << "b: " << b << "\n";
+		// 	b++;
+		// std::cout << "simplex!!\n";
+		// for (Simplex &simplex : simplexVector)
+		// {
+		// 	std::cout << "(" << simplex.diff.x << ", " << simplex.diff.y << ", " << simplex.diff.z << ")\n";
+		// }
 
 		// 최소 거리의 법선, 거리 쿼리
 		minNormal = glm::vec3(normals[minFace]);
@@ -687,10 +687,6 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 				}
 			}
 
-			// std::cout << "end addUniqueEdge()\n";
-
-			// std::cout << "start make new face\n";
-			// std::cout << "uniqueEdge size: " << uniqueEdges.size() << "\n";
 			// uniqueEdge에 있는 edge들과 새로운 점을 조함하여 face 생성
 			std::vector<int32_t> newFaces;
 
@@ -706,12 +702,19 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 			// 새로 추가되는 면이 없다면 종료료
 			if (newFaces.size() == 0)
 			{
+				// std::cout << "simplex!!\n";
+				// for (Simplex &simplex : simplexVector)
+				// {
+				// 	std::cout << "(" << simplex.diff.x << ", " << simplex.diff.y << ", " << simplex.diff.z << ")\n";
+				// }
+
+				// std::cout << "normals size: " << normals.size() << "\n";
+				// std::cout << "minNormal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
+
 				throw std::runtime_error("failed to EPA!");		
 			}
 
-			// std::cout << "end make new face\n";
 
-			// std::cout << "start getFaceNormals\n";
 			// 새로운 점 추가
 			simplexVector.push_back(simplex);
 
@@ -727,9 +730,6 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 				break;
 			}
 
-			// std::cout << "end getFaceNormals\n";
-
-			// std::cout << "start triangle query\n";
 
 			// 기존 삼각형들 중 가장 거리가 짧은 삼각형 쿼리
 			for (int32_t i = 0; i < normals.size(); i++)
@@ -747,8 +747,6 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 				minFace = newMinFace + normals.size();
 			}
 
-			// std::cout << "end getFaceNormals\n";
-
 			// 새로운 face, normal 추가
 			faces.insert(faces.end(), newFaces.begin(), newFaces.end());
 			normals.insert(normals.end(), newNormals.begin(), newNormals.end());
@@ -757,7 +755,6 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 			// {
 			// 	std::cout << "face: " << faces[z] << " " << faces[z + 1] << " " << faces[z + 2] << "\n"; 
 			// }
-			// std::cout << "end epa one loop\n";
 		}
 	}
 
