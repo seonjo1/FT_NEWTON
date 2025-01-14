@@ -85,21 +85,21 @@ void CylinderToCylinderContact::findCollisionPoints(const ConvexInfo &cylinderA,
 												  std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
 												  std::vector<Simplex> &simplexVector)
 {
-	// std::cout << "cylinder vs cylinder!!\n";
+	std::cout << "cylinder vs cylinder!!\n";
 	// clipping
 	Face refFace = getCylinderFace(cylinderA, epaInfo.normal);
 	Face incFace = getCylinderFace(cylinderB, -epaInfo.normal);
 
-	// for (int i = 0; i < refFace.vertices.size(); i++)
-	// {
-	// 	std::cout << "refFace[" << i << "]: " << refFace.vertices[i].x << " " << refFace.vertices[i].y << refFace.vertices[i].z << "\n";
-	// }
+	for (int i = 0; i < refFace.vertices.size(); i++)
+	{
+		std::cout << "refFace[" << i << "]: " << refFace.vertices[i].x << " " << refFace.vertices[i].y << " " << refFace.vertices[i].z << "\n";
+	}
 
 
-	// for (int i = 0; i < incFace.vertices.size(); i++)
-	// {
-	// 	std::cout << "incFace[" << i << "]: " << incFace.vertices[i].x << " " << incFace.vertices[i].y << incFace.vertices[i].z << "\n";
-	// }
+	for (int i = 0; i < incFace.vertices.size(); i++)
+	{
+		std::cout << "incFace[" << i << "]: " << incFace.vertices[i].x << " " << incFace.vertices[i].y << " " << incFace.vertices[i].z << "\n";
+	}
 
 	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
 
