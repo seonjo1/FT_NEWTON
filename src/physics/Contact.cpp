@@ -1103,7 +1103,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	float length = glm::dot(normal, cylinder.axes[0]);
 	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
 	// std::cout << "normal: " << normal.x << " " << normal.y << " " << normal.z << "\n";
-	if (length > 0.7f)
+	if (length > 0.9f)
 	{
 		// std::cout << "top!!!\n";
 		face.vertices.resize(segments);
@@ -1117,7 +1117,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 		face.normal = cylinder.axes[0];
 		face.distance = glm::dot(cylinder.axes[0], face.vertices[0]);
 	}
-	else if (length < -0.7f)
+	else if (length < -0.9f)
 	{
 		// std::cout << "bottom!!!\n";
 		
