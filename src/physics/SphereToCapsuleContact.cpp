@@ -19,14 +19,19 @@ glm::vec3 SphereToCapsuleContact::supportA(const ConvexInfo &sphere, glm::vec3 d
 glm::vec3 SphereToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3 dir)
 {
 	float dotResult = glm::dot(dir, capsule.axes[0]);
+
+	glm::vec3 move(0.0f);
+
 	if (dotResult > 0)
 	{
-		return capsule.points[0] + dir * capsule.radius;
+		move = capsule.axes[0] * capsule.height * 0.5f;
 	}
-	else
+	else if (dotResult < 0)
 	{
-		return capsule.points[1] + dir * capsule.radius;
+		move = -capsule.axes[0] * capsule.height * 0.5f;
 	}
+	
+	return capsule.center + move + dir * capsule.radius;
 }
 
 void SphereToCapsuleContact::findCollisionPoints(const ConvexInfo &sphere, const ConvexInfo &capsule,
