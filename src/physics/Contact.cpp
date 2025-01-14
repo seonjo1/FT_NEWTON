@@ -148,6 +148,11 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 		std::cout << "EPA start\n";
 		EpaInfo epaInfo = getEpaResult(convexA, convexB, simplexVector);
 
+		if (epaInfo.distance == -1.0f)
+		{
+			return ;
+		}
+
 		std::vector<CollisionInfo> collisionInfoVector;
 
 		std::cout << "CLIPPING start\n";
@@ -190,13 +195,13 @@ void Contact::update()
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 	for (ManifoldPoint &manifoldPoint : m_manifold.points)
 	{
-		// std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " "
-		// 		  << manifoldPoint.pointA.z << "\n";
-		// std::cout << "pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " "
-		// 		  << manifoldPoint.pointB.z << "\n";
-		// std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
-		// 		  << manifoldPoint.normal.z << "\n";
-		// std::cout << "seperation: " << manifoldPoint.seperation << "\n";
+		std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " "
+				  << manifoldPoint.pointA.z << "\n";
+		std::cout << "pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " "
+				  << manifoldPoint.pointB.z << "\n";
+		std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
+				  << manifoldPoint.normal.z << "\n";
+		std::cout << "seperation: " << manifoldPoint.seperation << "\n";
 		manifoldPoint.normalImpulse = 0.0f;
 		manifoldPoint.tangentImpulse = 0.0f;
 		uint32_t manifoldPointId = manifoldPoint.id;
@@ -351,7 +356,7 @@ bool Contact::handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &
 		dir = glm::normalize(glm::cross(glm::cross(ab, ao), ab));
 	}
 
-	std::cout << "line normal: " << dir.x << " " << dir.y << " " << dir.z << "\n";
+	// std::cout << "line normal: " << dir.x << " " << dir.y << " " << dir.z << "\n";
 	return false;
 }
 
@@ -415,7 +420,7 @@ bool Contact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm:
 	// 부피가 없으면 반대 방향으로 4번째 점 다시 찾기기
 	if (std::abs(glm::dot((d - a), abc)) < 1e-8f)
 	{
-		std::cout << "no Volume!!\n";
+		// std::cout << "no Volume!!\n";
 		simplexVector.pop_back();
 		dir = -dir;
 		return false;
@@ -577,7 +582,9 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 	// GJK에서 구한 simplex들중 원점에서 가장 가까운 삼각형의 법선과 최소 거리
 	std::vector<glm::vec4> normals;
 	int32_t minFace = getFaceNormals(normals, simplexVector, faces);
-	glm::vec3 minNormal;
+	glm::vec3 minNormal(0.0f);
+
+
 
 	for (int c = 0; c < faces.size(); c = c + 3)
 	{
@@ -590,6 +597,11 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 	}
 
 	float minDistance = FLT_MAX;
+
+	if (minFace == -1)
+	{
+		minDistance = -1.0f;	
+	}
 
 	int b = 1;
 	while (minDistance == FLT_MAX)
@@ -634,7 +646,7 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 								   3.0f;
 
 				std::cout << "center: " << center.x << " " << center.y << " " << center.z << "\n";
-				std::cout << "supportPoint: " << supportPoint.x << " " << supportPoint.y << " " << supportPoint.z << "\n";
+				std::cout << "supportPoint: (" << supportPoint.x << ", " << supportPoint.y << ", " << supportPoint.z << ")\n";
 				std::cout << "supportPoint - center: " << supportPoint.x - center.x << " " << supportPoint.y - center.y << " " << supportPoint.z - center.z << "\n";
 				std::cout << "normals[" << i << "]: " << normals[i].x << " " << normals[i].y << " " << normals[i].z << "\n";
 				if (isSimilarDirection(normals[i], supportPoint - center))
@@ -696,6 +708,14 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 			std::vector<glm::vec4> newNormals;
 			int32_t newMinFace = getFaceNormals(newNormals, simplexVector, newFaces);
 			float oldMinDistance = FLT_MAX;
+
+			if (newMinFace == -1)
+			{
+				minNormal = glm::vec3(0.0f);
+				minDistance = -1.0f;
+				break;
+			}
+
 			// std::cout << "end getFaceNormals\n";
 
 			// std::cout << "start triangle query\n";
@@ -742,6 +762,17 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 int32_t Contact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
 								std::vector<int32_t> &faces)
 {
+	glm::vec3 center(0.0f);
+
+	for (const Simplex &simplex : simplexVector)
+	{
+		center += simplex.diff;
+	}
+
+	center = center / static_cast<float>(simplexVector.size());
+
+	std::cout << " get Face Normals center : (" << center.x << ", " << center.y << ", " << center.z << ")\n";
+
 	int32_t minTriangle = 0;
 	float minDistance = FLT_MAX;
 
@@ -774,32 +805,15 @@ int32_t Contact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vect
 		glm::vec3 normal = glm::normalize(crossResult);
 		// std::cout  << "before normal: " << normal.x << " " << normal.y << " " << normal.z << "\n";
 		// 삼각형과 원점 사이의 거리
-		float distance = glm::dot(normal, a);
-		if (distance == 0)
+		if (glm::dot(normal, a - center) < 0)
 		{
-			// std::cout << "distance = 0 in!!\n";
-			int32_t simplexVectorSize = simplexVector.size();
-			int32_t maxIdx = -1;
-			float maxDistance = -FLT_MAX;
-			for (int32_t j = 0; j < simplexVectorSize; j++)
-			{
-				float dotResult = glm::dot(simplexVector[j].diff, normal);
-				if (maxDistance < dotResult)
-				{
-					maxDistance = dotResult;
-					maxIdx = j;
-				}
-			}
-			if (maxIdx != faces[i] && maxIdx != faces[i + 1] && maxIdx != faces[i + 2])
-			{
-				normal = -normal;
-			}
+			normal = -normal;
 		}
-		else if (distance < 0)
+
+		float distance = glm::dot(normal, a);
+		if (distance < 0)
 		{
-			// 법선 방향이 반대인 경우 -1 곱해주기
-			normal *= -1;
-			distance *= -1;
+			return -1;
 		}
 
 		// 법선 벡터 저장
@@ -1085,7 +1099,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	// std::cout << "normal: " << normal.x << " " << normal.y << " " << normal.z << "\n";
 	if (length + 1e-4f >= 1.0f)
 	{
-		std::cout << "top!!!\n";
+		// std::cout << "top!!!\n";
 		int32_t pointsSize = cylinder.points.size();
 		for (int32_t i = 0; i < pointsSize; i = i + 2)
 		{
@@ -1098,7 +1112,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	}
 	else if (length - 1e-4f <= -1.0f)
 	{
-		std::cout << "bottom!!!\n";
+		// std::cout << "bottom!!!\n";
 		
 		int32_t pointsSize = cylinder.points.size();
 		for (int32_t i = 1; i < pointsSize; i = i + 2)
@@ -1113,7 +1127,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	}
 	else
 	{
-		std::cout << "edge!!!\n";
+		// std::cout << "edge!!!\n";
 		face.normal = normal;
 		float dotResult = glm::dot(normal, cylinder.axes[0]);
 		if (dotResult != 0.0f)
