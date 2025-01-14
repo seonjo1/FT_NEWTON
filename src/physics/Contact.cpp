@@ -534,9 +534,17 @@ bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB,
 	}
 
 	simplexVector.push_back(getSupportPoint(convexA, convexB, dir));
+
 	glm::vec3 supportPoint = simplexVector.back().diff;
 
 	// 두 번째 support point 구하기
+	if (glm::length2(supportPoint) == 0.0f)
+	{
+		dir = -dir;
+		simplexVector[0] = getSupportPoint(convexA, convexB, dir);
+		supportPoint = simplexVector.back().diff;
+	}
+
 	dir = glm::normalize(-supportPoint);
 
 	int32_t iter = 0;
@@ -1198,15 +1206,42 @@ Face Contact::getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal)
 	{
 		face.normal = glm::normalize(normal - dotResult * capsule.axes[0]);
 	}
+	
+	int32_t dir;
+	float max = -FLT_MAX;
+	// std::cout << "face.normal: (" << face.normal.x << ", " << face.normal.y << ", " << face.normal.z <<")\n";
 
-	glm::vec3 widthAxis = glm::normalize(glm::cross(capsule.axes[0], face.normal));
-	float halfWidth = angleStep * capsule.radius * 0.5f;
-	glm::vec3 center = capsule.center + face.normal * capsule.radius;
-	face.vertices.push_back(center + halfWidth * widthAxis + capsule.axes[0] * 0.5f * capsule.height);
-	face.vertices.push_back(center + halfWidth * widthAxis - capsule.axes[0] * 0.5f * capsule.height);
-	face.vertices.push_back(center - halfWidth * widthAxis + capsule.axes[0] * 0.5f * capsule.height);
-	face.vertices.push_back(center - halfWidth * widthAxis - capsule.axes[0] * 0.5f * capsule.height);
+	for (int32_t i = 1; i <= segments; ++i)
+	{
+		dotResult = glm::dot(capsule.axes[i], face.normal);
+		if (dotResult > max)
+		{
+			// std::cout << "max!!\n";
+			// std::cout << "dotResult: " << dotResult <<" \n";
+			// std::cout << "axes[" << i << "]: (" << capsule.axes[i].x << ", " << capsule.axes[i].y << ", " << capsule.axes[i].z <<")\n";
+			dir = i;
+			max = dotResult;
+		}
+	}
+
+	int32_t idx1 = dir - 1;
+	int32_t idx2 = dir % segments;
+
+	face.vertices.resize(4);
+	face.vertices[0] = capsule.points[idx1];
+	face.vertices[1] = capsule.points[idx2];
+	face.vertices[2] = capsule.points[idx1 + segments];
+	face.vertices[3] = capsule.points[idx2 + segments];
+
+	// std::cout << "face 4 start\n";
+	// for (int i = 0; i < 4; i ++)
+	// {
+		// std::cout << "face[" << i << "]: (" << face.vertices[i].x << ", " << face.vertices[i].y << ", " << face.vertices[i].z <<")\n";
+	// }
+
 	face.distance = glm::dot(face.normal, face.vertices[0]);
+	glm::vec3 center = (face.vertices[0] + face.vertices[1] + face.vertices[2] + face.vertices[3]) / 4.0f;
+
 
 	sortPointsClockwise(face.vertices, center, face.normal);
 
