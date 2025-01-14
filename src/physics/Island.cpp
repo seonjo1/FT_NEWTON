@@ -28,9 +28,9 @@ void Island::solve(float duration)
 		m_positions[i].orientation = body->getOrientation();
 		m_velocities[i].linearVelocity = body->getLinearVelocity();
 		m_velocities[i].angularVelocity = body->getAngularVelocity();
-		std::cout << "body: " << body->getBodyId() << "\n";
-		std::cout << "Start bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
-		std::cout << "Start bodyVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		// std::cout << "body: " << body->getBodyId() << "\n";
+		// std::cout << "Start bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
+		// std::cout << "Start bodyVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
 	}
 
 	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities);
@@ -101,10 +101,10 @@ void Island::solve(float duration)
 		body->setLinearVelocity(m_velocities[i].linearVelocity);
 		body->setAngularVelocity(m_velocities[i].angularVelocity);
 		body->synchronizeFixtures();
-		std::cout << "body: " << body->getBodyId() << "\n";
-		std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
-		std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
-		std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
+		// std::cout << "body: " << body->getBodyId() << "\n";
+		// std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
+		// std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		// std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
 
 	}
 }
