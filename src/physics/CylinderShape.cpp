@@ -203,17 +203,17 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 		cylinder.points.push_back(matrix * rotationMatrix * bottomPoint);
 	}
 
-	std::cout << "center: (" << cylinder.center.x << ", " << cylinder.center.y << ", " << cylinder.center.z << "\n";
+	std::cout << "center: (" << cylinder.center.x << ", " << cylinder.center.y << ", " << cylinder.center.z << ")\n";
 
-	std::cout << "top points\n";
+	std::cout << "top points)\n";
 	for (int i = 0; i < cylinder.points.size(); i = i + 2)
 	{
-		std::cout << "("<< cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << "\n";
+		std::cout << "("<< cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
 	}
-	std::cout << "bottom points\n";
+	std::cout << "bottom points)\n";
 	for (int i = 1; i < cylinder.points.size(); i = i + 2)
 	{
-		std::cout  << "(" << cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << "\n";
+		std::cout  << "(" << cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
 	}
 	
 	cylinder.height = m_height;
