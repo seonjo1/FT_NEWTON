@@ -433,27 +433,27 @@ void App::createModels()
 	// 	sy = sy + 2.0f;
 	// }
 
-	int32_t O = 2;
-	float cz = 0.0f;
-	for (int32_t i = 0; i < O; i++)
-	{
-		float cy = 1.0f;
-		for (int32_t j = 0; j < O; j++)
-		{
-			float cx = 0.0f;
-			for (int32_t k = 0; k < O; k++)
-			{
-				ale::Transform capsuleXF(glm::vec3(cx, cy, cz),
-										glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
-				models.push_back(Model::createCapsule(deviceManager.get(), commandManager->getCommandPool(), capsuleXF,
-													"models/container.png"));
-				transforms.push_back(capsuleXF);
-				cx = cx + 1.0f;
-			}
-			cy = cy + 2.0f;
-		}
-		cz = cz + 1.0f;
-	}
+	// int32_t O = 3;
+	// float cz = 0.0f;
+	// for (int32_t i = 0; i < O; i++)
+	// {
+	// 	float cy = 0.5f;
+	// 	for (int32_t j = 0; j < O; j++)
+	// 	{
+	// 		float cx = 0.0f;
+	// 		for (int32_t k = 0; k < O; k++)
+	// 		{
+	// 			ale::Transform capsuleXF(glm::vec3(cx, cy, cz),
+	// 									glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// 			models.push_back(Model::createCapsule(deviceManager.get(), commandManager->getCommandPool(), capsuleXF,
+	// 												"models/container.png"));
+	// 			transforms.push_back(capsuleXF);
+	// 			cx = cx + 1.0f;
+	// 		}
+	// 		cy = cy + 2.0f;
+	// 	}
+	// 	cz = cz + 1.0f;
+	// }
 }
 
 void App::createWorld()
