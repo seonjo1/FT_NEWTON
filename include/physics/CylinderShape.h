@@ -20,6 +20,7 @@ class CylinderShape : public Shape
 	void findAxisByLongestPair(const std::vector<Vertex> &vertices);
 	void computeCylinderRadius(const std::vector<Vertex> &vertices);
 	void computeCylinderFeatures(const std::vector<Vertex> &vertices);
+	void createCylinderPoints();
 
 	virtual float getLocalRadius() const override;
 	virtual const glm::vec3 &getLocalHalfSize() const override;
@@ -27,7 +28,8 @@ class CylinderShape : public Shape
 
 	float m_radius;
 	float m_height;
-	glm::vec3 m_axis[2];
+	glm::vec3 m_axes[21];
+	glm::vec3 m_points[40];
 	std::set<glm::vec3, Vec3Comparator> m_vertices;
 };
 } // namespace ale

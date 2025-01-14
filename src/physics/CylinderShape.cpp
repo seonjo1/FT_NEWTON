@@ -59,46 +59,46 @@ void CylinderShape::computeMass(MassData *massData, float density) const
 {
 }
 
-void CylinderShape::findAxisByLongestPair(const std::vector<Vertex> &vertices)
-{
-	if (vertices.size() < 2)
-	{
-		m_axis[0] = glm::vec3(0.0f);
-		return;
-	}
+// void CylinderShape::findAxisByLongestPair(const std::vector<Vertex> &vertices)
+// {
+// 	if (vertices.size() < 2)
+// 	{
+// 		m_axis[0] = glm::vec3(0.0f);
+// 		return;
+// 	}
 
-	float maxDistSq = -std::numeric_limits<float>::infinity();
-	glm::vec3 bestA(0.0f), bestB(0.0f);
+// 	float maxDistSq = -std::numeric_limits<float>::infinity();
+// 	glm::vec3 bestA(0.0f), bestB(0.0f);
 
-	// 1) 모든 점 쌍 탐색 -> 최대 거리 찾기
-	for (size_t i = 0; i < vertices.size(); i++)
-	{
-		for (size_t j = i + 1; j < vertices.size(); j++)
-		{
-			float d2 = glm::length2(vertices[i].position - vertices[j].position);
-			if (d2 > maxDistSq)
-			{
-				maxDistSq = d2;
-				bestA = vertices[i].position;
-				bestB = vertices[j].position;
-			}
-		}
-	}
+// 	// 1) 모든 점 쌍 탐색 -> 최대 거리 찾기
+// 	for (size_t i = 0; i < vertices.size(); i++)
+// 	{
+// 		for (size_t j = i + 1; j < vertices.size(); j++)
+// 		{
+// 			float d2 = glm::length2(vertices[i].position - vertices[j].position);
+// 			if (d2 > maxDistSq)
+// 			{
+// 				maxDistSq = d2;
+// 				bestA = vertices[i].position;
+// 				bestB = vertices[j].position;
+// 			}
+// 		}
+// 	}
 
-	// 2) 축 벡터
-	glm::vec3 axis = glm::normalize(bestB - bestA);
+// 	// 2) 축 벡터
+// 	glm::vec3 axis = glm::normalize(bestB - bestA);
 
-	// 혹시나 0 벡터가 될 경우 대
-	if (glm::length2(axis) < 1e-9f)
-	{
-		m_axis[0] = glm::vec3(1.0f, 0.0f, 0.0f);
-		m_height = 0.1f;
-		return;
-	}
+// 	// 혹시나 0 벡터가 될 경우 대
+// 	if (glm::length2(axis) < 1e-9f)
+// 	{
+// 		m_axis[0] = glm::vec3(1.0f, 0.0f, 0.0f);
+// 		m_height = 0.1f;
+// 		return;
+// 	}
 
-	m_height = std::abs(glm::dot(bestA, axis) - glm::dot(bestB, axis));
-	m_axis[0] = axis;
-}
+// 	m_height = std::abs(glm::dot(bestA, axis) - glm::dot(bestB, axis));
+// 	m_axis[0] = axis;
+// }
 
 void CylinderShape::computeCylinderFeatures(const std::vector<Vertex> &vertices)
 {
@@ -119,8 +119,7 @@ void CylinderShape::computeCylinderFeatures(const std::vector<Vertex> &vertices)
 	}
 
 	localCenter = (min + max) / 2.0f;
-	m_axis[0] = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_axis[1] = glm::vec3(1.0f, 0.0f, 0.0f);
+	m_axes[0] = glm::vec3(0.0f, 1.0f, 0.0f);
 	m_height = max.y - min.y;
 
 	m_radius = 0.0f;
@@ -132,40 +131,87 @@ void CylinderShape::computeCylinderFeatures(const std::vector<Vertex> &vertices)
 	m_radius = std::sqrt(m_radius);
 }
 
-void CylinderShape::computeCylinderRadius(const std::vector<Vertex> &vertices)
+// void CylinderShape::computeCylinderRadius(const std::vector<Vertex> &vertices)
+// {
+// 	float maxRadius = 0.0f;
+// 	for (const Vertex &vertex : vertices)
+// 	{
+// 		glm::vec3 diff = vertex.position - localCenter;
+// 		float proj = glm::dot(diff, m_axis[0]); // 축 방향 투영
+// 		glm::vec3 onAxis = proj * m_axis[0];	   // 축 위 좌표
+// 		glm::vec3 perp = diff - onAxis;	   // 축에 수직인 성분
+// 		float dist = glm::length(perp);
+// 		if (dist > maxRadius)
+// 		{
+// 			maxRadius = dist;
+// 		}
+// 	}
+
+// 	const Vertex &vertex = vertices[0];
+// 	glm::vec3 toVertex = vertex.position - localCenter;
+// 	float dotResult = glm::dot(m_axis[0], toVertex); 
+// 	if (glm::length2(dotResult) == 0.0f)
+// 	{
+// 		m_axis[1] = glm::normalize(toVertex);
+// 	}
+// 	else
+// 	{
+// 		m_axis[1] = glm::normalize(toVertex - dotResult * m_axis[0]);
+// 	}
+
+// 	m_radius = maxRadius;
+// }
+
+void CylinderShape::createCylinderPoints()
 {
-	float maxRadius = 0.0f;
-	for (const Vertex &vertex : vertices)
+	int32_t segments = 20;
+	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
+	glm::vec3 xAxis(1.0f, 0.0f, 0.0f);
+
+	glm::vec4 topPoint = glm::vec4(localCenter + m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
+	glm::vec4 bottomPoint = glm::vec4(localCenter - m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
+	
+	
+	glm::quat quat = glm::angleAxis(angleStep / 2.0f, m_axes[0]);
+	glm::mat4 mat = glm::toMat4(glm::normalize(quat));
+    glm::vec3 dir = mat * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+
+	int32_t base = 0;
+	for (int32_t i = base; i < segments; i++)
 	{
-		glm::vec3 diff = vertex.position - localCenter;
-		float proj = glm::dot(diff, m_axis[0]); // 축 방향 투영
-		glm::vec3 onAxis = proj * m_axis[0];	   // 축 위 좌표
-		glm::vec3 perp = diff - onAxis;	   // 축에 수직인 성분
-		float dist = glm::length(perp);
-		if (dist > maxRadius)
-		{
-			maxRadius = dist;
-		}
+		float theta = i * angleStep;
+		glm::quat orientation = glm::angleAxis(theta, m_axes[0]);
+		glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
+		m_points[i] = rotationMatrix * topPoint;
+		m_axes[i + 1] = rotationMatrix * glm::vec4(dir, 1.0f);
+	}
+	
+	base = segments;
+	for (int32_t i = base; i < segments + base; i++)
+	{
+		float theta = (i - base) * angleStep;
+		glm::quat orientation = glm::angleAxis(theta, m_axes[0]);
+		glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
+		m_points[i] = rotationMatrix * bottomPoint;
 	}
 
-	const Vertex &vertex = vertices[0];
-	glm::vec3 toVertex = vertex.position - localCenter;
-	float dotResult = glm::dot(m_axis[0], toVertex); 
-	if (glm::length2(dotResult) == 0.0f)
-	{
-		m_axis[1] = glm::normalize(toVertex);
-	}
-	else
-	{
-		m_axis[1] = glm::normalize(toVertex - dotResult * m_axis[0]);
-	}
+	// std::cout << "axes !!\n";
+	// for (int i = 0; i <= segments; i++)
+	// {
+	// 	std::cout << "("<< m_axes[i].x << ", " << m_axes[i].y << ", " << m_axes[i].z << ")\n";
+	// }
 
-	m_radius = maxRadius;
+	// std::cout << "cylinder points!!\n";
+	// for (int i = 0; i < segments * 2; i++)
+	// {
+	// 	std::cout << "("<< m_points[i].x << ", " << m_points[i].y << ", " << m_points[i].z << ")\n";
+	// }
 }
 
 void CylinderShape::setShapeFeatures(const std::vector<Vertex> &vertices)
 {
 	computeCylinderFeatures(vertices);
+	createCylinderPoints();
 	// findAxisByLongestPair(vertices);
 	// computeCylinderRadius(vertices);
 }
@@ -186,35 +232,39 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 	cylinder.radius = m_radius;
 	glm::mat4 matrix = transform.toMatrix();
 	cylinder.center = matrix * glm::vec4(localCenter, 1.0f);
-	cylinder.axes.push_back(glm::normalize(matrix * glm::vec4(m_axis[0], 0.0f)));
 
 	int32_t segments = 20;
-	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
-	
-	glm::vec4 topPoint = glm::vec4(localCenter + m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius, 1.0f);
-	glm::vec4 bottomPoint = glm::vec4(localCenter - m_height * 0.5f * m_axis[0] + m_axis[1] * m_radius, 1.0f);
+	int32_t len = segments * 2;
+
+	cylinder.axes.resize(segments + 1);
+	cylinder.axes[0] = glm::normalize(matrix * glm::vec4(m_axes[0], 0.0f));
+
+	for (int32_t i = 1; i <= segments; ++i)
+	{
+		cylinder.axes[i] = matrix * glm::vec4(m_axes[i], 1.0f);
+	}
+
+	cylinder.points.resize(len);
+	// std::cout << "points size: " << cylinder.points.size() << " " << len << "\n";
 	
 	for (int32_t i = 0; i < segments; i++)
 	{
-		float theta = i * angleStep;
-		glm::quat orientation = glm::angleAxis(theta, cylinder.axes[0]);
-		glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));
-		cylinder.points.push_back(matrix * rotationMatrix * topPoint);
-		cylinder.points.push_back(matrix * rotationMatrix * bottomPoint);
+		cylinder.points[i] = matrix * glm::vec4(m_points[i], 1.0f);
+		cylinder.points[i + segments] = matrix * glm::vec4(m_points[i + segments], 1.0f);
 	}
 
-	std::cout << "center: (" << cylinder.center.x << ", " << cylinder.center.y << ", " << cylinder.center.z << ")\n";
+	// std::cout << "center: (" << cylinder.center.x << ", " << cylinder.center.y << ", " << cylinder.center.z << ")\n";
 
-	std::cout << "top points)\n";
-	for (int i = 0; i < cylinder.points.size(); i = i + 2)
-	{
-		std::cout << "("<< cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
-	}
-	std::cout << "bottom points)\n";
-	for (int i = 1; i < cylinder.points.size(); i = i + 2)
-	{
-		std::cout  << "(" << cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
-	}
+	// std::cout << "cylinder points!!\n";
+	// for (int i = 0; i < cylinder.points.size(); i++)
+	// {
+	// 	std::cout << "("<< cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
+	// }
+	// std::cout << "bottom points)\n";
+	// for (int i = 1; i < cylinder.points.size(); i = i + 2)
+	// {
+	// 	std::cout  << "(" << cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
+	// }
 	
 	cylinder.height = m_height;
 	return cylinder;
