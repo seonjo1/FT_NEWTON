@@ -89,14 +89,14 @@ void CapsuleToCapsuleContact::findCollisionPoints(const ConvexInfo &capsuleA, co
 		if (glm::dot(capsuleB.axes[0], collisionInfo.normal) < 0)
 		{
 			glm::vec3 hemisphereCenter = capsuleB.center + capsuleB.axes[0] * 0.5f * capsuleB.height;
-			collisionInfo.pointB = hemisphereCenter + collisionInfo.normal * capsuleB.radius;
-			collisionInfo.pointA = collisionInfo.pointB - collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsuleB.radius;
+			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
 		}
 		else
 		{
 			glm::vec3 hemisphereCenter = capsuleB.center - capsuleB.axes[0] * 0.5f * capsuleB.height;
-			collisionInfo.pointB = hemisphereCenter + collisionInfo.normal * capsuleB.radius;
-			collisionInfo.pointA = collisionInfo.pointB - collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsuleB.radius;
+			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
 		}
 		
 		collisionInfoVector.push_back(collisionInfo);
