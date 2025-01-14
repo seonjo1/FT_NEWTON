@@ -319,10 +319,7 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 
 			glm::vec3 rA = manifoldPoint.pointA - positionConstraint.worldCenterA; // bodyA의 충돌 지점까지의 벡터
 			glm::vec3 rB = manifoldPoint.pointB - positionConstraint.worldCenterB; // bodyB의 충돌 지점까지의 벡터
-			// 상대 속도 계산
-			glm::vec3 relativeVelocity =
-				(m_velocities[indexB].linearVelocity + glm::cross(m_velocities[indexB].angularVelocity, rB)) -
-				(m_velocities[indexA].linearVelocity + glm::cross(m_velocities[indexA].angularVelocity, rA));
+
 			// 관통 해소된상태면 무시
 			if (glm::dot(manifoldPoint.pointA - manifoldPoint.pointB, manifoldPoint.normal) < kSlop)
 			{
@@ -355,6 +352,11 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 			// std::cout << "pos dA: " << positionA.x << " " << positionA.y << " " << positionA.z << "\n";
 			// std::cout << "pos dB: " << positionB.x << " " << positionB.y << " " << positionB.z << "\n";
 
+		}
+
+		for (int32_t j = 0; j < pointCount; j++)
+		{
+			ManifoldPoint &manifoldPoint = positionConstraint.points[j];
 			manifoldPoint.pointA += positionA;
 			manifoldPoint.pointB += positionB;
 			if (glm::dot(manifoldPoint.pointA - manifoldPoint.pointB, manifoldPoint.normal) > kSlop)
@@ -362,7 +364,7 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 				solved = false;
 			}
 		}
-
+		
 		m_positions[indexA].position += positionA;
 		m_positions[indexB].position += positionB;
 	}
