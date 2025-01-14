@@ -228,9 +228,11 @@ const glm::vec3 &CylinderShape::getLocalHalfSize() const
 
 ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 {
+	glm::mat4 matrix = transform.toMatrix();
+
 	ConvexInfo cylinder;
 	cylinder.radius = m_radius;
-	glm::mat4 matrix = transform.toMatrix();
+	cylinder.height = m_height;
 	cylinder.center = matrix * glm::vec4(localCenter, 1.0f);
 
 	int32_t segments = 20;
@@ -266,7 +268,6 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 	// 	std::cout  << "(" << cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
 	// }
 	
-	cylinder.height = m_height;
 	return cylinder;
 }
 
