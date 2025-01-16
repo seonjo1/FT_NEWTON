@@ -79,7 +79,7 @@ void SwapChainManager::createSwapChain(GLFWwindow* window, DeviceManager* device
 	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
 		imageCount = swapChainSupport.capabilities.maxImageCount;
 	}
-	
+
 	// SwapChain 정보 생성
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -161,12 +161,12 @@ VkSurfaceFormatKHR SwapChainManager::chooseSwapSurfaceFormat(const std::vector<V
 선호하는 모드가 없을 시 기본 값인 VK_PRESENT_MODE_FIFO_KHR 반환
 */
 VkPresentModeKHR SwapChainManager::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-	for (const auto& availablePresentMode : availablePresentModes) {
-		// 선호하는 mode가 존재하면 해당 mode 반환 
-		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-			return availablePresentMode;
-		}
-	}
+	// for (const auto& availablePresentMode : availablePresentModes) {
+	// 	// 선호하는 mode가 존재하면 해당 mode 반환 
+	// 	if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+	// 		return availablePresentMode;
+	// 	}
+	// }
 	// 선호하는 mode가 존재하지 않으면 기본 값인 VK_PRESENT_MODE_FIFO_KHR 반환
 	return VK_PRESENT_MODE_FIFO_KHR;
 }
