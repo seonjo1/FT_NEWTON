@@ -6,7 +6,7 @@ namespace ale
 {
 BoxShape::BoxShape()
 {
-	m_type = Type::BOX;
+	m_type = EType::BOX;
 }
 BoxShape *BoxShape::clone() const
 {
@@ -54,9 +54,6 @@ void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
 }
-void BoxShape::computeMass(MassData *massData, float density) const
-{
-}
 
 void BoxShape::setVertices(const std::vector<Vertex> &vertices)
 {
@@ -75,8 +72,8 @@ void BoxShape::setVertices(const std::vector<Vertex> &vertices)
 		m_vertices.insert(vertex.position);
 	}
 
-	localCenter = (maxPos + minPos) / 2.0f;
-	halfSize = (maxPos - minPos) / 2.0f;
+	m_center = (maxPos + minPos) / 2.0f;
+	m_halfSize = (maxPos - minPos) / 2.0f;
 }
 
 ConvexInfo BoxShape::getShapeInfo(const Transform &transform) const
@@ -84,16 +81,16 @@ ConvexInfo BoxShape::getShapeInfo(const Transform &transform) const
 	ConvexInfo box;
 	glm::mat4 matrix = transform.toMatrix();
 
-	box.center = matrix * glm::vec4(localCenter, 1.0f);
-	box.halfSize = halfSize;
-	box.points = {matrix * glm::vec4(localCenter - halfSize, 1.0f),
-				  matrix * glm::vec4(localCenter + glm::vec3(halfSize.x, -halfSize.y, -halfSize.z), 1.0f),
-				  matrix * glm::vec4(localCenter + glm::vec3(-halfSize.x, halfSize.y, -halfSize.z), 1.0f),
-				  matrix * glm::vec4(localCenter + glm::vec3(-halfSize.x, -halfSize.y, halfSize.z), 1.0f),
-				  matrix * glm::vec4(localCenter + glm::vec3(halfSize.x, halfSize.y, -halfSize.z), 1.0f),
-				  matrix * glm::vec4(localCenter + glm::vec3(halfSize.x, -halfSize.y, halfSize.z), 1.0f),
-				  matrix * glm::vec4(localCenter + glm::vec3(-halfSize.x, halfSize.y, halfSize.z), 1.0f),
-				  matrix * glm::vec4(localCenter + halfSize, 1.0f)};
+	box.center = matrix * glm::vec4(m_center, 1.0f);
+	box.halfSize = m_halfSize;
+	box.points = {matrix * glm::vec4(m_center - m_halfSize, 1.0f),
+				  matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, -m_halfSize.y, -m_halfSize.z), 1.0f),
+				  matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, m_halfSize.y, -m_halfSize.z), 1.0f),
+				  matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, -m_halfSize.y, m_halfSize.z), 1.0f),
+				  matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, m_halfSize.y, -m_halfSize.z), 1.0f),
+				  matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, -m_halfSize.y, m_halfSize.z), 1.0f),
+				  matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, m_halfSize.y, m_halfSize.z), 1.0f),
+				  matrix * glm::vec4(m_center + m_halfSize, 1.0f)};
 	glm::vec3 axisX = glm::normalize(box.points[1] - box.points[0]);
 	glm::vec3 axisY = glm::normalize(box.points[2] - box.points[0]);
 	glm::vec3 axisZ = glm::normalize(box.points[3] - box.points[0]);
@@ -101,16 +98,6 @@ ConvexInfo BoxShape::getShapeInfo(const Transform &transform) const
 	box.axes = {axisX, axisY, axisZ};
 
 	return box;
-}
-
-float BoxShape::getLocalRadius() const
-{
-	return 0;
-}
-
-const glm::vec3 &BoxShape::getLocalHalfSize() const
-{
-	return halfSize;
 }
 
 } // namespace ale
