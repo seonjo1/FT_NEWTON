@@ -30,8 +30,8 @@ void SphereToSphereContact::findCollisionPoints(const ConvexInfo &sphereA, const
 	collisionInfo.normal = epaInfo.normal;
 	collisionInfo.seperation = epaInfo.distance;
 	collisionInfo.pointA = sphereA.center + epaInfo.normal * sphereA.radius;
-	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation; 
-	
+	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
+
 	collisionInfoVector.push_back(collisionInfo);
 }
 } // namespace ale
