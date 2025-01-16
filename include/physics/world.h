@@ -33,11 +33,11 @@ class World
 	void createCapsule(std::unique_ptr<Model> &model, int32_t xfId);
 	void registerBodyForce(int32_t idx, const glm::vec3 &force);
 
-	ContactManager contactManager;
-	App &app;
+	ContactManager m_contactManager;
+	App &m_app;
 
   private:
-	std::vector<Rigidbody *> rigidbodies;
+	std::vector<Rigidbody *> m_rigidbodies;
 };
 } // namespace ale
 #endif

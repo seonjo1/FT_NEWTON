@@ -7,13 +7,11 @@
 
 namespace ale
 {
-World::World(uint32_t size, App &app) : app(app)
-{
-}
+World::World(uint32_t size, App &app) : m_app(app) {};
 
 World::~World()
 {
-	for (Rigidbody *body : rigidbodies)
+	for (Rigidbody *body : m_rigidbodies)
 	{
 		delete body;
 	}
@@ -21,7 +19,7 @@ World::~World()
 
 void World::startFrame()
 {
-	for (Rigidbody *body : rigidbodies)
+	for (Rigidbody *body : m_rigidbodies)
 	{
 		body->clearAccumulators();
 		body->calculateDerivedData();
@@ -32,7 +30,7 @@ void World::runPhysics()
 {
 	// std::cout << "start runPhysics\n";
 	float duration = 0.003f;
-	for (Rigidbody *body : rigidbodies)
+	for (Rigidbody *body : m_rigidbodies)
 	{
 		// std::cout << "body: " << body->getBodyId() << "\n";
 		body->calculateForceAccum();
@@ -44,17 +42,17 @@ void World::runPhysics()
 
 	// std::cout << "broad phase\n";
 	// update Possible Contact Pairs - BroadPhase
-	contactManager.findNewContacts();
+	m_contactManager.findNewContacts();
 
 	// std::cout << "narrow phase\n";
 	// Process Contacts
-	contactManager.collide();
+	m_contactManager.collide();
 	// std::cout << "solve\n";
 	solve(duration);
 
-	for (Rigidbody *body : rigidbodies)
+	for (Rigidbody *body : m_rigidbodies)
 	{
-		app.setTransformById(body->getTransformId(), body->getTransform());
+		m_app.setTransformById(body->getTransformId(), body->getTransform());
 	}
 }
 
@@ -65,13 +63,13 @@ void World::solve(float duration)
 	Island island;
 
 	// 모든 body들의 플래그에 islandFlag 제거
-	for (Rigidbody *body : rigidbodies)
+	for (Rigidbody *body : m_rigidbodies)
 	{
 		body->unsetFlag(EBodyFlag::ISLAND);
 	}
 
 	// 모든 contact들의 플래그에 islandFlag 제거
-	for (Contact *contact = contactManager.m_contactList; contact; contact = contact->getNext())
+	for (Contact *contact = m_contactManager.m_contactList; contact; contact = contact->getNext())
 	{
 		contact->unsetFlag(EContactFlag::ISLAND);
 	}
@@ -80,7 +78,7 @@ void World::solve(float duration)
 	std::stack<Rigidbody *> stack;
 
 	// body 순회
-	for (Rigidbody *body : rigidbodies)
+	for (Rigidbody *body : m_rigidbodies)
 	{
 		// std::cout << "body id: " << body->getBodyId() << "\n";
 		// 이미 island에 포함된 경우 continue
@@ -90,7 +88,7 @@ void World::solve(float duration)
 		}
 
 		// staticBody인 경우 continue
-		if (body->getType() == BodyType::e_static)
+		if (body->getType() == EBodyType::STATIC_BODY)
 		{
 			continue;
 		}
@@ -110,7 +108,7 @@ void World::solve(float duration)
 			island.add(targetBody);
 
 			// body가 staticBody면 뒤에 과정 pass
-			if (targetBody->getType() == BodyType::e_static)
+			if (targetBody->getType() == EBodyType::STATIC_BODY)
 			{
 				continue;
 			}
@@ -131,9 +129,11 @@ void World::solve(float duration)
 				{
 					continue;
 				}
+
 				// std::cout << "add Contact\n";
 				// std::cout << "bodyA : " << contact->getNodeB()->other->getBodyId() << "\n";
 				// std::cout << "bodyB : " << contact->getNodeA()->other->getBodyId() << "\n";
+
 				// 위 조건을 다 충족하는 경우 island에 추가 후 island 플래그 on
 				island.add(contact);
 				contact->setFlag(EContactFlag::ISLAND);
@@ -158,7 +158,7 @@ void World::solve(float duration)
 		// island의 staticBody들의 island 플래그 off
 		for (Rigidbody *body : island.m_bodies)
 		{
-			if (body->getType() == BodyType::e_static)
+			if (body->getType() == EBodyType::STATIC_BODY)
 			{
 				body->unsetFlag(EBodyFlag::ISLAND);
 			}
@@ -202,13 +202,13 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	BoxShape *shape = dynamic_cast<BoxShape *>(s);
 	BodyDef bd;
 
-	bd.type = BodyType::e_dynamic;
+	bd.m_type = EBodyType::DYNAMIC_BODY;
 
-	bd.position = app.getTransformById(xfId).position;
-	bd.orientation = app.getTransformById(xfId).orientation;
-	bd.xfId = xfId;
-	bd.linearDamping = 0.0001f;
-	bd.angularDamping = 0.0001f;
+	bd.m_position = m_app.getTransformById(xfId).position;
+	bd.m_orientation = m_app.getTransformById(xfId).orientation;
+	bd.m_xfId = xfId;
+	bd.m_linearDamping = 0.0001f;
+	bd.m_angularDamping = 0.0001f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
@@ -227,15 +227,14 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 
 	body->setMassData(mass, m);
 
-	// BoxShape *box = shape->clone();
-	BoxShape *box = shape;
+	BoxShape *box = shape->clone();
 	FixtureDef fd;
 	fd.shape = shape;
 	fd.friction = 0.6f;
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	rigidbodies.push_back(body);
+	m_rigidbodies.push_back(body);
 }
 
 void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
@@ -246,12 +245,12 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 
 	BodyDef bd;
 	// set sphere definition
-	bd.type = BodyType::e_dynamic;
-	bd.position = app.getTransformById(xfId).position;
-	bd.orientation = app.getTransformById(xfId).orientation;
-	bd.xfId = xfId;
-	bd.linearDamping = 0.0001f;
-	bd.angularDamping = 0.0001f;
+	bd.m_type = EBodyType::DYNAMIC_BODY;
+	bd.m_position = m_app.getTransformById(xfId).position;
+	bd.m_orientation = m_app.getTransformById(xfId).orientation;
+	bd.m_xfId = xfId;
+	bd.m_linearDamping = 0.0001f;
+	bd.m_angularDamping = 0.0001f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
@@ -262,15 +261,14 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	glm::mat3 m(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
 	body->setMassData(mass, m);
 
-	// SphereShape *sphere = shape->clone();
-	SphereShape *sphere = shape;
+	SphereShape *sphere = shape->clone();
 
 	FixtureDef fd;
 	fd.shape = shape;
 	fd.friction = 0.2f;
 	fd.restitution = 0.8f;
 	body->createFixture(&fd);
-	rigidbodies.push_back(body);
+	m_rigidbodies.push_back(body);
 	// std::cout << "World:: Create Sphere end\n";
 }
 
@@ -281,14 +279,11 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	BoxShape *shape = dynamic_cast<BoxShape *>(s);
 	BodyDef bd;
 
-	// set box definition
-	bd.type = BodyType::e_static;
-
-	bd.position = app.getTransformById(xfId).position;
-	bd.orientation = app.getTransformById(xfId).orientation;
-	bd.xfId = xfId;
-	bd.linearDamping = 0.0f;
-	bd.angularDamping = 0.0f;
+	bd.m_position = m_app.getTransformById(xfId).position;
+	bd.m_orientation = m_app.getTransformById(xfId).orientation;
+	bd.m_xfId = xfId;
+	bd.m_linearDamping = 0.0f;
+	bd.m_angularDamping = 0.0f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
@@ -298,15 +293,14 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	float mass = 0;
 	body->setMassData(mass, m);
 
-	// BoxShape *box = shape->clone();
-	BoxShape *box = shape;
+	BoxShape *box = shape->clone();
 	FixtureDef fd;
 	fd.shape = shape;
 	fd.friction = 0.7f;
 	fd.restitution = 0.3f;
 
 	body->createFixture(&fd);
-	rigidbodies.push_back(body);
+	m_rigidbodies.push_back(body);
 }
 
 void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
@@ -315,13 +309,13 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	CylinderShape *shape = dynamic_cast<CylinderShape *>(s);
 	BodyDef bd;
 
-	bd.type = BodyType::e_dynamic;
+	bd.m_type = EBodyType::DYNAMIC_BODY;
 
-	bd.position = app.getTransformById(xfId).position;
-	bd.orientation = app.getTransformById(xfId).orientation;
-	bd.xfId = xfId;
-	bd.linearDamping = 0.0001f;
-	bd.angularDamping = 0.0001f;
+	bd.m_position = m_app.getTransformById(xfId).position;
+	bd.m_orientation = m_app.getTransformById(xfId).orientation;
+	bd.m_xfId = xfId;
+	bd.m_linearDamping = 0.0001f;
+	bd.m_angularDamping = 0.0001f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
@@ -336,15 +330,14 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 
 	body->setMassData(mass, m);
 
-	// CylinderShape *cylinder = shape->clone();
-	CylinderShape *cylinder = shape;
+	CylinderShape *cylinder = shape->clone();
 	FixtureDef fd;
 	fd.shape = shape;
 	fd.friction = 0.6f;
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	rigidbodies.push_back(body);
+	m_rigidbodies.push_back(body);
 }
 
 void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
@@ -353,24 +346,23 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	CapsuleShape *shape = dynamic_cast<CapsuleShape *>(s);
 	BodyDef bd;
 
-	bd.type = BodyType::e_dynamic;
+	bd.m_type = EBodyType::DYNAMIC_BODY;
 
-	bd.position = app.getTransformById(xfId).position;
-	bd.orientation = app.getTransformById(xfId).orientation;
-	bd.xfId = xfId;
-	bd.linearDamping = 0.0001f;
-	bd.angularDamping = 0.0001f;
+	bd.m_position = m_app.getTransformById(xfId).position;
+	bd.m_orientation = m_app.getTransformById(xfId).orientation;
+	bd.m_xfId = xfId;
+	bd.m_linearDamping = 0.0001f;
+	bd.m_angularDamping = 0.0001f;
 
 	Rigidbody *body = new Rigidbody(&bd, this);
 
-	// calculate inersiaTensor
 	// sphere
 	float mh = 5.0f;
 	float r = shape->m_radius;
 	float h = shape->m_height;
 	float val = (2.0f / 5.0f) * mh * r * r + (h / 2.0f + 3.0f * r / 8.0f);
 	glm::mat3 ih(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
-	
+
 	// cylinder
 	float mc = 10.0f;
 	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mc;
@@ -383,21 +375,20 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 
 	body->setMassData(mass, m);
 
-	// CapsuleShape *capsule = shape->clone();
-	CapsuleShape *capsule = shape;
+	CapsuleShape *capsule = shape->clone();
 	FixtureDef fd;
 	fd.shape = shape;
 	fd.friction = 0.6f;
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	rigidbodies.push_back(body);
+	m_rigidbodies.push_back(body);
 }
 
 void World::registerBodyForce(int32_t idx, const glm::vec3 &force)
 {
 	// check idx
-	rigidbodies[idx]->registerForce(force);
+	m_rigidbodies[idx]->registerForce(force);
 }
 
 } // namespace ale
