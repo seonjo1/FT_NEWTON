@@ -1,7 +1,7 @@
 #ifndef COLLISION_H
 #define COLLISION_H
 
-#include "common.h"
+#include "Common.h"
 
 namespace ale
 {
@@ -74,7 +74,7 @@ struct Transform
 		// Create a 4x4 transformation matrix
 		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position); // Translation
 		glm::mat4 rotationMatrix = glm::toMat4(glm::normalize(orientation));	 // Rotation
-		
+
 		// Combine translation and rotation
 		return translationMatrix * rotationMatrix;
 	}
@@ -106,13 +106,13 @@ inline bool testOverlap(const AABB &a, const AABB &b)
 
 struct ManifoldPoint
 {
-	float normalImpulse;  // 법선 방향 충격량
-	float tangentImpulse; // 접촉면 충격량
-	float seperation;	  // 관통 깊이
-	uint64_t id;		  // 충돌 지점의 고유 id
-	glm::vec3 pointA;	  // 충돌 지점의 위치
-	glm::vec3 pointB;	  // 충돌 지점의 위치
-	glm::vec3 normal;	  // 법선 벡터
+	// float normalImpulse;  // 법선 방향 충격량
+	// float tangentImpulse; // 접촉면 충격량
+	// uint64_t id;		  // 충돌 지점의 고유 id
+	float seperation; // 관통 깊이
+	glm::vec3 pointA; // 충돌 지점의 위치
+	glm::vec3 pointB; // 충돌 지점의 위치
+	glm::vec3 normal; // 법선 벡터
 };
 
 struct Manifold
