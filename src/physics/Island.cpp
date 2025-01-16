@@ -6,10 +6,6 @@ namespace ale
 
 const int32_t Island::VELOCITY_ITERATION = 10;
 const int32_t Island::POSITION_ITERATION = 4;
-const float Island::MAX_TRANSLATION = 2.0f;
-const float Island::MAX_ROTATION = 0.5f * glm::pi<float>();
-const float Island::MAX_TRANSLATION_SQUARED = Island::MAX_TRANSLATION * Island::MAX_TRANSLATION;
-const float Island::MAX_ROTATION_SQUARED = Island::MAX_ROTATION * Island::MAX_ROTATION;
 
 void Island::solve(float duration)
 {
@@ -25,12 +21,13 @@ void Island::solve(float duration)
 
 		// 위치, 각도, 속도 기록
 		m_positions[i].position = body->getPosition();
-		m_positions[i].orientation = body->getOrientation();
 		m_velocities[i].linearVelocity = body->getLinearVelocity();
 		m_velocities[i].angularVelocity = body->getAngularVelocity();
+
 		// std::cout << "body: " << body->getBodyId() << "\n";
-		// std::cout << "Start bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
-		// std::cout << "Start bodyVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		// std::cout << "Start bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
+		// << m_positions[i].position.z << "\n"; std::cout << "Start bodyVelocity: " << m_velocities[i].linearVelocity.x
+		// << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
 	}
 
 	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities);
@@ -97,15 +94,16 @@ void Island::solve(float duration)
 		Rigidbody *body = m_bodies[i];
 		body->updateSweep();
 		body->setPosition(m_positions[i].position);
-		body->setOrientation(m_positions[i].orientation);
 		body->setLinearVelocity(m_velocities[i].linearVelocity);
 		body->setAngularVelocity(m_velocities[i].angularVelocity);
 		body->synchronizeFixtures();
 		// std::cout << "body: " << body->getBodyId() << "\n";
-		// std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
-		// std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
-		// std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
-
+		// std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
+		// << m_positions[i].position.z << "\n"; std::cout << "Final bodyLinearVelocity: " <<
+		// m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " <<
+		// m_velocities[i].linearVelocity.z << "\n"; std::cout << "Final bodyAngularVelocity: " <<
+		// m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " <<
+		// m_velocities[i].angularVelocity.z << "\n";
 	}
 }
 

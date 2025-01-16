@@ -9,7 +9,6 @@ namespace ale
 struct Position
 {
 	glm::vec3 position;
-	glm::quat orientation;
 };
 
 struct Velocity
@@ -31,10 +30,6 @@ class Island
 
 	static const int32_t VELOCITY_ITERATION;
 	static const int32_t POSITION_ITERATION;
-	static const float MAX_TRANSLATION;
-	static const float MAX_TRANSLATION_SQUARED;
-	static const float MAX_ROTATION;
-	static const float MAX_ROTATION_SQUARED;
 
 	std::vector<Rigidbody *> m_bodies;
 	std::vector<Contact *> m_contacts;
