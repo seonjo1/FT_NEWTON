@@ -1,7 +1,7 @@
 #ifndef BROADPHASE_H
 #define BROADPHASE_H
 
-#include "common.h"
+#include "Common.h"
 #include "physics/DynamicTree.h"
 #include <utility>
 
@@ -30,13 +30,13 @@ class BroadPhase
 	void bufferMove(int32_t proxyId);
 
 	// proxyId에 해당하는 FatAABB 반환
-	// const AABB &GetFatAABB(int32_t proxyId) const;
+	// const AABB &getFatAABB(int32_t proxyId) const;
 
 	// proxyId pair끼리 겹치는지 확인
 	// bool TestOverlap(int32_t proxyIdA, int32_t proxyIdB) const;
 
 	// proxyId에 해당하는 data get
-	// void *GetUserData(int32_t proxyId) const;
+	// void *getUserData(int32_t proxyId) const;
 
 	// moved proxy buffer를 순회하며, 가능성 있는 충돌 쌍 검색
 	// callback을 사용해 ContactManager의 AddPair 호출
@@ -68,9 +68,9 @@ template <typename T> void BroadPhase::updatePairs(T *callback)
 			continue;
 		}
 
-		const AABB &fatAABB = m_tree.GetFatAABB(m_queryProxyId);
+		const AABB &fatAABB = m_tree.getFatAABB(m_queryProxyId);
 
-		m_tree.Query(this, fatAABB);
+		m_tree.query(this, fatAABB);
 	}
 
 	m_moveCount = 0;
@@ -78,8 +78,8 @@ template <typename T> void BroadPhase::updatePairs(T *callback)
 	{
 		auto primaryPair = it;
 		// std::cout << "proxyIdA: " << primaryPair->first << " proxyIdB: " << primaryPair->second << '\n';
-		void *userDataA = m_tree.GetUserData(primaryPair->first);
-		void *userDataB = m_tree.GetUserData(primaryPair->second);
+		void *userDataA = m_tree.getUserData(primaryPair->first);
+		void *userDataB = m_tree.getUserData(primaryPair->second);
 
 		callback->addPair(userDataA, userDataB);
 		++it;
@@ -95,28 +95,28 @@ template <typename T> void BroadPhase::updatePairs(T *callback)
 		}
 	}
 
-	// void *userDataA = m_tree.GetUserData(0);
-	// void *userDataB = m_tree.GetUserData(1);
+	// void *userDataA = m_tree.getUserData(0);
+	// void *userDataB = m_tree.getUserData(1);
 	// callback->addPair(userDataA, userDataB);
 
-	// void *userDataC = m_tree.GetUserData(0);
-	// void *userDataD = m_tree.GetUserData(3);
+	// void *userDataC = m_tree.getUserData(0);
+	// void *userDataD = m_tree.getUserData(3);
 	// callback->addPair(userDataC, userDataD);
 
-	// void *userDataE = m_tree.GetUserData(0);
-	// void *userDataF = m_tree.GetUserData(5);
+	// void *userDataE = m_tree.getUserData(0);
+	// void *userDataF = m_tree.getUserData(5);
 	// callback->addPair(userDataE, userDataF);
 
-	// void *userDataG = m_tree.GetUserData(1);
-	// void *userDataH = m_tree.GetUserData(3);
+	// void *userDataG = m_tree.getUserData(1);
+	// void *userDataH = m_tree.getUserData(3);
 	// callback->addPair(userDataG, userDataH);
 
-	// void *userData6 = m_tree.GetUserData(1);
-	// void *userData7 = m_tree.GetUserData(5);
+	// void *userData6 = m_tree.getUserData(1);
+	// void *userData7 = m_tree.getUserData(5);
 	// callback->addPair(userData6, userData7);
 
-	// void *userData8 = m_tree.GetUserData(3);
-	// void *userData9 = m_tree.GetUserData(5);
+	// void *userData8 = m_tree.getUserData(3);
+	// void *userData9 = m_tree.getUserData(5);
 	// callback->addPair(userData8, userData9);
 }
 } // namespace ale

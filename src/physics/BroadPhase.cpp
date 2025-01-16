@@ -11,7 +11,7 @@ BroadPhase::BroadPhase()
 
 int32_t BroadPhase::createProxy(const AABB &aabb, void *userData)
 {
-	int32_t proxyId = m_tree.CreateProxy(aabb, userData);
+	int32_t proxyId = m_tree.createProxy(aabb, userData);
 	bufferMove(proxyId);
 	return proxyId;
 }
@@ -22,7 +22,7 @@ void BroadPhase::destroyProxy(int32_t proxyId)
 
 void BroadPhase::moveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement)
 {
-	bool buffer = m_tree.MoveProxy(proxyId, aabb, displacement);
+	bool buffer = m_tree.moveProxy(proxyId, aabb, displacement);
 	if (buffer)
 	{
 		bufferMove(proxyId);
@@ -52,7 +52,7 @@ bool BroadPhase::queryCallback(int32_t proxyId)
 	return true;
 }
 
-// const AABB &BroadPhase::GetFatAABB(int32_t proxyId) const
+// const AABB &BroadPhase::getFatAABB(int32_t proxyId) const
 // {
 // }
 
@@ -60,7 +60,7 @@ bool BroadPhase::queryCallback(int32_t proxyId)
 // {
 // }
 
-// void *BroadPhase::GetUserData(int32_t proxyId) const
+// void *BroadPhase::getUserData(int32_t proxyId) const
 // {
 // }
 
