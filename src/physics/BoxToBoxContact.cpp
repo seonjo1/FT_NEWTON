@@ -17,7 +17,7 @@ glm::vec3 BoxToBoxContact::supportA(const ConvexInfo &box, glm::vec3 dir)
 						glm::dot(box.axes[2], dir) > 0 ? 1.0f : -1.0f};
 
 	glm::vec3 point = box.center;
-	for (int i = 0; i < 3; ++i)
+	for (int32_t i = 0; i < 3; ++i)
 	{
 		point += box.axes[i] * (dotAxes[i] * box.halfSize[i]);
 	}
@@ -31,7 +31,7 @@ glm::vec3 BoxToBoxContact::supportB(const ConvexInfo &box, glm::vec3 dir)
 						glm::dot(box.axes[2], dir) > 0 ? 1.0f : -1.0f};
 
 	glm::vec3 point = box.center;
-	for (int i = 0; i < 3; ++i)
+	for (int32_t i = 0; i < 3; ++i)
 	{
 		point += box.axes[i] * (dotAxes[i] * box.halfSize[i]);
 	}
