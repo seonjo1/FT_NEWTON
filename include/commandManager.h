@@ -1,21 +1,21 @@
 #ifndef COMMANDMANAGER_H
-# define COMMANDMANAGER_H
+#define COMMANDMANAGER_H
 
-# include "deviceManager.h"
+#include "DeviceManager.h"
 
 class CommandManager
 {
-public:
-	static std::unique_ptr<CommandManager> create(DeviceManager* deviceManager);
+  public:
+	static std::unique_ptr<CommandManager> create(DeviceManager *deviceManager);
 	~CommandManager() = default;
 	void clear();
 	VkCommandPool getCommandPool();
 	VkCommandBuffer getCommandBuffer(uint32_t currentFrame);
-	VkCommandBuffer* getCommandBufferPointer(uint32_t currentFrame);
+	VkCommandBuffer *getCommandBufferPointer(uint32_t currentFrame);
 
-private:
+  private:
 	CommandManager() = default;
-	void init(DeviceManager* deviceManager);
+	void init(DeviceManager *deviceManager);
 	void createCommandPool(QueueFamilyIndices queueFamilyIndices);
 	void createCommandBuffers();
 
