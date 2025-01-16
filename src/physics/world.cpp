@@ -1,6 +1,6 @@
-#include "physics/world.h"
-#include "app.h"
-#include "model.h"
+#include "physics/World.h"
+#include "App.h"
+#include "Model.h"
 #include "physics/BoxShape.h"
 #include "physics/Rigidbody.h"
 #include "physics/SphereShape.h"
@@ -171,23 +171,23 @@ void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 {
 	// std::cout << "World::Create Body\n";
 	Shape *shape = model->getShape();
-	Type type = shape->getType();
+	EType type = shape->getType();
 
 	switch (type)
 	{
-	case Type::BOX:
+	case EType::BOX:
 		createBox(model, xfId);
 		break;
-	case Type::SPHERE:
+	case EType::SPHERE:
 		createSphere(model, xfId);
 		break;
-	case Type::GROUND:
+	case EType::GROUND:
 		createGround(model, xfId);
 		break;
-	case Type::CYLINDER:
+	case EType::CYLINDER:
 		createCylinder(model, xfId);
 		break;
-	case Type::CAPSULE:
+	case EType::CAPSULE:
 		createCapsule(model, xfId);
 		break;
 	default:
@@ -256,7 +256,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 
 	// calculate inersiaTensor - (2 / 5) * m * r * r
 	float mass = 10.0f;
-	float r = shape->localRadius;
+	float r = shape->m_radius;
 	float val = (2.0f / 5.0f) * mass * r * r;
 	glm::mat3 m(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
 	body->setMassData(mass, m);

@@ -3,7 +3,7 @@
 
 #include "ContactManager.h"
 #include "Island.h"
-#include "common.h"
+#include "Common.h"
 #include <stack>
 
 class Model;
