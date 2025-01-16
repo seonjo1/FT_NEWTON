@@ -1,4 +1,4 @@
-#include "../include/model.h"
+#include "../include/Model.h"
 
 std::unique_ptr<Model> Model::create(std::string filename, DeviceManager *deviceManager, VkCommandPool commandPool)
 {
@@ -118,7 +118,7 @@ void Model::createGroundMesh(DeviceManager *deviceManager, VkCommandPool command
 	shape = new ale::BoxShape();
 	ale::BoxShape *groundShape = dynamic_cast<ale::BoxShape *>(shape);
 
-	shape->setType(ale::Type::GROUND);
+	shape->setType(ale::EType::GROUND);
 	if (groundShape)
 	{
 		size = 1;

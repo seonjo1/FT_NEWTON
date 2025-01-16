@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "mesh.h"
+#include "Mesh.h"
 #include "physics/Rigidbody.h"
 
 class ale::Rigidbody;
