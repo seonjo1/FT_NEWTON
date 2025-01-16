@@ -1,14 +1,14 @@
 #ifndef APP_H
 #define APP_H
 
-#include "camera.h"
-#include "commandManager.h"
-#include "descriptorPool.h"
-#include "image.h"
-#include "physics/world.h"
-#include "renderer.h"
-#include "swapChainManager.h"
-#include "syncObject.h"
+#include "Camera.h"
+#include "CommandManager.h"
+#include "DescriptorPool.h"
+#include "Image.h"
+#include "physics/World.h"
+#include "Renderer.h"
+#include "SwapChainManager.h"
+#include "SyncObject.h"
 
 class App
 {
