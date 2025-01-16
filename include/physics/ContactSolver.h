@@ -15,7 +15,6 @@ struct ContactPositionConstraint
 	int32_t indexA;
 	int32_t indexB;
 	float invMassA, invMassB;
-	bool isStopContact;
 };
 
 struct ContactVelocityConstraint
@@ -23,7 +22,6 @@ struct ContactVelocityConstraint
 	std::vector<ManifoldPoint> points;
 	glm::vec3 worldCenterA;
 	glm::vec3 worldCenterB;
-	glm::vec3 normal;
 	glm::mat3 invIA, invIB;
 	int32_t indexA;
 	int32_t indexB;
@@ -31,7 +29,6 @@ struct ContactVelocityConstraint
 	float friction;
 	float restitution;
 	int32_t pointCount;
-	bool isStopContact;
 };
 
 class ContactSolver
@@ -45,11 +42,11 @@ class ContactSolver
 
 	float m_duration;
 	float m_stopVelocity;
+	std::vector<Contact *> &m_contacts;
 	std::vector<Position> &m_positions;
 	std::vector<Velocity> &m_velocities;
 	std::vector<ContactPositionConstraint> m_positionConstraints;
 	std::vector<ContactVelocityConstraint> m_velocityConstraints;
-	std::vector<Contact *> &m_contacts;
 };
 
 } // namespace ale
