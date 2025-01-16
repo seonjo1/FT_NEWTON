@@ -1,4 +1,4 @@
-#include "../include/mesh.h"
+#include "../include/Mesh.h"
 
 std::unique_ptr<Mesh> Mesh::create(DeviceManager *deviceManager, VkCommandPool commandPool,
 								   const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices)
@@ -243,7 +243,6 @@ std::unique_ptr<Mesh> Mesh::createBox(DeviceManager *deviceManager, VkCommandPoo
 		Vertex{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 	};
 
-	shape->m_center = xf.position;
 	shape->setVertices(vertices);
 
 	std::vector<uint32_t> indices = {
@@ -283,8 +282,6 @@ std::unique_ptr<Mesh> Mesh::createSphere(DeviceManager *deviceManager, VkCommand
 		}
 	}
 
-	shape->m_center = xf.position;
-	shape->setRadius(0.5f);
 	shape->setShapeFeatures(vertices);
 
 	indices.resize(latiSegmentCount * longiSegmentCount * 6);
@@ -342,7 +339,6 @@ std::unique_ptr<Mesh> Mesh::createGround(DeviceManager *deviceManager, VkCommand
 		Vertex{glm::vec3(-100.0f, 0.01f, 100.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
 	};
 
-	shape->m_center = xf.position;
 	shape->setVertices(vertices);
 
 	std::vector<uint32_t> indices = {
@@ -429,15 +425,13 @@ std::unique_ptr<Mesh> Mesh::createCylinder(DeviceManager *deviceManager, VkComma
 		indices.push_back(top2);
 	}
 
-	shape->m_center = xf.position;
 	shape->setShapeFeatures(vertices);
-	
+
 	return create(deviceManager, commandPool, vertices, indices);
 }
 
-
 std::unique_ptr<Mesh> Mesh::createCapsule(DeviceManager *deviceManager, VkCommandPool commandPool,
-										   ale::CapsuleShape *shape, const ale::Transform &xf)
+										  ale::CapsuleShape *shape, const ale::Transform &xf)
 {
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -449,7 +443,7 @@ std::unique_ptr<Mesh> Mesh::createCapsule(DeviceManager *deviceManager, VkComman
 	uint32_t circleVertCount = longiSegmentCount + 1;
 	vertices.resize((halfLatiSegmentCount + 1) * circleVertCount * 2);
 
-	glm::vec3 moveVector(0.0f, -radius, 0.0f);	
+	glm::vec3 moveVector(0.0f, -radius, 0.0f);
 	for (uint32_t i = 0; i <= halfLatiSegmentCount; i++)
 	{
 		float v = (float)i / (float)latiSegmentCount;
@@ -486,7 +480,6 @@ std::unique_ptr<Mesh> Mesh::createCapsule(DeviceManager *deviceManager, VkComman
 			vertices[(i + 1) * circleVertCount + j] = Vertex{point * radius + moveVector, point, glm::vec2(u, v)};
 		}
 	}
-
 
 	indices.resize((latiSegmentCount + 1) * longiSegmentCount * 6);
 	for (uint32_t i = 0; i <= latiSegmentCount; i++)

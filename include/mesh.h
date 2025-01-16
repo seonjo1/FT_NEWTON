@@ -1,8 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "buffer.h"
-#include "image.h"
+#include "Buffer.h"
+#include "Image.h"
 #include "physics/BoxShape.h"
 #include "physics/CapsuleShape.h"
 #include "physics/CylinderShape.h"
@@ -33,7 +33,7 @@ class Mesh
 	static std::unique_ptr<Mesh> Mesh::createCylinder(DeviceManager *deviceManager, VkCommandPool commandPool,
 													  ale::CylinderShape *shape, const ale::Transform &xf);
 	static std::unique_ptr<Mesh> Mesh::createCapsule(DeviceManager *deviceManager, VkCommandPool commandPool,
-													  ale::CapsuleShape *shape, const ale::Transform &xf);
+													 ale::CapsuleShape *shape, const ale::Transform &xf);
 	void setMaterial(Material *material);
 	void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool,
 							  VkDescriptorSetLayout descriptorSetLayout);
