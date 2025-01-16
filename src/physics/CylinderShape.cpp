@@ -5,7 +5,7 @@ namespace ale
 {
 CylinderShape::CylinderShape()
 {
-	m_type = Type::CYLINDER;
+	m_type = EType::CYLINDER;
 }
 
 CylinderShape *CylinderShape::clone() const
@@ -25,7 +25,6 @@ void CylinderShape::computeAABB(AABB *aabb, const Transform &xf) const
 	// update vertices
 	std::vector<glm::vec3> vertexVector(m_vertices.begin(), m_vertices.end());
 	glm::mat4 transformMatrix = xf.toMatrix();
-
 
 	glm::vec3 upper(std::numeric_limits<float>::lowest());
 	glm::vec3 lower(std::numeric_limits<float>::max());
@@ -54,9 +53,6 @@ void CylinderShape::computeAABB(AABB *aabb, const Transform &xf) const
 
 	aabb->upperBound = upper + glm::vec3(0.1f);
 	aabb->lowerBound = lower - glm::vec3(0.1f);
-}
-void CylinderShape::computeMass(MassData *massData, float density) const
-{
 }
 
 // void CylinderShape::findAxisByLongestPair(const std::vector<Vertex> &vertices)
@@ -104,7 +100,7 @@ void CylinderShape::computeCylinderFeatures(const std::vector<Vertex> &vertices)
 {
 	glm::vec3 min(FLT_MAX);
 	glm::vec3 max(-FLT_MAX);
-	
+
 	for (const Vertex &vertex : vertices)
 	{
 		max.x = std::max(vertex.position.x, max.x);
@@ -118,12 +114,12 @@ void CylinderShape::computeCylinderFeatures(const std::vector<Vertex> &vertices)
 		m_vertices.insert(vertex.position);
 	}
 
-	localCenter = (min + max) / 2.0f;
+	m_center = (min + max) / 2.0f;
 	m_axes[0] = glm::vec3(0.0f, 1.0f, 0.0f);
 	m_height = max.y - min.y;
 
 	m_radius = 0.0f;
-	glm::vec2 center(localCenter.x, localCenter.z);
+	glm::vec2 center(m_center.x, m_center.z);
 	for (const Vertex &vertex : vertices)
 	{
 		m_radius = std::max(m_radius, glm::length2(glm::vec2(vertex.position.x, vertex.position.z) - center));
@@ -149,7 +145,7 @@ void CylinderShape::computeCylinderFeatures(const std::vector<Vertex> &vertices)
 
 // 	const Vertex &vertex = vertices[0];
 // 	glm::vec3 toVertex = vertex.position - localCenter;
-// 	float dotResult = glm::dot(m_axis[0], toVertex); 
+// 	float dotResult = glm::dot(m_axis[0], toVertex);
 // 	if (glm::length2(dotResult) == 0.0f)
 // 	{
 // 		m_axis[1] = glm::normalize(toVertex);
@@ -168,13 +164,12 @@ void CylinderShape::createCylinderPoints()
 	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
 	glm::vec3 xAxis(1.0f, 0.0f, 0.0f);
 
-	glm::vec4 topPoint = glm::vec4(localCenter + m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
-	glm::vec4 bottomPoint = glm::vec4(localCenter - m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
-	
-	
+	glm::vec4 topPoint = glm::vec4(m_center + m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
+	glm::vec4 bottomPoint = glm::vec4(m_center - m_height * 0.5f * m_axes[0] + xAxis * m_radius, 1.0f);
+
 	glm::quat quat = glm::angleAxis(angleStep / 2.0f, m_axes[0]);
 	glm::mat4 mat = glm::toMat4(glm::normalize(quat));
-    glm::vec3 dir = mat * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec3 dir = mat * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
 	int32_t base = 0;
 	for (int32_t i = base; i < segments; i++)
@@ -185,7 +180,7 @@ void CylinderShape::createCylinderPoints()
 		m_points[i] = rotationMatrix * topPoint;
 		m_axes[i + 1] = rotationMatrix * glm::vec4(dir, 1.0f);
 	}
-	
+
 	base = segments;
 	for (int32_t i = base; i < segments + base; i++)
 	{
@@ -216,16 +211,6 @@ void CylinderShape::setShapeFeatures(const std::vector<Vertex> &vertices)
 	// computeCylinderRadius(vertices);
 }
 
-float CylinderShape::getLocalRadius() const
-{
-	return 0.0f;
-}
-
-const glm::vec3 &CylinderShape::getLocalHalfSize() const
-{
-	return glm::vec3(0.0f);
-}
-
 ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 {
 	glm::mat4 matrix = transform.toMatrix();
@@ -233,7 +218,7 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 	ConvexInfo cylinder;
 	cylinder.radius = m_radius;
 	cylinder.height = m_height;
-	cylinder.center = matrix * glm::vec4(localCenter, 1.0f);
+	cylinder.center = matrix * glm::vec4(m_center, 1.0f);
 
 	int32_t segments = 20;
 	int32_t len = segments * 2;
@@ -248,7 +233,7 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 
 	cylinder.points.resize(len);
 	// std::cout << "points size: " << cylinder.points.size() << " " << len << "\n";
-	
+
 	for (int32_t i = 0; i < segments; i++)
 	{
 		cylinder.points[i] = matrix * glm::vec4(m_points[i], 1.0f);
@@ -260,14 +245,16 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 	// std::cout << "cylinder points!!\n";
 	// for (int i = 0; i < cylinder.points.size(); i++)
 	// {
-	// 	std::cout << "("<< cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
+	// 	std::cout << "("<< cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z <<
+	// ")\n";
 	// }
 	// std::cout << "bottom points)\n";
 	// for (int i = 1; i < cylinder.points.size(); i = i + 2)
 	// {
-	// 	std::cout  << "(" << cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z << ")\n";
+	// 	std::cout  << "(" << cylinder.points[i].x << ", " << cylinder.points[i].y << ", " << cylinder.points[i].z <<
+	// ")\n";
 	// }
-	
+
 	return cylinder;
 }
 
