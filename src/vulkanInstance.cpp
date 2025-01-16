@@ -1,13 +1,13 @@
-#include "../include/vulkanInstance.h"
+#include "../include/VulkanInstance.h"
 
-std::unique_ptr<VulkanInstance> VulkanInstance::create(GLFWwindow* window)
+std::unique_ptr<VulkanInstance> VulkanInstance::create(GLFWwindow *window)
 {
 	std::unique_ptr<VulkanInstance> vulkanInstance(new VulkanInstance());
 	vulkanInstance->init(window);
 	return vulkanInstance;
 }
 
-void VulkanInstance::init(GLFWwindow* window)
+void VulkanInstance::init(GLFWwindow *window)
 {
 	createInstance();
 	setupDebugMessenger();
@@ -21,10 +21,12 @@ void VulkanInstance::init(GLFWwindow* window)
 	2. 확장
 	3. 레이어
 	4. 디버그 모드일시 디버그 메신저 객체 생성 정보 추가
-*/ 
-void VulkanInstance::createInstance() {
+*/
+void VulkanInstance::createInstance()
+{
 	// 디버그 모드에서 검증 레이어 적용 불가능시 예외 발생
-	if (enableValidationLayers && !checkValidationLayerSupport()) {
+	if (enableValidationLayers && !checkValidationLayerSupport())
+	{
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 
@@ -42,56 +44,66 @@ void VulkanInstance::createInstance() {
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
 
-	std::vector<const char*> extensions = getRequiredExtensions();
+	std::vector<const char *> extensions = getRequiredExtensions();
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
 
 	// 디버깅 메시지 객체 생성을 위한 정보 구조체
 	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
-	if (enableValidationLayers) {
+	if (enableValidationLayers)
+	{
 		// 디버그 모드시 구조체에 검증 레이어 포함
 		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 		createInfo.ppEnabledLayerNames = validationLayers.data();
 		// 인스턴스 생성 및 파괴시에도 검증 가능
 		populateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debugCreateInfo);
-	} else {
+		createInfo.pNext = reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT *>(&debugCreateInfo);
+	}
+	else
+	{
 		// 디버그 모드 아닐 시 검증 레이어 x
-		createInfo.enabledLayerCount = 0;		
+		createInfo.enabledLayerCount = 0;
 		createInfo.pNext = nullptr;
 	}
 
 	// 인스턴스 생성
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create instance!");
 	}
 }
 
 // 디버그 메신저 객체 생성
-void VulkanInstance::setupDebugMessenger() {
+void VulkanInstance::setupDebugMessenger()
+{
 	// 디버그 모드 아니면 return
-	if (!enableValidationLayers) return;
+	if (!enableValidationLayers)
+		return;
 
 	// VkDebugUtilsMessengerCreateInfoEXT 구조체 생성
 	VkDebugUtilsMessengerCreateInfoEXT createInfo;
 	populateDebugMessengerCreateInfo(createInfo);
 
 	// 디버그 메시지 객체 생성
-	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to set up debug messenger!");
 	}
 }
 
 // OS에 맞는 surface를 glfw 함수를 통해 생성
-void VulkanInstance::createSurface(GLFWwindow* window) {
-	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+void VulkanInstance::createSurface(GLFWwindow *window)
+{
+	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create window surface!");
 	}
 }
 
 // 검증 레이어가 사용 가능한 레이어 목록에 있는지 확인
-bool VulkanInstance::checkValidationLayerSupport() {
+bool VulkanInstance::checkValidationLayerSupport()
+{
 	// Vulkan 인스턴스에서 사용 가능한 레이어들 목록 생성
 	uint32_t layerCount;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -99,50 +111,57 @@ bool VulkanInstance::checkValidationLayerSupport() {
 	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
 	// 필요한 검증 레이어들이 사용 가능 레이어에 포함 되어있는지 확인
-	for (const char* layerName : validationLayers) {
+	for (const char *layerName : validationLayers)
+	{
 		bool layerFound = false;
-		for (const auto& layerProperties : availableLayers) {
-			if (strcmp(layerName, layerProperties.layerName) == 0) {
+		for (const auto &layerProperties : availableLayers)
+		{
+			if (strcmp(layerName, layerProperties.layerName) == 0)
+			{
 				// 포함 확인!
 				layerFound = true;
 				break;
 			}
 		}
-		if (!layerFound) {
-			return false;  // 필요한 레이어가 없다면 false 반환
+		if (!layerFound)
+		{
+			return false; // 필요한 레이어가 없다면 false 반환
 		}
 	}
-	return true;  // 모든 레이어가 지원되면 true 반환
+	return true; // 모든 레이어가 지원되면 true 반환
 }
 
 /*
 GLFW 라이브러리에서 Vulkan 인스턴스를 생성할 때 필요한 인스턴스 확장 목록을 반환
 (디버깅 모드시 메시지 콜백 확장 추가)
 */
-std::vector<const char*> VulkanInstance::getRequiredExtensions() {
+std::vector<const char *> VulkanInstance::getRequiredExtensions()
+{
 	// 필요한 확장 목록 가져오기
 	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+	const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+	std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
 	// 디버깅 모드이면 VK_EXT_debug_utils 확장 추가 (메세지 콜백 확장)
-	if (enableValidationLayers) {
+	if (enableValidationLayers)
+	{
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
-	
+
 	return extensions;
 }
 
-//vkDebugUtilsMessengerCreateInfoEXT 구조체 내부를 채워주는 함수
-void VulkanInstance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+// vkDebugUtilsMessengerCreateInfoEXT 구조체 내부를 채워주는 함수
+void VulkanInstance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+{
 	createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-								VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-								VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+								 VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+								 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-							VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-							VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+							 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+							 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	createInfo.pfnUserCallback = debugCallback;
 }
 
@@ -150,13 +169,20 @@ void VulkanInstance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreat
 	디버그 메신저 객체 생성 함수
 	(확장 함수는 자동으로 로드 되지 않으므로 동적으로 가져와야 한다.)
 */
-VkResult VulkanInstance::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-										const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+VkResult VulkanInstance::CreateDebugUtilsMessengerEXT(VkInstance instance,
+													  const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+													  const VkAllocationCallbacks *pAllocator,
+													  VkDebugUtilsMessengerEXT *pDebugMessenger)
+{
 	// vkCreateDebugUtilsMessengerEXT 함수의 주소를 vkGetInstanceProcAddr를 통해 동적으로 가져옴
-	PFN_vkCreateDebugUtilsMessengerEXT func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-	if (func != nullptr) {
+	PFN_vkCreateDebugUtilsMessengerEXT func =
+		(PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+	if (func != nullptr)
+	{
 		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-	} else {
+	}
+	else
+	{
 		return VK_ERROR_EXTENSION_NOT_PRESENT;
 	}
 }
@@ -165,9 +191,13 @@ VkResult VulkanInstance::CreateDebugUtilsMessengerEXT(VkInstance instance, const
 	디버그 메신저 객체 파괴 함수
 	(확장 함수는 자동으로 로드 되지 않으므로 동적으로 가져와야 한다.)
 */
-void VulkanInstance::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-	PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-	if (func != nullptr) {
+void VulkanInstance::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
+												   const VkAllocationCallbacks *pAllocator)
+{
+	PFN_vkDestroyDebugUtilsMessengerEXT func =
+		(PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+	if (func != nullptr)
+	{
 		func(instance, debugMessenger, pAllocator);
 	}
 }
@@ -175,18 +205,20 @@ void VulkanInstance::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugU
 void VulkanInstance::clear()
 {
 	// 메시지 객체 파괴
-	if (enableValidationLayers) {
+	if (enableValidationLayers)
+	{
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
-	vkDestroySurfaceKHR(instance, surface, nullptr);	// 화면 객체 파괴
-	vkDestroyInstance(instance, nullptr);				// 인스턴스 파괴
+	vkDestroySurfaceKHR(instance, surface, nullptr); // 화면 객체 파괴
+	vkDestroyInstance(instance, nullptr);			 // 인스턴스 파괴
 }
 
 // 디버그 메시지 콜백 함수
-VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInstance::debugCallback( VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-																VkDebugUtilsMessageTypeFlagsEXT messageType,
-																const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-																void* pUserData) {
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInstance::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+															 VkDebugUtilsMessageTypeFlagsEXT messageType,
+															 const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+															 void *pUserData)
+{
 	// 메시지 내용만 출력
 	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 	// VK_TRUE 반환시 프로그램 종료됨
