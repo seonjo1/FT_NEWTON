@@ -1,13 +1,13 @@
 #ifndef RENDERER_H
-# define RENDERER_H
+#define RENDERER_H
 
-# include "common.h"
-# include "deviceManager.h"
+#include "Common.h"
+#include "DeviceManager.h"
 
 class Renderer
 {
-public:
-	static std::unique_ptr<Renderer> create(DeviceManager* deviceManager, VkFormat swapChainImageFormat);
+  public:
+	static std::unique_ptr<Renderer> create(DeviceManager *deviceManager, VkFormat swapChainImageFormat);
 	~Renderer() = default;
 	void clear();
 	VkRenderPass getRenderPass();
@@ -15,14 +15,13 @@ public:
 	VkPipelineLayout getPipelineLayout();
 	VkPipeline getGraphicsPipeline();
 
-private:
+  private:
 	Renderer() = default;
-	void init(DeviceManager* deviceManager, VkFormat swapChainImageFormat);
-	void createRenderPass(DeviceManager* deviceManager, VkFormat swapChainImageFormat);
+	void init(DeviceManager *deviceManager, VkFormat swapChainImageFormat);
+	void createRenderPass(DeviceManager *deviceManager, VkFormat swapChainImageFormat);
 	void createDescriptorSetLayout();
 	void createGraphicsPipeline(VkSampleCountFlagBits msaaSamples);
-	VkShaderModule createShaderModule(const std::vector<char>& code);
-
+	VkShaderModule createShaderModule(const std::vector<char> &code);
 
 	VkDevice device;
 	VkRenderPass renderPass;
