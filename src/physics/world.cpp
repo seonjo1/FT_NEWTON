@@ -31,7 +31,7 @@ void World::startFrame()
 void World::runPhysics()
 {
 	// std::cout << "start runPhysics\n";
-	float duration = 0.0005f;
+	float duration = 0.003f;
 	for (Rigidbody *body : rigidbodies)
 	{
 		// std::cout << "body: " << body->getBodyId() << "\n";
