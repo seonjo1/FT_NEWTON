@@ -8,7 +8,6 @@
 namespace ale
 {
 
-	
 struct Vec3Comparator
 {
 	bool operator()(const glm::vec3 &lhs, const glm::vec3 &rhs) const
@@ -21,7 +20,7 @@ struct Vec3Comparator
 	}
 };
 
-enum class Type
+enum class EType
 {
 	SPHERE = (1 << 0),
 	BOX = (1 << 1),
@@ -30,15 +29,7 @@ enum class Type
 	CAPSULE = (1 << 4),
 };
 
-int32_t operator|(Type type1, Type type2);
-
-struct MassData
-{
-	glm::vec3 center;
-	float mass;
-	// inertia
-	float I;
-};
+int32_t operator|(EType type1, EType type2);
 
 struct ConvexInfo;
 
@@ -49,23 +40,19 @@ class Shape
 	virtual Shape *clone() const = 0;
 	virtual int32_t getChildCount() const = 0;
 	virtual void computeAABB(AABB *aabb, const Transform &xf) const = 0;
-	virtual void computeMass(MassData *massData, float density) const = 0;
-	virtual float getLocalRadius() const = 0;
-	virtual const glm::vec3 &getLocalHalfSize() const = 0;
 	virtual ConvexInfo getShapeInfo(const Transform &transform) const = 0;
 
-	Type getType() const
+	EType getType() const
 	{
 		return m_type;
 	}
-	void setType(Type type)
+	void setType(EType type)
 	{
 		m_type = type;
 	}
 
 	glm::vec3 m_center;
-	glm::vec3 localCenter;
-	Type m_type;
+	EType m_type;
 };
 
 } // namespace ale
