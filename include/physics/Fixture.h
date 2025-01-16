@@ -1,7 +1,7 @@
 #ifndef FIXTURE_H
 #define FIXTURE_H
 
-#include "common.h"
+#include "Common.h"
 #include "physics/Rigidbody.h"
 
 namespace ale
@@ -16,15 +16,13 @@ struct FixtureDef
 	{
 		shape = nullptr;
 		userData = nullptr;
-		friction = 0.5f;
-		restitution = 0.6f;
-		density = 0.0f;
+		friction = 0.0f;
+		restitution = 0.0f;
 	}
 	Shape *shape;
 	void *userData;
 	float friction;
 	float restitution;
-	float density;
 };
 
 struct FixtureProxy
@@ -39,28 +37,28 @@ class Fixture
 {
   public:
 	Fixture();
-	void Create(Rigidbody *body, const FixtureDef *fd);
-	void Destroy();
+	void create(Rigidbody *body, const FixtureDef *fd);
+	void destroy();
 
-	void CreateProxies(BroadPhase *broadPhase);
-	void DestroyProxies(BroadPhase *broadPhase);
+	void createProxies(BroadPhase *broadPhase);
+	void destroyProxies(BroadPhase *broadPhase);
 
 	void synchronize(BroadPhase *broadPhase, const Transform &xf1, const Transform &xf2);
 
 	float getFriction();
 	float getRestitution();
 	Rigidbody *getBody() const;
-	Type getType() const;
+	EType getType() const;
 	Shape *getShape();
-	const FixtureProxy* getFixtureProxy() const;
+	const FixtureProxy *getFixtureProxy() const;
 
   protected:
-	Rigidbody *body;
-	Shape *shape;
-	float density;
-	float friction;
-	float restitution;
-	std::vector<FixtureProxy *> proxies;
+	Rigidbody *m_body;
+	Shape *m_shape;
+	float m_density;
+	float m_friction;
+	float m_restitution;
+	std::vector<FixtureProxy *> m_proxies;
 	// void *userData;
 
   private:
