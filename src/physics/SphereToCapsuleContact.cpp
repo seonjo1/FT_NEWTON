@@ -30,13 +30,13 @@ glm::vec3 SphereToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3 
 	{
 		move = -capsule.axes[0] * capsule.height * 0.5f;
 	}
-	
+
 	return capsule.center + move + dir * capsule.radius;
 }
 
 void SphereToCapsuleContact::findCollisionPoints(const ConvexInfo &sphere, const ConvexInfo &capsule,
-												  std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-												  std::vector<Simplex> &simplexVector)
+												 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
+												 std::vector<Simplex> &simplexVector)
 {
 	CollisionInfo collisionInfo;
 
@@ -44,7 +44,7 @@ void SphereToCapsuleContact::findCollisionPoints(const ConvexInfo &sphere, const
 	collisionInfo.seperation = epaInfo.distance;
 	collisionInfo.pointA = sphere.center + epaInfo.normal * sphere.radius;
 	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
-	
+
 	collisionInfoVector.push_back(collisionInfo);
 }
 
