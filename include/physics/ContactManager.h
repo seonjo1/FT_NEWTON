@@ -16,7 +16,7 @@ class ContactManager
 	bool isSameContact(ContactLink *link, Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB);
 	void collide();
 
-	BroadPhase broadPhase;
+	BroadPhase m_broadPhase;
 	Contact *m_contactList;
 };
 
