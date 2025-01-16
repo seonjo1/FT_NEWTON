@@ -27,7 +27,7 @@ glm::vec3 CapsuleToCapsuleContact::supportA(const ConvexInfo &capsule, glm::vec3
 	{
 		move = -capsule.axes[0] * capsule.height * 0.5f;
 	}
-	
+
 	return capsule.center + move + dir * capsule.radius;
 }
 
@@ -48,7 +48,7 @@ glm::vec3 CapsuleToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3
 	{
 		move = -capsule.axes[0] * capsule.height * 0.5f;
 	}
-	
+
 	return capsule.center + move + dir * capsule.radius;
 }
 
@@ -63,7 +63,7 @@ void CapsuleToCapsuleContact::findCollisionPoints(const ConvexInfo &capsuleA, co
 
 		collisionInfo.normal = epaInfo.normal;
 		collisionInfo.seperation = epaInfo.distance;
-		
+
 		if (glm::dot(capsuleA.axes[0], epaInfo.normal) > 0)
 		{
 			glm::vec3 hemisphereCenter = capsuleA.center + capsuleA.axes[0] * 0.5f * capsuleA.height;
@@ -76,7 +76,7 @@ void CapsuleToCapsuleContact::findCollisionPoints(const ConvexInfo &capsuleA, co
 			collisionInfo.pointA = hemisphereCenter + epaInfo.normal * capsuleA.radius;
 			collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
 		}
-		
+
 		collisionInfoVector.push_back(collisionInfo);
 	}
 	else if (isCollideToHemisphere(capsuleB, -epaInfo.normal))
@@ -98,7 +98,7 @@ void CapsuleToCapsuleContact::findCollisionPoints(const ConvexInfo &capsuleA, co
 			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsuleB.radius;
 			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
 		}
-		
+
 		collisionInfoVector.push_back(collisionInfo);
 	}
 	else
