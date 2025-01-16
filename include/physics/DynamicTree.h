@@ -2,7 +2,7 @@
 #define DYNAMICTREE_H
 
 #include "Collision.h"
-#include "common.h"
+#include "Common.h"
 #include <stack>
 
 #define nullNode (-1)
@@ -11,7 +11,7 @@ namespace ale
 {
 struct TreeNode
 {
-	bool IsLeaf() const
+	bool isLeaf() const
 	{
 		return child1 == nullNode;
 	}
@@ -34,58 +34,58 @@ class DynamicTree
 	~DynamicTree();
 
 	// 주어진 aabb와 userData로 node에 값 초기화, node 삽입
-	int32_t CreateProxy(const AABB &aabb, void *userData);
+	int32_t createProxy(const AABB &aabb, void *userData);
 
 	// proxyId에 해당하는 node Destroy
-	void DestroyProxy(int32_t proxyId);
+	void destroyProxy(int32_t proxyId);
 
 	// proxyId에 해당하는 node 삭제 후, 적당한 위치로 다시 Insert
-	bool MoveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement);
+	bool moveProxy(int32_t proxyId, const AABB &aabb, const glm::vec3 &displacement);
 
 	//
-	void *GetUserData(int32_t proxyId) const;
+	void *getUserData(int32_t proxyId) const;
 
 	//
-	const AABB &GetFatAABB(int32_t proxyId) const;
+	const AABB &getFatAABB(int32_t proxyId) const;
 
-	template <typename T> void Query(T *callback, const AABB &aabb) const;
+	template <typename T> void query(T *callback, const AABB &aabb) const;
 
   private:
-	int32_t AllocateNode();
-	void FreeNode(int32_t nodeId);
+	int32_t allocateNode();
+	void freeNode(int32_t nodeId);
 
-	// 가장 최적의 위치를 찾아 node 삽입, Balance
-	void InsertLeaf(int32_t leaf);
+	// 가장 최적의 위치를 찾아 node 삽입, balance
+	void insertLeaf(int32_t leaf);
 
 	// node 삭제
-	void RemoveLeaf(int32_t leaf);
+	void removeLeaf(int32_t leaf);
 
-	// 트리가 쏠리지 않게 Balance 맞춰줌
-	int32_t Balance(int32_t index);
+	// 트리가 쏠리지 않게 balance 맞춰줌
+	int32_t balance(int32_t index);
 
-	float GetInsertionCostForLeaf(const AABB &leafAABB, int32_t child, float inheritedCost);
+	float getInsertionCostForLeaf(const AABB &leafAABB, int32_t child, float inheritedCost);
 
-	float GetInsertionCost(const AABB &leafAABB, int32_t child, float inheritedCost);
+	float getInsertionCost(const AABB &leafAABB, int32_t child, float inheritedCost);
 
 	void printDynamicTree(int32_t node);
 
-	// tree의 height 계산
-	int32_t ComputeHeight() const;
-	// sub-tree의 height 계산
-	int32_t ComputeHeight(int32_t nodeId) const;
+	// // tree의 height 계산
+	// int32_t ComputeHeight() const;
+	// // sub-tree의 height 계산
+	// int32_t ComputeHeight(int32_t nodeId) const;
 
-	int32_t root;
-	int32_t freeNode;
-	std::vector<TreeNode> nodes;
-	int32_t nodeCapacity;
-	int32_t nodeCount;
+	int32_t m_root;
+	int32_t m_freeNode;
+	int32_t m_nodeCount;
+	int32_t m_nodeCapacity;
+	std::vector<TreeNode> m_nodes;
 };
 
-template <typename T> inline void DynamicTree::Query(T *callback, const AABB &aabb) const
+template <typename T> inline void DynamicTree::query(T *callback, const AABB &aabb) const
 {
-	// std::cout << "DynamicTree::Query\n";
+	// std::cout << "DynamicTree::query\n";
 	std::stack<int32_t> stack;
-	stack.push(root);
+	stack.push(m_root);
 
 	while (!stack.empty())
 	{
@@ -97,10 +97,10 @@ template <typename T> inline void DynamicTree::Query(T *callback, const AABB &aa
 			continue;
 		}
 
-		const TreeNode node = nodes[nodeId];
+		const TreeNode node = m_nodes[nodeId];
 		if (testOverlap(node.aabb, aabb))
 		{
-			if (node.IsLeaf())
+			if (node.isLeaf())
 			{
 				bool proceed = callback->queryCallback(nodeId);
 				if (proceed == false)
