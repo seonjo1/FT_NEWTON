@@ -80,14 +80,19 @@ class Contact
 	void update();
 	void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB);
 
+	void generateManifolds(std::vector<CollisionInfo> &collisionInfoVector, Manifold &manifold, Fixture *m_fixtureA,
+						   Fixture *m_fixtureB);
 	float getFriction() const;
 	float getRestitution() const;
-	float getTangentSpeed() const;
-	Contact *getNext();
-	Fixture *getFixtureA() const;
-	Fixture *getFixtureB() const;
 	int32_t getChildIndexA() const;
 	int32_t getChildIndexB() const;
+	int32_t getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
+						   std::vector<int32_t> &faces);
+	Contact *getNext();
+	Simplex getSupportPoint(const ConvexInfo &convexA, const ConvexInfo &convexB, glm::vec3 &dir);
+	EpaInfo getEpaResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplex);
+	Fixture *getFixtureA() const;
+	Fixture *getFixtureB() const;
 	ContactLink *getNodeA();
 	ContactLink *getNodeB();
 	const Manifold &getManifold() const;
@@ -95,13 +100,12 @@ class Contact
 	void setPrev(Contact *contact);
 	void setNext(Contact *contact);
 	void setFlag(EContactFlag flag);
-	void unsetFlag(EContactFlag flag);
 	bool hasFlag(EContactFlag flag);
+	void unsetFlag(EContactFlag flag);
 
   protected:
 	static contactMemberFunction createContactFunctions[32];
 
-	Simplex getSupportPoint(const ConvexInfo &convexA, const ConvexInfo &convexB, glm::vec3 &dir);
 	bool handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
 	bool handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
 	bool handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
@@ -111,13 +115,8 @@ class Contact
 	bool isDuplicatedPoint(const std::vector<Simplex> &simplexVector, const glm::vec3 &supportPoint);
 	bool isSameDirection(glm::vec3 v1, glm::vec3 v2);
 	bool isSimilarDirection(glm::vec3 v1, glm::vec3 v2);
-	EpaInfo getEpaResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplex);
-	int32_t getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
-						   std::vector<int32_t> &faces);
 	void addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const std::vector<int32_t> &faces, int32_t a,
 						 int32_t b);
-	void generateManifolds(std::vector<CollisionInfo> &collisionInfoVector, Manifold &manifold, Fixture *m_fixtureA,
-						   Fixture *m_fixtureB);
 
 	virtual glm::vec3 supportA(const ConvexInfo &box, glm::vec3 dir) = 0;
 	virtual glm::vec3 supportB(const ConvexInfo &box, glm::vec3 dir) = 0;
@@ -139,26 +138,18 @@ class Contact
 
 	bool isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir);
 
-	int32_t m_flags;
-
-	Contact *m_prev;
-	Contact *m_next;
-
-	ContactLink m_nodeA;
-	ContactLink m_nodeB;
-
-	Fixture *m_fixtureA;
-	Fixture *m_fixtureB;
-
-	int32_t m_indexA;
-	int32_t m_indexB;
-
-	Manifold m_manifold;
-
 	float m_friction;
 	float m_restitution;
-
-	float m_tangentSpeed;
+	int32_t m_flags;
+	Contact *m_prev;
+	Contact *m_next;
+	ContactLink m_nodeA;
+	ContactLink m_nodeB;
+	Fixture *m_fixtureA;
+	Fixture *m_fixtureB;
+	int32_t m_indexA;
+	int32_t m_indexB;
+	Manifold m_manifold;
 };
 } // namespace ale
 
