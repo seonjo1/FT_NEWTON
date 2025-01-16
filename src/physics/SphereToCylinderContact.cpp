@@ -38,7 +38,7 @@ glm::vec3 SphereToCylinderContact::supportB(const ConvexInfo &cylinder, glm::vec
 	if (glm::length2(circleDir) > 1e-8f)
 	{
 		circleDir = glm::normalize(circleDir); // 정규화
-		
+
 		int32_t maxIdx;
 		int32_t segments = 20;
 
@@ -83,7 +83,7 @@ void SphereToCylinderContact::findCollisionPoints(const ConvexInfo &sphere, cons
 	collisionInfo.seperation = epaInfo.distance;
 	collisionInfo.pointA = sphere.center + epaInfo.normal * sphere.radius;
 	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
-	
+
 	collisionInfoVector.push_back(collisionInfo);
 }
 
