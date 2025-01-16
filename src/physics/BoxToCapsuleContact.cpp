@@ -17,7 +17,7 @@ glm::vec3 BoxToCapsuleContact::supportA(const ConvexInfo &box, glm::vec3 dir)
 						glm::dot(box.axes[2], dir) > 0 ? 1.0f : -1.0f};
 
 	glm::vec3 point = box.center;
-	for (int i = 0; i < 3; ++i)
+	for (int32_t i = 0; i < 3; ++i)
 	{
 		point += box.axes[i] * (dotAxes[i] * box.halfSize[i]);
 	}
@@ -39,7 +39,7 @@ glm::vec3 BoxToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3 dir
 	{
 		move = -capsule.axes[0] * capsule.height * 0.5f;
 	}
-	
+
 	return capsule.center + move + dir * capsule.radius;
 }
 
@@ -54,7 +54,6 @@ void BoxToCapsuleContact::findCollisionPoints(const ConvexInfo &box, const Conve
 
 		collisionInfo.normal = epaInfo.normal;
 		collisionInfo.seperation = epaInfo.distance;
-		
 
 		if (glm::dot(capsule.axes[0], collisionInfo.normal) < 0)
 		{
@@ -68,7 +67,7 @@ void BoxToCapsuleContact::findCollisionPoints(const ConvexInfo &box, const Conve
 			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsule.radius;
 			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
 		}
-		
+
 		collisionInfoVector.push_back(collisionInfo);
 	}
 	else
@@ -80,7 +79,6 @@ void BoxToCapsuleContact::findCollisionPoints(const ConvexInfo &box, const Conve
 		std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
 		buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
 	}
-
 }
 
 } // namespace ale
