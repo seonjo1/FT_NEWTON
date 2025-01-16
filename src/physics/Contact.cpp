@@ -922,7 +922,7 @@ void Contact::buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfo
 	// 여기서는 "Ref Face plane에서 A 물체 좌표, Incident Face plane에서 B 물체 좌표" 라고 가정
 	float denominator = (-(glm::dot(polygon[0], refN) - refPlaneDist));
 	float ratio;
-	if (denominator < 1e-8)
+	if (denominator < 1e-8f)
 	{
 		ratio = 0.0f;
 	}
@@ -933,13 +933,13 @@ void Contact::buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfo
 
 	for (const glm::vec3 &point : polygon)
 	{
-		// B측 point:
+		// B측 point
 		glm::vec3 pointB = point;
 
 		// 침투깊이
 		float penentration = ratio * (-(glm::dot(point, refN) - refPlaneDist));
 
-		// A측 point:
+		// A측 point
 		glm::vec3 pointA = point + normal * penentration;
 
 		// 접촉 정보
