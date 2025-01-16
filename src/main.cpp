@@ -1,11 +1,15 @@
-#include "../include/app.h"
+#include "../include/App.h"
 
-int main() {
+int main()
+{
 	App app;
 
-	try {
+	try
+	{
 		app.run();
-	} catch (const std::exception& e) {
+	}
+	catch (const std::exception &e)
+	{
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
