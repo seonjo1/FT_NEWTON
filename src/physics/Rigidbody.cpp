@@ -1,7 +1,7 @@
 #include "physics/Rigidbody.h"
 #include "physics/Fixture.h"
 #include "physics/Shape.h"
-#include "physics/world.h"
+#include "physics/World.h"
 
 namespace ale
 {
@@ -52,7 +52,7 @@ Rigidbody::~Rigidbody()
 {
 	for (Fixture *fixture : m_fixtures)
 	{
-		fixture->Destroy();
+		fixture->destroy();
 		delete fixture;
 	}
 }
@@ -68,7 +68,7 @@ void Rigidbody::synchronizeFixtures()
 	Transform xf1;
 	xf1.position = m_sweep.p;
 	xf1.orientation = m_sweep.q;
-	BroadPhase *broadPhase = &m_world->m_contactManager.broadPhase;
+	BroadPhase *broadPhase = &m_world->m_contactManager.m_broadPhase;
 	for (Fixture *fixture : m_fixtures)
 	{
 		fixture->synchronize(broadPhase, xf1, m_xf);
@@ -84,12 +84,13 @@ void Rigidbody::integrate(float duration)
 	{
 		return;
 	}
-	// gravity
-	addGravity();
 
 	// Set acceleration by F = ma
 	m_lastFrameAcceleration = m_acceleration;
 	m_lastFrameAcceleration += (m_forceAccum * m_inverseMass);
+
+	// gravity
+	addGravity();
 
 	// set angular acceleration
 	glm::vec3 angularAcceleration = m_inverseInertiaTensorWorld * m_torqueAccum;
@@ -111,8 +112,8 @@ void Rigidbody::integrate(float duration)
 
 	// set orientation
 	glm::quat angularVelocityQuat = glm::quat(0.0f, m_angularVelocity * duration); // 각속도를 쿼터니언으로 변환
-	m_xf.orientation += 0.5f * angularVelocityQuat * m_xf.orientation;				 // 쿼터니언 미분 공식
-	m_xf.orientation = glm::normalize(m_xf.orientation);							 // 정규화하여 안정성 유지
+	m_xf.orientation += 0.5f * angularVelocityQuat * m_xf.orientation;			   // 쿼터니언 미분 공식
+	m_xf.orientation = glm::normalize(m_xf.orientation);						   // 정규화하여 안정성 유지
 
 	calculateDerivedData();
 	clearAccumulators();
@@ -333,8 +334,8 @@ void Rigidbody::createFixture(const FixtureDef *fd)
 
 	Fixture *fixture = new Fixture();
 
-	fixture->Create(this, fd);
-	fixture->CreateProxies(&m_world->m_contactManager.broadPhase);
+	fixture->create(this, fd);
+	fixture->createProxies(&m_world->m_contactManager.m_broadPhase);
 	m_fixtures.push_back(fixture);
 	// std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
 }
