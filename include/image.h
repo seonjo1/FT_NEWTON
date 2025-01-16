@@ -1,7 +1,7 @@
 #ifndef IMAGE_H
 # define IMAGE_H
 
-# include "deviceManager.h"
+# include "DeviceManager.h"
 
 class Image
 {

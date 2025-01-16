@@ -1,8 +1,8 @@
-#include "../include/image.h"
-#include "../include/buffer.h"
+#include "../include/Image.h"
+#include "../include/Buffer.h"
 
 # define STB_IMAGE_IMPLEMENTATION
-# include <stb/stb_image.h>
+# include <stb/stb_Image.h>
 
 void Image::clear()
 {
