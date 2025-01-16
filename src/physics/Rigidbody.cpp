@@ -23,27 +23,26 @@ static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::mat3 
 }
 
 int32_t Rigidbody::BODY_COUNT = 0;
-glm::vec3 Rigidbody::gravity = glm::vec3(0.0f, -15.0f, 0.0f);
 
 Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {
-	this->world = world;
-	type = bd->type;
-	xfId = bd->xfId;
+	this->m_world = world;
+	m_type = bd->m_type;
+	m_xfId = bd->m_xfId;
 
-	xf.position = bd->position;
-	xf.orientation = bd->orientation;
+	m_xf.position = bd->m_position;
+	m_xf.orientation = bd->m_orientation;
 
-	linearVelocity = bd->linearVelocity;
-	angularVelocity = bd->angularVelocity;
+	m_linearVelocity = bd->m_linearVelocity;
+	m_angularVelocity = bd->m_angularVelocity;
 
-	linearDamping = bd->linearDamping;
-	angularDamping = bd->angularDamping;
-	gravityScale = bd->gravityScale;
+	m_linearDamping = bd->m_linearDamping;
+	m_angularDamping = bd->m_angularDamping;
+	m_gravityScale = bd->m_gravityScale;
 
-	canSleep = bd->canSleep;
-	isAwake = bd->isAwake;
-	acceleration = glm::vec3(0.0f);
+	// canSleep = bd->m_canSleep;
+	// isAwake = bd->m_isAwake;
+	m_acceleration = glm::vec3(0.0f);
 	m_flags = 0;
 	m_contactLinks = nullptr;
 	m_bodyID = BODY_COUNT++;
@@ -51,7 +50,7 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 
 Rigidbody::~Rigidbody()
 {
-	for (Fixture *fixture : fixtures)
+	for (Fixture *fixture : m_fixtures)
 	{
 		fixture->Destroy();
 		delete fixture;
@@ -61,18 +60,18 @@ Rigidbody::~Rigidbody()
 void Rigidbody::synchronizeFixtures()
 {
 	// std::cout << "start syncronizeFixtures\n";
-	if (type == BodyType::e_static)
+	if (m_type == EBodyType::STATIC_BODY)
 	{
 		return;
 	}
 
 	Transform xf1;
-	xf1.position = sweep.p;
-	xf1.orientation = sweep.q;
-	BroadPhase *broadPhase = &world->contactManager.broadPhase;
-	for (Fixture *fixture : fixtures)
+	xf1.position = m_sweep.p;
+	xf1.orientation = m_sweep.q;
+	BroadPhase *broadPhase = &m_world->m_contactManager.broadPhase;
+	for (Fixture *fixture : m_fixtures)
 	{
-		fixture->synchronize(broadPhase, xf1, xf);
+		fixture->synchronize(broadPhase, xf1, m_xf);
 	}
 }
 
@@ -81,66 +80,66 @@ void Rigidbody::integrate(float duration)
 {
 	// std::cout << "start integrate\n";
 
-	if (type == BodyType::e_static)
+	if (m_type == EBodyType::STATIC_BODY)
 	{
 		return;
 	}
 	// gravity
-	// addGravity();
+	addGravity();
 
 	// Set acceleration by F = ma
-	lastFrameAcceleration = acceleration;
-	lastFrameAcceleration += ((forceAccum * inverseMass) + gravity);
-
-	// lastFrameAcceleration += ((forceAccum * inverseMass));
+	m_lastFrameAcceleration = m_acceleration;
+	m_lastFrameAcceleration += (m_forceAccum * m_inverseMass);
 
 	// set angular acceleration
-	glm::vec3 angularAcceleration = inverseInertiaTensorWorld * torqueAccum;
+	glm::vec3 angularAcceleration = m_inverseInertiaTensorWorld * m_torqueAccum;
 
 	// set velocity by accerleration
-	linearVelocity += (lastFrameAcceleration * duration);
-	angularVelocity += (angularAcceleration * duration);
+	m_linearVelocity += (m_lastFrameAcceleration * duration);
+	m_angularVelocity += (angularAcceleration * duration);
 
 	// impose drag
-	linearVelocity *= (1.0f - linearDamping);
-	angularVelocity *= (1.0f - angularDamping);
+	m_linearVelocity *= (1.0f - m_linearDamping);
+	m_angularVelocity *= (1.0f - m_angularDamping);
 
 	// set sweep (previous Transform)
-	sweep.p = xf.position;
-	sweep.q = xf.orientation;
+	m_sweep.p = m_xf.position;
+	m_sweep.q = m_xf.orientation;
 
 	// set position
-	xf.position += (linearVelocity * duration);
+	m_xf.position += (m_linearVelocity * duration);
+
 	// set orientation
-	glm::quat angularVelocityQuat = glm::quat(0.0f, angularVelocity * duration); // 각속도를 쿼터니언으로 변환
-	xf.orientation += 0.5f * angularVelocityQuat * xf.orientation;				 // 쿼터니언 미분 공식
-	xf.orientation = glm::normalize(xf.orientation);							 // 정규화하여 안정성 유지
+	glm::quat angularVelocityQuat = glm::quat(0.0f, m_angularVelocity * duration); // 각속도를 쿼터니언으로 변환
+	m_xf.orientation += 0.5f * angularVelocityQuat * m_xf.orientation;				 // 쿼터니언 미분 공식
+	m_xf.orientation = glm::normalize(m_xf.orientation);							 // 정규화하여 안정성 유지
 
 	calculateDerivedData();
 	clearAccumulators();
+
 	// if can sleep ~
 }
 
 void Rigidbody::calculateDerivedData()
 {
-	glm::quat q = glm::normalize(xf.orientation);
+	glm::quat q = glm::normalize(m_xf.orientation);
 
-	_calculateTransformMatrix(transformMatrix, xf.position, q);
-	_transformInertiaTensor(inverseInertiaTensorWorld, inverseInertiaTensor, transformMatrix);
+	_calculateTransformMatrix(m_transformMatrix, m_xf.position, q);
+	_transformInertiaTensor(m_inverseInertiaTensorWorld, m_inverseInertiaTensor, m_transformMatrix);
 }
 
 void Rigidbody::addForce(const glm::vec3 &force)
 {
-	forceAccum += force;
+	m_forceAccum += force;
 }
 
 void Rigidbody::addForceAtPoint(const glm::vec3 &force, const glm::vec3 &point)
 {
 	glm::vec3 pt = point;
-	pt -= xf.position;
+	pt -= m_xf.position;
 
-	forceAccum += force;
-	torqueAccum += glm::cross(pt, force);
+	m_forceAccum += force;
+	m_torqueAccum += glm::cross(pt, force);
 }
 
 void Rigidbody::addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &point)
@@ -151,93 +150,93 @@ void Rigidbody::addForceAtBodyPoint(const glm::vec3 &force, const glm::vec3 &poi
 
 void Rigidbody::addTorque(const glm::vec3 &torque)
 {
-	torqueAccum += torque;
+	m_torqueAccum += torque;
 }
 
 void Rigidbody::addGravity()
 {
-	if (type == BodyType::e_dynamic)
+	if (m_type == EBodyType::DYNAMIC_BODY)
 	{
-		addForce(glm::vec3(0.0f, -1.0f, 0.0f));
+		m_lastFrameAcceleration += glm::vec3(0.0f, -m_gravityScale, 0.0f);
 	}
 }
 
 void Rigidbody::calculateForceAccum()
 {
 	// std::cout << "start calculateForceAccum\n";
-	while (!forceRegistry.empty())
+	while (!m_forceRegistry.empty())
 	{
-		addForce(forceRegistry.front());
-		forceRegistry.pop();
+		addForce(m_forceRegistry.front());
+		m_forceRegistry.pop();
 	}
 }
 
 void Rigidbody::registerForce(const glm::vec3 &force)
 {
-	forceRegistry.push(force);
+	m_forceRegistry.push(force);
 }
 
 void Rigidbody::clearAccumulators()
 {
 	// clear accumulate vector to zero
-	forceAccum.x = 0;
-	forceAccum.y = 0;
-	forceAccum.z = 0;
+	m_forceAccum.x = 0;
+	m_forceAccum.y = 0;
+	m_forceAccum.z = 0;
 
-	torqueAccum.x = 0;
-	torqueAccum.y = 0;
-	torqueAccum.z = 0;
+	m_torqueAccum.x = 0;
+	m_torqueAccum.y = 0;
+	m_torqueAccum.z = 0;
 }
 
 glm::vec3 Rigidbody::getPointInWorldSpace(const glm::vec3 &point) const
 {
-	glm::vec4 ret = transformMatrix * glm::vec4(point, 1.0f);
+	glm::vec4 ret = m_transformMatrix * glm::vec4(point, 1.0f);
 	return glm::vec3(ret);
 }
 
 const Transform &Rigidbody::getTransform() const
 {
-	return xf;
+	return m_xf;
 }
 
 const glm::vec3 &Rigidbody::getPosition() const
 {
-	return xf.position;
+	return m_xf.position;
 }
 
 const glm::quat &Rigidbody::getOrientation() const
 {
-	return xf.orientation;
+	return m_xf.orientation;
 }
 
 const glm::vec3 &Rigidbody::getLinearVelocity() const
 {
-	return linearVelocity;
+	return m_linearVelocity;
 }
 
 const glm::vec3 &Rigidbody::getAngularVelocity() const
 {
-	return angularVelocity;
+	return m_angularVelocity;
 }
 
 const glm::mat4 &Rigidbody::getTransformMatrix() const
 {
-	return transformMatrix;
+	return m_transformMatrix;
 }
 
 const glm::mat3 &Rigidbody::getInverseInertiaTensorWorld() const
 {
-	return inverseInertiaTensorWorld;
+	return m_inverseInertiaTensorWorld;
 }
 
 float Rigidbody::getInverseMass() const
 {
-	return inverseMass;
+	return m_inverseMass;
 }
 
 int32_t Rigidbody::getTransformId() const
 {
-	return xfId;
+	return m_xfId;
 }
 
 int32_t Rigidbody::getIslandIndex() const
@@ -250,9 +249,9 @@ ContactLink *Rigidbody::getContactLinks()
 	return m_contactLinks;
 }
 
-BodyType Rigidbody::getType()
+EBodyType Rigidbody::getType() const
 {
-	return type;
+	return m_type;
 }
 
 int32_t Rigidbody::getBodyId() const
@@ -262,22 +261,22 @@ int32_t Rigidbody::getBodyId() const
 
 void Rigidbody::setPosition(const glm::vec3 &position)
 {
-	this->xf.position = position;
+	this->m_xf.position = position;
 }
 
 void Rigidbody::setOrientation(const glm::quat &orientation)
 {
-	xf.orientation = orientation;
+	m_xf.orientation = orientation;
 }
 
 void Rigidbody::setLinearVelocity(const glm::vec3 &linearVelocity)
 {
-	this->linearVelocity = linearVelocity;
+	this->m_linearVelocity = linearVelocity;
 }
 
 void Rigidbody::setAngularVelocity(const glm::vec3 &angularVelocity)
 {
-	this->angularVelocity = angularVelocity;
+	this->m_angularVelocity = angularVelocity;
 }
 
 void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
@@ -285,16 +284,16 @@ void Rigidbody::setMassData(float mass, const glm::mat3 &inertiaTensor)
 	// 추후 예외처리
 	if (mass == 0)
 	{
-		inverseMass = 0.0f;
-		inverseInertiaTensor = inertiaTensor;
+		m_inverseMass = 0.0f;
+		m_inverseInertiaTensor = inertiaTensor;
 	}
 	else
 	{
-		inverseMass = 1 / mass;
+		m_inverseMass = 1 / mass;
 
 		// 역행렬 존재 가능한지 예외처리
-		inverseInertiaTensor = inertiaTensor;
-		inverseInertiaTensor = glm::inverse(inverseInertiaTensor);
+		m_inverseInertiaTensor = inertiaTensor;
+		m_inverseInertiaTensor = glm::inverse(m_inverseInertiaTensor);
 	}
 }
 
@@ -335,8 +334,8 @@ void Rigidbody::createFixture(const FixtureDef *fd)
 	Fixture *fixture = new Fixture();
 
 	fixture->Create(this, fd);
-	fixture->CreateProxies(&world->contactManager.broadPhase);
-	fixtures.push_back(fixture);
+	fixture->CreateProxies(&m_world->m_contactManager.broadPhase);
+	m_fixtures.push_back(fixture);
 	// std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
 }
 
@@ -347,13 +346,13 @@ bool Rigidbody::hasFlag(EBodyFlag flag)
 
 void Rigidbody::updateSweep()
 {
-	sweep.p = xf.position;
-	sweep.q = xf.orientation;
+	m_sweep.p = m_xf.position;
+	m_sweep.q = m_xf.orientation;
 }
 
 bool Rigidbody::shouldCollide(const Rigidbody *other) const
 {
-	if (type != BodyType::e_dynamic && other->type != BodyType::e_dynamic)
+	if (m_type != EBodyType::DYNAMIC_BODY && other->m_type != EBodyType::DYNAMIC_BODY)
 	{
 		return false;
 	}
