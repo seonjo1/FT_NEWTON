@@ -4,15 +4,15 @@ set(PROJECT_NAME VULKAN_TUTORIAL)
 set(CMAKE_CXX_STANDARD 17)
  
 project(${PROJECT_NAME})
-set(SRC src/main.cpp src/app.cpp src/vulkanInstance.cpp src/deviceManager.cpp
-		src/swapChainManager.cpp src/image.cpp src/renderer.cpp
-		src/buffer.cpp src/mesh.cpp src/model.cpp src/syncObject.cpp 
-		src/commandManager.cpp src/descriptorPool.cpp src/camera.cpp
+set(SRC src/main.cpp src/App.cpp src/VulkanInstance.cpp src/DeviceManager.cpp
+		src/SwapChainManager.cpp src/Image.cpp src/Renderer.cpp
+		src/Buffer.cpp src/Mesh.cpp src/Model.cpp src/SyncObject.cpp 
+		src/CommandManager.cpp src/DescriptorPool.cpp src/Camera.cpp
 		src/physics/BoxShape.cpp src/physics/BoxToBoxContact.cpp src/physics/BroadPhase.cpp 
 		src/physics/Contact.cpp src/physics/ContactManager.cpp src/physics/ContactSolver.cpp 
 		src/physics/DynamicTree.cpp src/physics/Fixture.cpp src/physics/Island.cpp 
 		src/physics/Rigidbody.cpp src/physics/Shape.cpp src/physics/SphereShape.cpp 
-		src/physics/SphereToBoxContact.cpp src/physics/SphereToSphereContact.cpp src/physics/world.cpp 
+		src/physics/SphereToBoxContact.cpp src/physics/SphereToSphereContact.cpp src/physics/World.cpp 
 		src/physics/SphereToCylinderContact.cpp src/physics/CylinderToCylinderContact.cpp
 		src/physics/BoxToCylinderContact.cpp src/physics/CylinderShape.cpp
 		src/physics/CapsuleToCapsuleContact.cpp src/physics/CapsuleShape.cpp
