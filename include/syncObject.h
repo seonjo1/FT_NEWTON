@@ -1,20 +1,20 @@
 #ifndef SYNCOBJECT_H
-# define SYNCOBJFECT_H
+#define SYNCOBJFECT_H
 
-# include "common.h"
+#include "Common.h"
 
 class SyncObject
 {
-public:
+  public:
 	static std::unique_ptr<SyncObject> create(VkDevice device);
 	~SyncObject() = default;
 	void clear();
 	VkSemaphore getImageAvailableSemaphore(uint32_t currentFrame);
 	VkSemaphore getRenderFinishedSemaphore(uint32_t currentFrame);
 	VkFence getInFlightFence(uint32_t currentFrame);
-	VkFence* getInFlightFencePointer(uint32_t currentFrame);
+	VkFence *getInFlightFencePointer(uint32_t currentFrame);
 
-private:
+  private:
 	SyncObject() = default;
 	void init(VkDevice device);
 	void createSyncObjects();
