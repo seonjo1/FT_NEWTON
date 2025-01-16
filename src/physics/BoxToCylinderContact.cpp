@@ -17,7 +17,7 @@ glm::vec3 BoxToCylinderContact::supportA(const ConvexInfo &box, glm::vec3 dir)
 						glm::dot(box.axes[2], dir) > 0 ? 1.0f : -1.0f};
 
 	glm::vec3 point = box.center;
-	for (int i = 0; i < 3; ++i)
+	for (int32_t i = 0; i < 3; ++i)
 	{
 		point += box.axes[i] * (dotAxes[i] * box.halfSize[i]);
 	}
@@ -47,7 +47,7 @@ glm::vec3 BoxToCylinderContact::supportB(const ConvexInfo &cylinder, glm::vec3 d
 	if (glm::length2(circleDir) > 1e-8f)
 	{
 		circleDir = glm::normalize(circleDir); // 정규화
-		
+
 		int32_t maxIdx;
 		int32_t segments = 20;
 
