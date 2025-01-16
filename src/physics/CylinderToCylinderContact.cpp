@@ -34,7 +34,7 @@ glm::vec3 CylinderToCylinderContact::supportA(const ConvexInfo &cylinder, glm::v
 	if (glm::length2(circleDir) > 1e-8f)
 	{
 		circleDir = glm::normalize(circleDir); // 정규화
-		
+
 		int32_t maxIdx;
 		int32_t segments = 20;
 
@@ -91,7 +91,7 @@ glm::vec3 CylinderToCylinderContact::supportB(const ConvexInfo &cylinder, glm::v
 	if (glm::length2(circleDir) > 1e-8f)
 	{
 		circleDir = glm::normalize(circleDir); // 정규화
-		
+
 		int32_t maxIdx;
 		int32_t segments = 20;
 
