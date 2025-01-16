@@ -1,4 +1,4 @@
-#include "../include/descriptorPool.h"
+#include "../include/DescriptorPool.h"
 
 std::unique_ptr<DescriptorPool> DescriptorPool::create(VkDevice device, std::vector<std::unique_ptr<Model>>& models, int32_t shootMax)
 {
