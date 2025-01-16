@@ -15,13 +15,9 @@ class CapsuleShape : public Shape
 	CapsuleShape *clone() const;
 	int32_t getChildCount() const;
 	void computeAABB(AABB *aabb, const Transform &xf) const;
-	void computeMass(MassData *massData, float density) const;
 	void setShapeFeatures(const std::vector<Vertex> &vertices);
 	void computeCapsuleFeatures(const std::vector<Vertex> &vertices);
 	void createCapsulePoints();
-
-	virtual float getLocalRadius() const override;
-	virtual const glm::vec3 &getLocalHalfSize() const override;
 	virtual ConvexInfo getShapeInfo(const Transform &transform) const override;
 
 	float m_radius;
