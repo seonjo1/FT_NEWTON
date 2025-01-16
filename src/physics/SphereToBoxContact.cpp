@@ -40,7 +40,7 @@ void SphereToBoxContact::findCollisionPoints(const ConvexInfo &sphere, const Con
 	collisionInfo.seperation = epaInfo.distance;
 	collisionInfo.pointA = sphere.center + epaInfo.normal * sphere.radius;
 	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
-	
+
 	collisionInfoVector.push_back(collisionInfo);
 }
 
