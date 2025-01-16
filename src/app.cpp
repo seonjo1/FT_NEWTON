@@ -130,7 +130,7 @@ void App::processEvents()
 
 		int32_t idx = models.size() - 1;
 		world->createBody(models[idx], idx);
-		world->registerBodyForce(idx, cameraFront * 1000000.0f);
+		world->registerBodyForce(idx, cameraFront * 100000.0f);
 
 		models[idx]->createDescriptorSets(device, descriptorPool->get(), renderer->getDescriptorSetLayout());
 
@@ -262,30 +262,28 @@ void App::createModels()
 		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
 	transforms.push_back(groundXf);
 
-
 	// 박스
-	// int32_t N = 2;
-	// float bz = 0.0f;
-	// for (int32_t i = 0; i < N; i++)
-	// {
-	// 	float by = 0.0f;
-	// 	for (int32_t j = 0; j < N; j++)
-	// 	{
-	// 		float bx = 0.0f;
-	// 		for (int32_t k = 0; k < N; k++)
-	// 		{
-	// 			ale::Transform boxXf(glm::vec3(bx, by, bz),
-	// 								glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
-	// 			models.push_back(
-	// 				Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf, "models/container.png"));
-	// 			transforms.push_back(boxXf);
-	// 			bx = bx + 1.0f;
-	// 		}
-	// 		by = by + 1.0f;
-	// 	}
-	// 	bz = bz + 1.0f;
-	// }
-
+	int32_t N = 5;
+	float bz = 0.0f;
+	for (int32_t i = 0; i < N; i++)
+	{
+		float by = 0.0f;
+		for (int32_t j = 0; j < N; j++)
+		{
+			float bx = 0.0f;
+			for (int32_t k = 0; k < N; k++)
+			{
+				ale::Transform boxXf(glm::vec3(bx, by, bz),
+									 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+				models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf,
+												  "models/container.png"));
+				transforms.push_back(boxXf);
+				bx = bx + 1.0f;
+			}
+			by = by + 1.0f;
+		}
+		bz = bz + 1.0f;
+	}
 
 	// 실린더
 	// int32_t M = 2;
@@ -298,10 +296,11 @@ void App::createModels()
 	// 		float cx = 0.0f;
 	// 		for (int32_t k = 0; k < M; k++)
 	// 		{
-	// 			ale::Transform cylinderXf(glm::vec3(cx, cy, cz),
-	// 									glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
-	// 			models.push_back(Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(), cylinderXf,
-	// 												"models/container.png"));
+	// 			ale::Transform cylinderXf(
+	// 				glm::vec3(cx, cy, cz),
+	// 				glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// 			models.push_back(Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(),
+	// 												   cylinderXf, "models/container.png"));
 	// 			transforms.push_back(cylinderXf);
 	// 			cx = cx + 1.0f;
 	// 		}
@@ -310,9 +309,7 @@ void App::createModels()
 	// 	cz = cz + 1.0f;
 	// }
 
-
 	// 구
-	// sphere top
 	// int32_t L = 2;
 	// float sz = 0.0f;
 	// for (int32_t i = 0; i < L; i++)
@@ -323,10 +320,11 @@ void App::createModels()
 	// 		float sx = 0.0f;
 	// 		for (int32_t k = 0; k < L; k++)
 	// 		{
-	// 			ale::Transform sphereXf(glm::vec3(sx, sy, sz),
-	// 									glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// 			ale::Transform sphereXf(
+	// 				glm::vec3(sx, sy, sz),
+	// 				glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
 	// 			models.push_back(Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf,
-	// 												"models/sphere.png"));
+	// 												 "models/sphere.png"));
 	// 			transforms.push_back(sphereXf);
 	// 			sx = sx + 1.0f;
 	// 		}
@@ -335,11 +333,10 @@ void App::createModels()
 	// 	sz = sz + 1.0f;
 	// }
 
-
 	// 캡슐
 	// int32_t O = 2;
 	// float cz = 0.0f;
-	// for (int32_t i = 0; i < O; i++)
+	// for (int32_t i = 0; i < 1; i++)
 	// {
 	// 	float cy = 0.5f;
 	// 	for (int32_t j = 0; j < O; j++)
@@ -347,10 +344,11 @@ void App::createModels()
 	// 		float cx = 0.0f;
 	// 		for (int32_t k = 0; k < O; k++)
 	// 		{
-	// 			ale::Transform capsuleXF(glm::vec3(cx, cy, cz),
-	// 									glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// 			ale::Transform capsuleXF(
+	// 				glm::vec3(cx, cy, cz),
+	// 				glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
 	// 			models.push_back(Model::createCapsule(deviceManager.get(), commandManager->getCommandPool(), capsuleXF,
-	// 												"models/container.png"));
+	// 												  "models/container.png"));
 	// 			transforms.push_back(capsuleXF);
 	// 			cx = cx + 1.0f;
 	// 		}
@@ -358,6 +356,42 @@ void App::createModels()
 	// 	}
 	// 	cz = cz + 1.0f;
 	// }
+
+	// ale::Transform capsuleXF(glm::vec3(0.0f, 6.5f, 0.0f),
+	// 						 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// models.push_back(
+	// 	Model::createCapsule(deviceManager.get(), commandManager->getCommandPool(), capsuleXF, "models/container.png"));
+	// transforms.push_back(capsuleXF);
+
+	// ale::Transform capsuleXF0(glm::vec3(1.0f, 6.5f, 0.0f),
+	// 						 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// models.push_back(
+	// 	Model::createCapsule(deviceManager.get(), commandManager->getCommandPool(), capsuleXF0,
+	// "models/container.png")); transforms.push_back(capsuleXF0);
+
+	// ale::Transform cylinderXF(glm::vec3(0.0f, 2.5f, 0.0f),
+	// 						 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// models.push_back(
+	// 	Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(), cylinderXF,
+	// "models/container.png")); transforms.push_back(cylinderXF);
+
+	// ale::Transform cylinderXF1(glm::vec3(1.0f, 0.5f, 0.0f),
+	// 						   glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// models.push_back(Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(), cylinderXF1,
+	// 									   "models/container.png"));
+	// transforms.push_back(cylinderXF1);
+
+	// ale::Transform boxXF(glm::vec3(0.0f, 0.5f, 0.0f),
+	// 					 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// models.push_back(
+	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXF, "models/container.png"));
+	// transforms.push_back(boxXF);
+
+	// ale::Transform boxXF1(glm::vec3(1.0f, 2.5f, 0.0f),
+	// 					  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// models.push_back(
+	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXF1, "models/container.png"));
+	// transforms.push_back(boxXF1);
 }
 
 void App::createWorld()
