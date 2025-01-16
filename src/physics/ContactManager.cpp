@@ -33,7 +33,6 @@ bool ContactManager::isSameContact(ContactLink *link, Fixture *fixtureA, Fixture
 
 void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 {
-
 	FixtureProxy *proxyA = static_cast<FixtureProxy *>(proxyUserDataA);
 	FixtureProxy *proxyB = static_cast<FixtureProxy *>(proxyUserDataB);
 
@@ -70,12 +69,15 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 	{
 		return;
 	}
+
 	// 충돌 생성
 	Contact *contact = Contact::create(fixtureA, fixtureB, indexA, indexB);
+
 	if (contact == nullptr)
 	{
 		throw std::runtime_error("Generating Contact fail!");
 	}
+
 	// std::cout << "create Contact\n" << "bodyA: " << bodyA->getBodyId() << "\nbodyB: " << bodyB->getBodyId() << "\n";
 
 	fixtureA = contact->getFixtureA();
@@ -127,7 +129,7 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 void ContactManager::findNewContacts()
 {
 	// std::cout << "ContactManager::findNewContacts\n";
-	broadPhase.updatePairs(this);
+	m_broadPhase.updatePairs(this);
 }
 
 void ContactManager::collide()
