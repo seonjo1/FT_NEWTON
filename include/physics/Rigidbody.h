@@ -52,8 +52,8 @@ struct BodyDef
 	glm::vec3 m_angularVelocity;
 	float m_linearDamping;
 	float m_angularDamping;
-	bool m_canSleep;
-	bool m_isAwake;
+	// bool m_canSleep;
+	// bool m_isAwake;
 	// void *userData;
 	float m_gravityScale;
 	int32_t m_xfId;
