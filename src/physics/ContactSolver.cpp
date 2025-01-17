@@ -263,7 +263,7 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 {
 	const float kSlop = 0.01f; // 허용 관통 오차
-	const float alpha = 0.1f / positionIteration;
+	const float alpha = 1.0f / positionIteration;
 	bool solved = true;
 
 	int32_t length = m_contacts.size();
