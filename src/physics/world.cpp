@@ -229,7 +229,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 
 	BoxShape *box = shape->clone();
 	FixtureDef fd;
-	fd.shape = shape;
+	fd.shape = box;
 	fd.friction = 0.6f;
 	fd.restitution = 0.4f;
 
@@ -264,7 +264,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	SphereShape *sphere = shape->clone();
 
 	FixtureDef fd;
-	fd.shape = shape;
+	fd.shape = sphere;
 	fd.friction = 0.2f;
 	fd.restitution = 0.8f;
 	body->createFixture(&fd);
@@ -295,7 +295,7 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 
 	BoxShape *box = shape->clone();
 	FixtureDef fd;
-	fd.shape = shape;
+	fd.shape = box;
 	fd.friction = 0.7f;
 	fd.restitution = 0.3f;
 
@@ -332,7 +332,7 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 
 	CylinderShape *cylinder = shape->clone();
 	FixtureDef fd;
-	fd.shape = shape;
+	fd.shape = cylinder;
 	fd.friction = 0.6f;
 	fd.restitution = 0.4f;
 
@@ -377,7 +377,7 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 
 	CapsuleShape *capsule = shape->clone();
 	FixtureDef fd;
-	fd.shape = shape;
+	fd.shape = capsule;
 	fd.friction = 0.6f;
 	fd.restitution = 0.4f;
 
