@@ -125,7 +125,7 @@ void App::processEvents()
 
 		ale::Transform sphereXf(cameraPos, glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 		models.push_back(
-			Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "models/sphere.png"));
+			Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf, "C:/Users/seonjo/FT_NEWTON/models/sphere.png"));
 		transforms.push_back(sphereXf);
 
 		int32_t idx = models.size() - 1;
@@ -259,7 +259,7 @@ void App::createModels()
 {
 	ale::Transform groundXf(glm::vec3(0.0f, -0.51f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 	models.push_back(
-		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "models/Greyground.jpg"));
+		Model::createGround(deviceManager.get(), commandManager->getCommandPool(), groundXf, "C:/Users/seonjo/FT_NEWTON/models/Greyground.jpg"));
 	transforms.push_back(groundXf);
 
 	// 박스
@@ -276,7 +276,7 @@ void App::createModels()
 				ale::Transform boxXf(glm::vec3(bx, by, bz),
 									 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
 				models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf,
-												  "models/container.png"));
+												  "C:/Users/seonjo/FT_NEWTON/models/container.png"));
 				transforms.push_back(boxXf);
 				bx = bx + 1.0f;
 			}
