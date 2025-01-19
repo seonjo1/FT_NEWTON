@@ -76,7 +76,7 @@ class App
 	int32_t shootNum{0};
 	const int32_t SHOOT_MAX{100};
 
-	ale::World *world;
+	std::unique_ptr<ale::World> world;
 
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;

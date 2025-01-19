@@ -396,7 +396,7 @@ void App::createModels()
 
 void App::createWorld()
 {
-	world = new ale::World(static_cast<uint32_t>(models.size()), *this);
+	world = std::make_unique<ale::World>(static_cast<uint32_t>(models.size()), *this);
 
 	// std::cout << "App::Create World\n";
 	for (size_t i = 0; i < models.size(); ++i)
