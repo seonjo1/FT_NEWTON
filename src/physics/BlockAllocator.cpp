@@ -2,7 +2,7 @@
 
 namespace ale
 {
-int32_t BlockAllocator::blockSizes[blockSizes] = {
+int32_t BlockAllocator::blockSizes[BLOCK_SIZE_COUNT] = {
 	16,	 // 0
 	32,	 // 1
 	64,	 // 2
@@ -19,13 +19,13 @@ int32_t BlockAllocator::blockSizes[blockSizes] = {
 	640, // 13
 };
 
-uint8_t BlockAllocator::blockSizeLookup[maxBlockSize + 1];
+uint8_t BlockAllocator::blockSizeLookup[MAX_BLOCK_SIZE + 1];
 bool BlockAllocator::blockSizeLookupInitialized;
 
 
 BlockAllocator::BlockAllocator()
 {
-	m_chunkSpace = chunkArrayIncrement;
+	m_chunkSpace = CHUNK_ARRAY_INCREMENT;
 	m_chunkCount = 0;
 	m_chunks = (Chunk *)malloc(m_chunkSpace * sizeof(Chunk));
 
@@ -35,22 +35,22 @@ BlockAllocator::BlockAllocator()
 	// 블록 크기 조회 배열 초기화
 	if (blockSizeLookupInitialized == false)
 	{
-		uint8_t j = 0;
-		for (int32_t i = 1; i <= maxBlockSize; ++i)
+		int8_t j = 0;
+		for (int32_t i = 1; i <= MAX_BLOCK_SIZE; ++i)
 		{
-			if (j < blockSizes)
+			if (j < BLOCK_SIZE_COUNT)
 			{
 				throw std::runtime_error("failed to initialize blockSizeLookup");
 			}
 
 			if (i <= blockSizes[j])
 			{
-				blockSizeLookup[i] = j;
+				blockSizeLookup[i] = static_cast<uint8_t>(j);
 			}
 			else
 			{
 				++j;
-				blockSizeLookup[i] = j;
+				blockSizeLookup[i] = static_cast<uint8_t>(j);
 			}
 		}
 
@@ -78,7 +78,7 @@ void *BlockAllocator::allocateBlock(int32_t size)
 	}
 
 	// 설정해 놓은 block의 최대 크기보다 큰 경우 따로 malloc
-	if (size > maxBlockSize)
+	if (size > MAX_BLOCK_SIZE)
 	{
 		return malloc(size);
 	}
@@ -99,21 +99,21 @@ void *BlockAllocator::allocateBlock(int32_t size)
 		{
 			// 청크가 꽉찬 경우 청크 크기 2배로 증가
 			Chunk *oldChunks = m_chunks;
-			m_chunkSpace += chunkArrayIncrement;
+			m_chunkSpace += CHUNK_ARRAY_INCREMENT;
 			m_chunks = (Chunk *)malloc(m_chunkSpace * sizeof(Chunk));
 			memcpy(m_chunks, oldChunks, m_chunkCount * sizeof(Chunk));
-			memset(m_chunks + m_chunkCount, 0, chunkArrayIncrement * sizeof(Chunk));
+			memset(m_chunks + m_chunkCount, 0, CHUNK_ARRAY_INCREMENT * sizeof(Chunk));
 			free(oldChunks);
 		}
 
 		// 새로운 청크 생성
 		Chunk *chunk = m_chunks + m_chunkCount;
-		chunk->blocks = (Block *)malloc(chunkSize);
+		chunk->blocks = (Block *)malloc(CHUNK_SIZE);
 
 		// 청크 내부 블록들 생성
 		int32_t blockSize = blockSizes[index];
 		chunk->blockSize = blockSize;
-		int32_t blockCount = chunkSize / blockSize;
+		int32_t blockCount = CHUNK_SIZE / blockSize;
 
 		Block *block = chunk->blocks;
 		for (int32_t i = 1; i < blockCount; ++i)
@@ -138,7 +138,7 @@ void BlockAllocator::freeBlock(void *pointer, int32_t size)
 		return;
 	}
 
-	if (size > maxBlockSize)
+	if (size > MAX_BLOCK_SIZE)
 	{
 		free(pointer);
 		return;
