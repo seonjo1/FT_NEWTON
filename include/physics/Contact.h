@@ -1,6 +1,7 @@
 #ifndef CONTACT_H
 #define CONTACT_H
 
+#include "PhysicsAllocator.h"
 #include "Fixture.h"
 #include <cmath>
 
