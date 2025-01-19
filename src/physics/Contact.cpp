@@ -167,7 +167,7 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 void Contact::update()
 {
 	// 기존 manifold 저장
-	Manifold oldManifold = m_manifold;
+	// Manifold oldManifold = m_manifold;
 
 	// 이전 프레임에서 두 객체가 충돌중이었는지 확인
 	bool touching = false;
