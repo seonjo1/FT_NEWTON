@@ -8,7 +8,12 @@ CylinderToCapsuleContact::CylinderToCapsuleContact(Fixture *fixtureA, Fixture *f
 
 Contact *CylinderToCapsuleContact::create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
 {
-	return new CylinderToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(CylinderToCapsuleContact));
+	if (memory == nullptr)
+	{
+		throw std::runtime_error("failed to allocate block");
+	}
+	return new (static_cast<CylinderToCapsuleContact *>(memory)) CylinderToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
 }
 
 glm::vec3 CylinderToCapsuleContact::supportA(const ConvexInfo &cylinder, glm::vec3 dir)
