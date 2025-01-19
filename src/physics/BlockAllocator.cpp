@@ -38,7 +38,7 @@ BlockAllocator::BlockAllocator()
 		int8_t j = 0;
 		for (int32_t i = 1; i <= MAX_BLOCK_SIZE; ++i)
 		{
-			if (j < BLOCK_SIZE_COUNT)
+			if (j >= BLOCK_SIZE_COUNT)
 			{
 				throw std::runtime_error("failed to initialize blockSizeLookup");
 			}
@@ -80,7 +80,7 @@ void *BlockAllocator::allocateBlock(int32_t size)
 	// 설정해 놓은 block의 최대 크기보다 큰 경우 따로 malloc
 	if (size > MAX_BLOCK_SIZE)
 	{
-		return malloc(size);
+		throw std::runtime_error("try too large memory allocated");
 	}
 
 	int32_t index = blockSizeLookup[size];
@@ -140,7 +140,6 @@ void BlockAllocator::freeBlock(void *pointer, int32_t size)
 
 	if (size > MAX_BLOCK_SIZE)
 	{
-		free(pointer);
 		return;
 	}
 
