@@ -54,7 +54,8 @@ class Model
 
 	std::vector<std::unique_ptr<Mesh>> meshes;
 	std::vector<std::unique_ptr<Material>> materials;
-	ale::Shape *shape;
+	std::unique_ptr<ale::Shape> shape;
+
 	uint32_t size;
 };
 

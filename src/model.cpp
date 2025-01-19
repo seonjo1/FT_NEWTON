@@ -20,8 +20,8 @@ std::unique_ptr<Model> Model::createCapsule(DeviceManager *deviceManager, VkComm
 void Model::createCapsuleMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
 							   std::string specularPath, const ale::Transform &xf)
 {
-	shape = new ale::CapsuleShape();
-	ale::CapsuleShape *capsuleShape = dynamic_cast<ale::CapsuleShape *>(shape);
+	shape = std::make_unique<ale::CapsuleShape>();
+	ale::CapsuleShape *capsuleShape = dynamic_cast<ale::CapsuleShape *>(shape.get());
 
 	if (capsuleShape)
 	{
@@ -45,8 +45,8 @@ std::unique_ptr<Model> Model::createCylinder(DeviceManager *deviceManager, VkCom
 void Model::createCylinderMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
 							   std::string specularPath, const ale::Transform &xf)
 {
-	shape = new ale::CylinderShape();
-	ale::CylinderShape *cylinderShape = dynamic_cast<ale::CylinderShape *>(shape);
+	shape = std::make_unique<ale::CylinderShape>();
+	ale::CylinderShape *cylinderShape = dynamic_cast<ale::CylinderShape *>(shape.get());
 
 	if (cylinderShape)
 	{
@@ -69,8 +69,8 @@ std::unique_ptr<Model> Model::createBox(DeviceManager *deviceManager, VkCommandP
 void Model::createBoxMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
 						  std::string specularPath, const ale::Transform &xf)
 {
-	shape = new ale::BoxShape();
-	ale::BoxShape *boxShape = dynamic_cast<ale::BoxShape *>(shape);
+	shape = std::make_unique<ale::BoxShape>();
+	ale::BoxShape *boxShape = dynamic_cast<ale::BoxShape *>(shape.get());
 
 	if (boxShape)
 	{
@@ -89,19 +89,11 @@ std::unique_ptr<Model> Model::createSphere(DeviceManager *deviceManager, VkComma
 	return sphere;
 }
 
-std::unique_ptr<Model> Model::createGround(DeviceManager *deviceManager, VkCommandPool commandPool,
-										   const ale::Transform &xf, std::string diffusePath, std::string specularPath)
-{
-	std::unique_ptr<Model> ground(new Model());
-	ground->createGroundMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
-	return ground;
-}
-
 void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
 							 std::string specularPath, const ale::Transform &xf)
 {
-	shape = new ale::SphereShape();
-	ale::SphereShape *sphereShape = dynamic_cast<ale::SphereShape *>(shape);
+	shape = std::make_unique<ale::SphereShape>();
+	ale::SphereShape *sphereShape = dynamic_cast<ale::SphereShape *>(shape.get());
 
 	if (sphereShape)
 	{
@@ -112,11 +104,19 @@ void Model::createSphereMesh(DeviceManager *deviceManager, VkCommandPool command
 	}
 }
 
+std::unique_ptr<Model> Model::createGround(DeviceManager *deviceManager, VkCommandPool commandPool,
+										   const ale::Transform &xf, std::string diffusePath, std::string specularPath)
+{
+	std::unique_ptr<Model> ground(new Model());
+	ground->createGroundMesh(deviceManager, commandPool, diffusePath, specularPath, xf);
+	return ground;
+}
+
 void Model::createGroundMesh(DeviceManager *deviceManager, VkCommandPool commandPool, std::string diffusePath,
 							 std::string specularPath, const ale::Transform &xf)
 {
-	shape = new ale::BoxShape();
-	ale::BoxShape *groundShape = dynamic_cast<ale::BoxShape *>(shape);
+	shape = std::make_unique<ale::BoxShape>();
+	ale::BoxShape *groundShape = dynamic_cast<ale::BoxShape *>(shape.get());
 
 	shape->setType(ale::EType::GROUND);
 	if (groundShape)
@@ -247,6 +247,6 @@ uint32_t Model::getSize()
 
 ale::Shape *Model::getShape() const
 {
-	return shape;
+	return shape.get();
 }
 
