@@ -173,8 +173,8 @@ void Renderer::createDescriptorSetLayout() {
 */ 
 void Renderer::createGraphicsPipeline(VkSampleCountFlagBits msaaSamples) {
 	// SPIR-V 파일 읽기
-	std::vector<char> vertShaderCode = readFile("./shaders/vert.spv");
-	std::vector<char> fragShaderCode = readFile("./shaders/frag.spv");
+	std::vector<char> vertShaderCode = readFile("C:/Users/seonjo/FT_NEWTON/shaders/vert.spv");
+	std::vector<char> fragShaderCode = readFile("C:/Users/seonjo/FT_NEWTON/shaders/frag.spv");
 
 	// shader module 생성
 	VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
