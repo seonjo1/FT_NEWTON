@@ -17,7 +17,8 @@ set(SRC src/main.cpp src/App.cpp src/VulkanInstance.cpp src/DeviceManager.cpp
 		src/physics/BoxToCylinderContact.cpp src/physics/CylinderShape.cpp
 		src/physics/CapsuleToCapsuleContact.cpp src/physics/CapsuleShape.cpp
 		src/physics/SphereToCapsuleContact.cpp src/physics/CylinderToCapsuleContact.cpp 
-		src/physics/BoxToCapsuleContact.cpp	)
+		src/physics/BoxToCapsuleContact.cpp	src/physics/BlockAllocator.cpp 
+		src/physics/StackAllocator.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
