@@ -10,7 +10,8 @@ CylinderShape::CylinderShape()
 
 CylinderShape *CylinderShape::clone() const
 {
-	CylinderShape *clone = new CylinderShape();
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(CylinderShape));
+	CylinderShape *clone = new (static_cast<CylinderShape *>(memory)) CylinderShape();
 	*clone = *this;
 	return clone;
 }
