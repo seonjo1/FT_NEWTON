@@ -10,7 +10,8 @@ CapsuleShape::CapsuleShape()
 
 CapsuleShape *CapsuleShape::clone() const
 {
-	CapsuleShape *clone = new CapsuleShape();
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(CapsuleShape));
+	CapsuleShape *clone = new (static_cast<CapsuleShape *>(memory)) CapsuleShape();
 	*clone = *this;
 	return clone;
 }
