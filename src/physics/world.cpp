@@ -7,22 +7,30 @@
 
 namespace ale
 {
-World::World(uint32_t size, App &app) : m_app(app) {};
+World::World(App &app) : m_app(app), m_rigidbodies(nullptr), m_rigidbodies_size(0) {};
 
 World::~World()
 {
-	for (Rigidbody *body : m_rigidbodies)
+	Rigidbody *body = m_rigidbodies;
+
+	while (body != nullptr)
 	{
-		delete body;
+		Rigidbody *nextBody = body->next;
+		body->~Rigidbody();
+		PhysicsAllocator::m_blockAllocator.freeBlock(body, sizeof(Rigidbody));
+
+		body = nextBody;
 	}
 }
 
 void World::startFrame()
 {
-	for (Rigidbody *body : m_rigidbodies)
+	Rigidbody *body = m_rigidbodies;
+	while (body != nullptr)
 	{
 		body->clearAccumulators();
 		body->calculateDerivedData();
+		body = body->next;
 	}
 }
 
@@ -30,7 +38,8 @@ void World::runPhysics()
 {
 	// std::cout << "start runPhysics\n";
 	float duration = 0.003f;
-	for (Rigidbody *body : m_rigidbodies)
+	Rigidbody *body = m_rigidbodies;
+	while (body != nullptr)
 	{
 		// std::cout << "body: " << body->getBodyId() << "\n";
 		body->calculateForceAccum();
@@ -38,6 +47,8 @@ void World::runPhysics()
 		body->integrate(duration);
 
 		body->synchronizeFixtures();
+
+		body = body->next;
 	}
 
 	// std::cout << "broad phase\n";
@@ -50,9 +61,12 @@ void World::runPhysics()
 	// std::cout << "solve\n";
 	solve(duration);
 
-	for (Rigidbody *body : m_rigidbodies)
+	body = m_rigidbodies;
+
+	while (body != nullptr)
 	{
 		m_app.setTransformById(body->getTransformId(), body->getTransform());
+		body = body->next;
 	}
 }
 
@@ -63,7 +77,7 @@ void World::solve(float duration)
 	Island island;
 
 	// 모든 body들의 플래그에 islandFlag 제거
-	for (Rigidbody *body : m_rigidbodies)
+	for (Rigidbody *body = m_rigidbodies; body; body = body->next)
 	{
 		body->unsetFlag(EBodyFlag::ISLAND);
 	}
@@ -78,9 +92,8 @@ void World::solve(float duration)
 	std::stack<Rigidbody *> stack;
 
 	// body 순회
-	for (Rigidbody *body : m_rigidbodies)
+	for (Rigidbody *body = m_rigidbodies; body; body = body->next)
 	{
-		// std::cout << "body id: " << body->getBodyId() << "\n";
 		// 이미 island에 포함된 경우 continue
 		if (body->hasFlag(EBodyFlag::ISLAND))
 		{
@@ -156,11 +169,11 @@ void World::solve(float duration)
 		island.solve(duration);
 
 		// island의 staticBody들의 island 플래그 off
-		for (Rigidbody *body : island.m_bodies)
+		for (Rigidbody *islandBody : island.m_bodies)
 		{
-			if (body->getType() == EBodyType::STATIC_BODY)
+			if (islandBody->getType() == EBodyType::STATIC_BODY)
 			{
-				body->unsetFlag(EBodyFlag::ISLAND);
+				islandBody->unsetFlag(EBodyFlag::ISLAND);
 			}
 		}
 	}
@@ -175,11 +188,11 @@ void World::createBody(std::unique_ptr<Model> &model, int32_t xfId)
 
 	switch (type)
 	{
-	case EType::BOX:
-		createBox(model, xfId);
-		break;
 	case EType::SPHERE:
 		createSphere(model, xfId);
+		break;
+	case EType::BOX:
+		createBox(model, xfId);
 		break;
 	case EType::GROUND:
 		createGround(model, xfId);
@@ -210,7 +223,8 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_linearDamping = 0.0001f;
 	bd.m_angularDamping = 0.0001f;
 
-	Rigidbody *body = new Rigidbody(&bd, this);
+	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
+	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
 	glm::vec3 upper = *std::prev(shape->m_vertices.end());
@@ -234,7 +248,16 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	m_rigidbodies.push_back(body);
+	if (m_rigidbodies_size != 0)
+	{
+		m_rigidbodies->prev = body;
+	}
+
+	body->prev = nullptr;
+	body->next = m_rigidbodies;
+	m_rigidbodies = body;
+
+	++m_rigidbodies_size;
 }
 
 void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
@@ -252,7 +275,8 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_linearDamping = 0.0001f;
 	bd.m_angularDamping = 0.0001f;
 
-	Rigidbody *body = new Rigidbody(&bd, this);
+	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
+	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// calculate inersiaTensor - (2 / 5) * m * r * r
 	float mass = 10.0f;
@@ -268,7 +292,17 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.friction = 0.2f;
 	fd.restitution = 0.8f;
 	body->createFixture(&fd);
-	m_rigidbodies.push_back(body);
+
+	if (m_rigidbodies_size != 0)
+	{
+		m_rigidbodies->prev = body;
+	}
+
+	body->prev = nullptr;
+	body->next = m_rigidbodies;
+	m_rigidbodies = body;
+
+	++m_rigidbodies_size;
 	// std::cout << "World:: Create Sphere end\n";
 }
 
@@ -285,7 +319,8 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_linearDamping = 0.0f;
 	bd.m_angularDamping = 0.0f;
 
-	Rigidbody *body = new Rigidbody(&bd, this);
+	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
+	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
 	glm::mat3 m(0.0f);
@@ -300,7 +335,16 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.3f;
 
 	body->createFixture(&fd);
-	m_rigidbodies.push_back(body);
+	if (m_rigidbodies_size != 0)
+	{
+		m_rigidbodies->prev = body;
+	}
+
+	body->prev = nullptr;
+	body->next = m_rigidbodies;
+	m_rigidbodies = body;
+
+	++m_rigidbodies_size;
 }
 
 void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
@@ -317,7 +361,8 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_linearDamping = 0.0001f;
 	bd.m_angularDamping = 0.0001f;
 
-	Rigidbody *body = new Rigidbody(&bd, this);
+	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
+	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
 	float mass = 30.0f;
@@ -337,7 +382,17 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	m_rigidbodies.push_back(body);
+	
+	if (m_rigidbodies_size != 0)
+	{
+		m_rigidbodies->prev = body;
+	}
+
+	body->prev = nullptr;
+	body->next = m_rigidbodies;
+	m_rigidbodies = body;
+
+	++m_rigidbodies_size;
 }
 
 void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
@@ -354,7 +409,8 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_linearDamping = 0.0001f;
 	bd.m_angularDamping = 0.0001f;
 
-	Rigidbody *body = new Rigidbody(&bd, this);
+	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
+	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// sphere
 	float mh = 5.0f;
@@ -382,13 +438,28 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	m_rigidbodies.push_back(body);
+
+	if (m_rigidbodies_size != 0)
+	{
+		m_rigidbodies->prev = body;
+	}
+
+	body->prev = nullptr;
+	body->next = m_rigidbodies;
+	m_rigidbodies = body;
+
+	++m_rigidbodies_size;
 }
 
 void World::registerBodyForce(int32_t idx, const glm::vec3 &force)
 {
 	// check idx
-	m_rigidbodies[idx]->registerForce(force);
+	Rigidbody *body = m_rigidbodies;
+	for (int32_t i = m_rigidbodies_size - 1; i > idx; --i)
+	{
+		body = body->next;
+	}
+	body->registerForce(force);
 }
 
 } // namespace ale

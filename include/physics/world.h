@@ -1,9 +1,9 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include "Common.h"
 #include "ContactManager.h"
 #include "Island.h"
-#include "Common.h"
 #include <stack>
 
 class Model;
@@ -19,7 +19,7 @@ class SphereShape;
 class World
 {
   public:
-	World(uint32_t size, App &app);
+	World(App &app);
 	~World();
 
 	void startFrame();
@@ -37,7 +37,8 @@ class World
 	App &m_app;
 
   private:
-	std::vector<Rigidbody *> m_rigidbodies;
+	Rigidbody *m_rigidbodies;
+	int32_t m_rigidbodies_size;
 };
 } // namespace ale
 #endif
