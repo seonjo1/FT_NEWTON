@@ -50,11 +50,11 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 
 Rigidbody::~Rigidbody()
 {
-	for (Fixture *fixture : m_fixtures)
+	for (int32_t i = 0; i < m_fixtures_size; ++i)
 	{
-		fixture->destroy();
-		delete fixture;
+		m_fixtures[i].destroy();
 	}
+	PhysicsAllocator::m_blockAllocator.freeBlock(m_fixtures, sizeof(Fixture) * m_fixtures_size);
 }
 
 void Rigidbody::synchronizeFixtures()
@@ -69,9 +69,10 @@ void Rigidbody::synchronizeFixtures()
 	xf1.position = m_sweep.p;
 	xf1.orientation = m_sweep.q;
 	BroadPhase *broadPhase = &m_world->m_contactManager.m_broadPhase;
-	for (Fixture *fixture : m_fixtures)
+
+	for (int32_t i = 0; i < m_fixtures_size; ++i)
 	{
-		fixture->synchronize(broadPhase, xf1, m_xf);
+		m_fixtures[i].synchronize(broadPhase, xf1, m_xf);
 	}
 }
 
@@ -332,11 +333,17 @@ void Rigidbody::createFixture(const FixtureDef *fd)
 {
 	// std::cout << "Rigidbody::Create Fixture(FixtureDef)\n";
 
-	Fixture *fixture = new Fixture();
+	m_fixtures_size = 1;
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Fixture) * m_fixtures_size);
+	m_fixtures = static_cast<Fixture*>(memory);
 
-	fixture->create(this, fd);
-	fixture->createProxies(&m_world->m_contactManager.m_broadPhase);
-	m_fixtures.push_back(fixture);
+	for (int32_t i = 0; i < m_fixtures_size; i++)
+	{
+		new (&(m_fixtures[i])) Fixture();
+		m_fixtures[i].create(this, fd);
+		m_fixtures[i].createProxies(&m_world->m_contactManager.m_broadPhase);
+	}
+
 	// std::cout << "Rigidbody::Create Fixture(FixtureDef) end\n";
 }
 

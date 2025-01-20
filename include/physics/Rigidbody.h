@@ -113,6 +113,9 @@ class Rigidbody
 	void setLinearVelocity(const glm::vec3 &linearVelocity);
 	void setAngularVelocity(const glm::vec3 &angularVelocity);
 
+	Rigidbody *next;
+	Rigidbody *prev;
+
   protected:
 	static int32_t BODY_COUNT;
 
@@ -129,8 +132,10 @@ class Rigidbody
 	glm::vec3 m_torqueAccum;
 	glm::vec3 m_acceleration;
 	glm::vec3 m_lastFrameAcceleration;
-	std::vector<Fixture *> m_fixtures;
 	std::queue<glm::vec3> m_forceRegistry;
+
+	int32_t m_fixtures_size;
+	Fixture *m_fixtures;
 
 	// float motion;
 	// bool isAwake;
