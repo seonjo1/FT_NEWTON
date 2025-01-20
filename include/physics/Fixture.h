@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include "physics/Rigidbody.h"
+#include "physics/PhysicsAllocator.h"
 
 namespace ale
 {
@@ -58,7 +59,9 @@ class Fixture
 	float m_density;
 	float m_friction;
 	float m_restitution;
-	std::vector<FixtureProxy *> m_proxies;
+
+	FixtureProxy *m_proxies;
+	int32_t m_proxies_size;
 	// void *userData;
 
   private:

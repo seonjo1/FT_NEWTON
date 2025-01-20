@@ -11,6 +11,8 @@ Fixture::Fixture()
 	m_density = 0.0f;
 	m_friction = 0.0f;
 	m_restitution = 0.0f;
+	m_proxies = nullptr;
+	m_proxies_size = 0;
 }
 
 void Fixture::create(Rigidbody *body, const FixtureDef *fd)
@@ -21,39 +23,41 @@ void Fixture::create(Rigidbody *body, const FixtureDef *fd)
 	m_restitution = fd->restitution;
 	this->m_body = body;
 
-	int32_t childCount = m_shape->getChildCount();
-	m_proxies.resize(childCount);
+	m_proxies_size = m_shape->getChildCount();
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(FixtureProxy) * m_proxies_size);
+	m_proxies = static_cast<FixtureProxy*>(memory);
+
 	// std::cout << "Fixture::Create - child count: " << childCount << '\n';
-	for (int32_t i = 0; i < childCount; ++i)
+	for (int32_t i = 0; i < m_proxies_size; ++i)
 	{
-		if (!m_proxies[i])
-			m_proxies[i] = new FixtureProxy();
-		m_proxies[i]->fixture = nullptr;
-		m_proxies[i]->proxyId = -1;
+		new (&m_proxies[i]) FixtureProxy();
+		m_proxies[i].fixture = nullptr;
+		m_proxies[i].proxyId = -1;
 	}
 }
 
 void Fixture::destroy()
 {
-	int32_t childCount = m_shape->getChildCount();
-	for (int32_t i = 0; i < childCount; ++i)
+	for (int32_t i = 0; i < m_proxies_size; ++i)
 	{
-		m_proxies[i]->fixture = nullptr;
+		m_proxies[i].fixture = nullptr;
 		// delete userData
-		delete (m_proxies[i]);
 	}
-	delete m_shape;
+	m_shape->~Shape();
+	
+	PhysicsAllocator::m_blockAllocator.freeBlock(m_proxies, sizeof(FixtureProxy) * m_proxies_size);
+	PhysicsAllocator::m_blockAllocator.freeBlock(m_shape, sizeof(Shape));
 }
 
 void Fixture::createProxies(BroadPhase *broadPhase)
 {
 	// std::cout << "Fixture::Create Proxies\n";
-	for (int32_t i = 0; i < m_proxies.size(); ++i)
+	for (int32_t i = 0; i < m_proxies_size; ++i)
 	{
-		m_shape->computeAABB(&m_proxies[i]->aabb, m_body->getTransform());
-		m_proxies[i]->proxyId = broadPhase->createProxy(m_proxies[i]->aabb, m_proxies[i]);
-		m_proxies[i]->fixture = this;
-		m_proxies[i]->childIndex = i;
+		m_shape->computeAABB(&m_proxies[i].aabb, m_body->getTransform());
+		m_proxies[i].proxyId = broadPhase->createProxy(m_proxies[i].aabb, &(m_proxies[i]));
+		m_proxies[i].fixture = this;
+		m_proxies[i].childIndex = i;
 	}
 }
 
@@ -63,21 +67,23 @@ void Fixture::destroyProxies(BroadPhase *broadPhase)
 
 void Fixture::synchronize(BroadPhase *broadPhase, const Transform &xf1, const Transform &xf2)
 {
-	if (m_proxies.size() == 0)
+	if (m_proxies_size == 0)
 	{
 		return;
 	}
 
-	for (FixtureProxy *proxy : m_proxies)
+	for (int32_t i = 0; i < m_proxies_size; ++i)
 	{
+		FixtureProxy &proxy = m_proxies[i];
+
 		AABB aabb1, aabb2;
 		m_shape->computeAABB(&aabb1, xf1);
 		m_shape->computeAABB(&aabb2, xf2);
 
-		proxy->aabb.combine(aabb1, aabb2);
+		proxy.aabb.combine(aabb1, aabb2);
 
 		glm::vec3 displacement = xf2.position - xf1.position;
-		broadPhase->moveProxy(proxy->proxyId, proxy->aabb, displacement);
+		broadPhase->moveProxy(proxy.proxyId, proxy.aabb, displacement);
 	}
 }
 
@@ -108,7 +114,7 @@ float Fixture::getRestitution()
 
 const FixtureProxy *Fixture::getFixtureProxy() const
 {
-	return m_proxies[0];
+	return m_proxies;
 }
 
 } // namespace ale
