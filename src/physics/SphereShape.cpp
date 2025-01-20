@@ -10,7 +10,8 @@ SphereShape::SphereShape()
 
 SphereShape *SphereShape::clone() const
 {
-	SphereShape *clone = new SphereShape();
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(SphereShape));
+	SphereShape *clone = new (static_cast<SphereShape *>(memory)) SphereShape();
 	*clone = *this;
 	return clone;
 }
