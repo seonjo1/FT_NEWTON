@@ -8,16 +8,20 @@ BoxShape::BoxShape()
 {
 	m_type = EType::BOX;
 }
+
 BoxShape *BoxShape::clone() const
 {
-	BoxShape *clone = new BoxShape();
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(BoxShape));
+	BoxShape *clone = new (static_cast<BoxShape *>(memory)) BoxShape();
 	*clone = *this;
 	return clone;
 }
+
 int32_t BoxShape::getChildCount() const
 {
 	return 1;
 }
+
 void BoxShape::computeAABB(AABB *aabb, const Transform &xf) const
 {
 	// update vertices
