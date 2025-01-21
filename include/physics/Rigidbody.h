@@ -134,7 +134,7 @@ class Rigidbody
 	glm::vec3 m_lastFrameAcceleration;
 	std::queue<glm::vec3> m_forceRegistry;
 
-	int32_t m_fixtures_size;
+	int32_t m_fixtureCount;
 	Fixture *m_fixtures;
 
 	// float motion;
