@@ -263,7 +263,7 @@ void App::createModels()
 	transforms.push_back(groundXf);
 
 	// 박스
-	int32_t N = 1;
+	int32_t N = 5;
 	float bz = 0.0f;
 	for (int32_t i = 0; i < N; i++)
 	{
@@ -381,11 +381,11 @@ void App::createModels()
 	// 									   "models/container.png"));
 	// transforms.push_back(cylinderXF1);
 
-	ale::Transform boxXF(glm::vec3(0.0f, 10.0f, 0.0f),
-						 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
-	models.push_back(
-		Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXF, "C:/Users/seonjo/FT_NEWTON/models/container.png"));
-	transforms.push_back(boxXF);
+	// ale::Transform boxXF(glm::vec3(0.0f, 10.0f, 0.0f),
+	// 					 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// models.push_back(
+	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXF, "C:/Users/seonjo/FT_NEWTON/models/container.png"));
+	// transforms.push_back(boxXF);
 
 	// ale::Transform boxXF1(glm::vec3(1.0f, 2.5f, 0.0f),
 	// 					  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
