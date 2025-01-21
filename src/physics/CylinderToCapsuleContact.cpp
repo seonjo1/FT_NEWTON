@@ -13,7 +13,8 @@ Contact *CylinderToCapsuleContact::create(Fixture *fixtureA, Fixture *fixtureB, 
 	{
 		throw std::runtime_error("failed to allocate block");
 	}
-	return new (static_cast<CylinderToCapsuleContact *>(memory)) CylinderToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
+	return new (static_cast<CylinderToCapsuleContact *>(memory))
+		CylinderToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
 }
 
 glm::vec3 CylinderToCapsuleContact::supportA(const ConvexInfo &cylinder, glm::vec3 dir)
@@ -38,7 +39,7 @@ glm::vec3 CylinderToCapsuleContact::supportA(const ConvexInfo &cylinder, glm::ve
 	if (glm::length2(circleDir) > 1e-8f)
 	{
 		circleDir = glm::normalize(circleDir); // 정규화
-		
+
 		int32_t maxIdx;
 		int32_t segments = 20;
 
@@ -87,36 +88,32 @@ glm::vec3 CylinderToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec
 	{
 		move = -capsule.axes[0] * capsule.height * 0.5f;
 	}
-	
+
 	return capsule.center + move + dir * capsule.radius;
 }
 
 void CylinderToCapsuleContact::findCollisionPoints(const ConvexInfo &cylinder, const ConvexInfo &capsule,
-												   std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-												   std::vector<Simplex> &simplexVector)
+												   CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+												   SimplexArray &simplexArray)
 {
 	if (isCollideToHemisphere(capsule, -epaInfo.normal))
 	{
-		CollisionInfo collisionInfo;
+		collisionInfo.normal[0] = epaInfo.normal;
+		collisionInfo.seperation[0] = epaInfo.distance;
 
-		collisionInfo.normal = epaInfo.normal;
-		collisionInfo.seperation = epaInfo.distance;
-		
-
-		if (glm::dot(capsule.axes[0], collisionInfo.normal) < 0)
+		if (glm::dot(capsule.axes[0], collisionInfo.normal[0]) < 0)
 		{
 			glm::vec3 hemisphereCenter = capsule.center + capsule.axes[0] * 0.5f * capsule.height;
-			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsule.radius;
-			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB[0] = hemisphereCenter - collisionInfo.normal[0] * capsule.radius;
+			collisionInfo.pointA[0] = collisionInfo.pointB[0] + collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
 		else
 		{
 			glm::vec3 hemisphereCenter = capsule.center - capsule.axes[0] * 0.5f * capsule.height;
-			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsule.radius;
-			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB[0] = hemisphereCenter - collisionInfo.normal[0] * capsule.radius;
+			collisionInfo.pointA[0] = collisionInfo.pointB[0] + collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
-		
-		collisionInfoVector.push_back(collisionInfo);
+		++collisionInfo.size;
 	}
 	else
 	{
@@ -124,7 +121,7 @@ void CylinderToCapsuleContact::findCollisionPoints(const ConvexInfo &cylinder, c
 		Face incFace = getCapsuleFace(capsule, -epaInfo.normal);
 
 		std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
-		buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
+		buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 	}
 }
 

@@ -15,8 +15,8 @@ class CylinderToCapsuleContact : public Contact
 	virtual glm::vec3 supportA(const ConvexInfo &cylinder, glm::vec3 dir) override;
 	virtual glm::vec3 supportB(const ConvexInfo &capsule, glm::vec3 dir) override;
 	virtual void findCollisionPoints(const ConvexInfo &cylinder, const ConvexInfo &capsule,
-									 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-									 std::vector<Simplex> &simplexVector) override;
+									 CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+									 SimplexArray &simplexArray) override;
 };
 } // namespace ale
 
