@@ -1,8 +1,8 @@
 #ifndef CONTACT_H
 #define CONTACT_H
 
-#include "PhysicsAllocator.h"
 #include "Fixture.h"
+#include "PhysicsAllocator.h"
 #include <cmath>
 
 namespace ale
@@ -17,10 +17,33 @@ struct Face
 
 struct CollisionInfo
 {
-	glm::vec3 normal;
-	glm::vec3 pointA;
-	glm::vec3 pointB;
-	float seperation;
+	glm::vec3 normal[MAX_MANIFOLD_COUNT];
+	glm::vec3 pointA[MAX_MANIFOLD_COUNT];
+	glm::vec3 pointB[MAX_MANIFOLD_COUNT];
+	float seperation[MAX_MANIFOLD_COUNT];
+	int32_t size;
+};
+
+const int32_t MAX_SIMPLEX_COUNT = 256;
+
+struct FaceArray
+{
+	int32_t count;
+	int32_t maxCount;
+	int32_t *faces;
+	glm::vec4 *normals;
+
+	FaceArray()
+	{
+		count = 0;
+		maxCount = 64;
+
+		void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(3 * maxCount * sizeof(int32_t));
+		faces = static_cast<int32_t *>(memory);
+
+		memory = PhysicsAllocator::m_blockAllocator.allocateBlock(maxCount * sizeof(glm::vec4));
+		normals = static_cast<glm::vec4 *>(memory);
+	}
 };
 
 struct Simplex
@@ -28,6 +51,12 @@ struct Simplex
 	glm::vec3 diff;
 	glm::vec3 a;
 	glm::vec3 b;
+};
+
+struct SimplexArray
+{
+	Simplex simplices[MAX_SIMPLEX_COUNT];
+	int32_t simplexCount;
 };
 
 struct ConvexInfo
@@ -83,17 +112,15 @@ class Contact
 	void update();
 	void evaluate(Manifold &manifold, const Transform &transformA, const Transform &transformB);
 
-	void generateManifolds(std::vector<CollisionInfo> &collisionInfoVector, Manifold &manifold, Fixture *m_fixtureA,
-						   Fixture *m_fixtureB);
+	void generateManifolds(CollisionInfo &collisionInfo, Manifold &manifold, Fixture *m_fixtureA, Fixture *m_fixtureB);
 	float getFriction() const;
 	float getRestitution() const;
 	int32_t getChildIndexA() const;
 	int32_t getChildIndexB() const;
-	int32_t getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
-						   std::vector<int32_t> &faces);
+	int32_t getFaceNormals(SimplexArray &simplexArray, FaceArray &faceArray);
 	Contact *getNext();
 	Simplex getSupportPoint(const ConvexInfo &convexA, const ConvexInfo &convexB, glm::vec3 &dir);
-	EpaInfo getEpaResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplex);
+	EpaInfo getEpaResult(const ConvexInfo &convexA, const ConvexInfo &convexB, SimplexArray &simplexArray);
 	Fixture *getFixtureA() const;
 	Fixture *getFixtureB() const;
 	ContactLink *getNodeA();
@@ -109,30 +136,28 @@ class Contact
   protected:
 	static contactMemberFunction createContactFunctions[32];
 
-	bool handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
-	bool handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
-	bool handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
-	bool handleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir);
-	bool getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplex);
+	bool handleLineSimplex(SimplexArray &simplexArray, glm::vec3 &dir);
+	bool handleTriangleSimplex(SimplexArray &simplexArray, glm::vec3 &dir);
+	bool handleTetrahedronSimplex(SimplexArray &simplexArray, glm::vec3 &dir);
+	bool handleSimplex(SimplexArray &simplexArray, glm::vec3 &dir);
+	bool getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB, SimplexArray &simplexArray);
 	bool checkSphereToSphereCollide(const ConvexInfo &convexA, const ConvexInfo &convexB);
-	bool isDuplicatedPoint(const std::vector<Simplex> &simplexVector, const glm::vec3 &supportPoint);
+	bool isDuplicatedPoint(const SimplexArray &simplexArray, const glm::vec3 &supportPoint);
 	bool isSameDirection(glm::vec3 v1, glm::vec3 v2);
 	bool isSimilarDirection(glm::vec3 v1, glm::vec3 v2);
-	void addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const std::vector<int32_t> &faces, int32_t a,
-						 int32_t b);
+	void addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const int32_t *faces, int32_t a, int32_t b);
 
-	virtual glm::vec3 supportA(const ConvexInfo &box, glm::vec3 dir) = 0;
-	virtual glm::vec3 supportB(const ConvexInfo &box, glm::vec3 dir) = 0;
-	virtual void findCollisionPoints(const ConvexInfo &boxA, const ConvexInfo &boxB,
-									 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-									 std::vector<Simplex> &simplexVector) = 0;
+	virtual glm::vec3 supportA(const ConvexInfo &convexA, glm::vec3 dir) = 0;
+	virtual glm::vec3 supportB(const ConvexInfo &convexB, glm::vec3 dir) = 0;
+	virtual void findCollisionPoints(const ConvexInfo &convexA, const ConvexInfo &convexB, CollisionInfo &collisionInfo,
+									 EpaInfo &epaInfo, SimplexArray &simplexArray) = 0;
 
 	std::vector<glm::vec3> computeContactPolygon(const Face &refFace, const Face &incFace);
 	std::vector<glm::vec3> clipPolygonAgainstPlane(const std::vector<glm::vec3> &polygon, const glm::vec3 &planeNormal,
 												   float planeDist);
 
-	void buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfoVector, const Face &refFace,
-								  const Face &incFace, std::vector<glm::vec3> &polygon, EpaInfo &epaInfo);
+	void buildManifoldFromPolygon(CollisionInfo &collisionInfo, const Face &refFace, const Face &incFace,
+								  std::vector<glm::vec3> &polygon, EpaInfo &epaInfo);
 	void sortPointsClockwise(std::vector<glm::vec3> &points, const glm::vec3 &center, const glm::vec3 &normal);
 
 	Face getBoxFace(const ConvexInfo &box, const glm::vec3 &normal);
@@ -140,6 +165,10 @@ class Contact
 	Face getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal);
 
 	bool isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir);
+
+	void addFaceInFaceArray(FaceArray &faceArray, int32_t idx1, int32_t idx2, int32_t idx3);
+	void mergeFaceArray(FaceArray &faceArray, FaceArray &newFaceArray);
+	void sizeUpFaceArray(FaceArray &faceArray, int32_t newMaxCount);
 
 	float m_friction;
 	float m_restitution;

@@ -119,48 +119,49 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 	ConvexInfo convexA = shapeA->getShapeInfo(transformA);
 	ConvexInfo convexB = shapeB->getShapeInfo(transformB);
 
-	std::vector<Simplex> simplexVector;
+	static SimplexArray simplexArray;
+	static CollisionInfo collisionInfo;
+
+	simplexArray.simplexCount = 0;
+	collisionInfo.size = 0;
 
 	// Sphere to Sphere Collide
 	if (shapeA->getType() == EType::SPHERE && shapeB->getType() == EType::SPHERE)
 	{
 		if (checkSphereToSphereCollide(convexA, convexB) == true)
 		{
-			std::vector<CollisionInfo> collisionInfoVector;
 			EpaInfo epaInfo;
 			glm::vec3 centerDistance = convexB.center - convexA.center;
 			epaInfo.normal = glm::normalize(centerDistance);
 			epaInfo.distance = convexA.radius + convexB.radius - glm::length(centerDistance);
 
 			// std::cout << "CLIPPING start\n";
-			findCollisionPoints(convexA, convexB, collisionInfoVector, epaInfo, simplexVector);
+			findCollisionPoints(convexA, convexB, collisionInfo, epaInfo, simplexArray);
 
 			// std::cout << "createManifold start\n";
-			generateManifolds(collisionInfoVector, manifold, m_fixtureA, m_fixtureB);
+			generateManifolds(collisionInfo, manifold, m_fixtureA, m_fixtureB);
 		}
 		return;
 	}
 
 	// std::cout << "GJK start\n";
-	bool isCollide = getGjkResult(convexA, convexB, simplexVector);
+	bool isCollide = getGjkResult(convexA, convexB, simplexArray);
 
 	if (isCollide)
 	{
 		// std::cout << "EPA start\n";
-		EpaInfo epaInfo = getEpaResult(convexA, convexB, simplexVector);
+		EpaInfo epaInfo = getEpaResult(convexA, convexB, simplexArray);
 
 		if (epaInfo.distance == -1.0f)
 		{
 			return;
 		}
 
-		std::vector<CollisionInfo> collisionInfoVector;
-
 		// std::cout << "CLIPPING start\n";
-		findCollisionPoints(convexA, convexB, collisionInfoVector, epaInfo, simplexVector);
+		findCollisionPoints(convexA, convexB, collisionInfo, epaInfo, simplexArray);
 
 		// std::cout << "createManifold start\n";
-		generateManifolds(collisionInfoVector, manifold, m_fixtureA, m_fixtureB);
+		generateManifolds(collisionInfo, manifold, m_fixtureA, m_fixtureB);
 	}
 }
 
@@ -319,11 +320,11 @@ Simplex Contact::getSupportPoint(const ConvexInfo &convexA, const ConvexInfo &co
 	return simplex;
 }
 
-bool Contact::handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
+bool Contact::handleLineSimplex(SimplexArray &simplexArray, glm::vec3 &dir)
 {
 	// std::cout << "Line GJK\n";
-	glm::vec3 &a = simplexVector[0].diff;
-	glm::vec3 &b = simplexVector[1].diff;
+	glm::vec3 &a = simplexArray.simplices[0].diff;
+	glm::vec3 &b = simplexArray.simplices[1].diff;
 
 	glm::vec3 ab = b - a;
 	glm::vec3 ao = -a;
@@ -352,12 +353,12 @@ bool Contact::handleLineSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &
 	return false;
 }
 
-bool Contact::handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
+bool Contact::handleTriangleSimplex(SimplexArray &simplexArray, glm::vec3 &dir)
 {
 	// std::cout << "Triangle GJK\n";
-	glm::vec3 &a = simplexVector[0].diff;
-	glm::vec3 &b = simplexVector[1].diff;
-	glm::vec3 &c = simplexVector[2].diff;
+	glm::vec3 &a = simplexArray.simplices[0].diff;
+	glm::vec3 &b = simplexArray.simplices[1].diff;
+	glm::vec3 &c = simplexArray.simplices[2].diff;
 
 	glm::vec3 ab = b - a;
 	glm::vec3 ac = c - a;
@@ -367,7 +368,7 @@ bool Contact::handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::ve
 	// 면적이 없으면 반대 dir로 세 번째 점 다시 찾기기
 	if (glm::length2(abc) == 0.0f)
 	{
-		simplexVector.pop_back();
+		--simplexArray.simplexCount;
 		dir = -dir;
 		return false;
 	}
@@ -376,7 +377,9 @@ bool Contact::handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::ve
 	if (glm::dot(dir, -c) > 0.0f)
 	{
 		// a 제거
-		simplexVector.erase(simplexVector.begin());
+		simplexArray.simplices[0] = simplexArray.simplices[1];
+		simplexArray.simplices[1] = simplexArray.simplices[2];
+		--simplexArray.simplexCount;
 		return false;
 	}
 
@@ -384,7 +387,8 @@ bool Contact::handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::ve
 	if (glm::dot(dir, -c) > 0.0f)
 	{
 		// b 제거
-		simplexVector.erase(simplexVector.begin() + 1);
+		simplexArray.simplices[1] = simplexArray.simplices[2];
+		--simplexArray.simplexCount;
 		return false;
 	}
 
@@ -400,20 +404,20 @@ bool Contact::handleTriangleSimplex(std::vector<Simplex> &simplexVector, glm::ve
 	return false;
 }
 
-bool Contact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
+bool Contact::handleTetrahedronSimplex(SimplexArray &simplexArray, glm::vec3 &dir)
 {
 	// std::cout << "Tetrahedron GJK\n";
-	glm::vec3 &a = simplexVector[0].diff;
-	glm::vec3 &b = simplexVector[1].diff;
-	glm::vec3 &c = simplexVector[2].diff;
-	glm::vec3 &d = simplexVector[3].diff;
+	glm::vec3 &a = simplexArray.simplices[0].diff;
+	glm::vec3 &b = simplexArray.simplices[1].diff;
+	glm::vec3 &c = simplexArray.simplices[2].diff;
+	glm::vec3 &d = simplexArray.simplices[3].diff;
 
 	glm::vec3 abc = glm::cross((b - a), (c - a));
 	// 부피가 없으면 반대 방향으로 4번째 점 다시 찾기기
 	if (std::abs(glm::dot((d - a), abc)) < 1e-8f)
 	{
 		// std::cout << "no Volume!!\n";
-		simplexVector.pop_back();
+		--simplexArray.simplexCount;
 		dir = -dir;
 		return false;
 	}
@@ -429,7 +433,10 @@ bool Contact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm:
 
 	if (glm::dot(bcd, -d) > 0.0f)
 	{
-		simplexVector.erase(simplexVector.begin());
+		simplexArray.simplices[0] = simplexArray.simplices[1];
+		simplexArray.simplices[1] = simplexArray.simplices[2];
+		simplexArray.simplices[2] = simplexArray.simplices[3];
+		--simplexArray.simplexCount;
 		dir = glm::normalize(bcd);
 		return false;
 	}
@@ -445,7 +452,9 @@ bool Contact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm:
 
 	if (glm::dot(acd, -d) > 0.0f)
 	{
-		simplexVector.erase(simplexVector.begin() + 1);
+		simplexArray.simplices[1] = simplexArray.simplices[2];
+		simplexArray.simplices[2] = simplexArray.simplices[3];
+		--simplexArray.simplexCount;
 		dir = glm::normalize(acd);
 		return false;
 	}
@@ -462,7 +471,8 @@ bool Contact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm:
 
 	if (glm::dot(abd, -d) > 0.0f)
 	{
-		simplexVector.erase(simplexVector.begin() + 2);
+		simplexArray.simplices[2] = simplexArray.simplices[3];
+		--simplexArray.simplexCount;
 		dir = glm::normalize(abd);
 		return false;
 	}
@@ -472,26 +482,26 @@ bool Contact::handleTetrahedronSimplex(std::vector<Simplex> &simplexVector, glm:
 
 // 가장 최근에 추가된 점 A = simplex.points.back() 로 가정
 // simplex가 2, 3, 4개 점일 때 각각 처리 달라짐
-bool Contact::handleSimplex(std::vector<Simplex> &simplexVector, glm::vec3 &dir)
+bool Contact::handleSimplex(SimplexArray &simplexArray, glm::vec3 &dir)
 {
-	switch (simplexVector.size())
+	switch (simplexArray.simplexCount)
 	{
 	case 2:
-		return handleLineSimplex(simplexVector, dir);
+		return handleLineSimplex(simplexArray, dir);
 	case 3:
-		return handleTriangleSimplex(simplexVector, dir);
+		return handleTriangleSimplex(simplexArray, dir);
 	case 4:
-		return handleTetrahedronSimplex(simplexVector, dir);
+		return handleTetrahedronSimplex(simplexArray, dir);
 	}
 	return false;
 }
 
-bool Contact::isDuplicatedPoint(const std::vector<Simplex> &simplexVector, const glm::vec3 &supportPoint)
+bool Contact::isDuplicatedPoint(const SimplexArray &simplexArray, const glm::vec3 &supportPoint)
 {
-	int32_t size = simplexVector.size();
+	int32_t size = simplexArray.simplexCount;
 	for (int32_t i = 0; i < size; i++)
 	{
-		if (glm::length2(simplexVector[i].diff - supportPoint) < 1e-6f)
+		if (glm::length2(simplexArray.simplices[i].diff - supportPoint) < 1e-6f)
 		{
 			return true;
 		}
@@ -511,7 +521,7 @@ bool Contact::checkSphereToSphereCollide(const ConvexInfo &convexA, const Convex
 	}
 }
 
-bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplexVector)
+bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB, SimplexArray &simplexArray)
 {
 	static const int32_t ITERATION = 64;
 
@@ -522,16 +532,17 @@ bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB,
 		dir = glm::vec3(1.0f, 0.0f, 0.0f);
 	}
 
-	simplexVector.push_back(getSupportPoint(convexA, convexB, dir));
+	simplexArray.simplices[0] = getSupportPoint(convexA, convexB, dir);
+	++simplexArray.simplexCount;
 
-	glm::vec3 supportPoint = simplexVector.back().diff;
+	glm::vec3 supportPoint = simplexArray.simplices[0].diff;
 
 	// 두 번째 support point 구하기
 	if (glm::length2(supportPoint) == 0.0f)
 	{
 		dir = -dir;
-		simplexVector[0] = getSupportPoint(convexA, convexB, dir);
-		supportPoint = simplexVector.back().diff;
+		simplexArray.simplices[0] = getSupportPoint(convexA, convexB, dir);
+		supportPoint = simplexArray.simplices[0].diff;
 	}
 
 	dir = glm::normalize(-supportPoint);
@@ -545,16 +556,17 @@ bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB,
 
 		// 만약 newSupport가 direction과 내적(dot)했을 때 0 이하라면
 		// 더 이상 원점을 "방향 dir" 쪽에서 감쌀 수 없음 => 충돌X
-		if (glm::dot(supportPoint, dir) < 0 || isDuplicatedPoint(simplexVector, supportPoint))
+		if (glm::dot(supportPoint, dir) < 0 || isDuplicatedPoint(simplexArray, supportPoint))
 		{
 			return false; // 교차하지 않음
 		}
 
 		// 심플렉스에 추가
-		simplexVector.push_back(simplex);
+		simplexArray.simplices[simplexArray.simplexCount] = simplex;
+		++simplexArray.simplexCount;
 
 		// 원점을 포함하는지 체크 및 simplex 갱신
-		if (handleSimplex(simplexVector, dir))
+		if (handleSimplex(simplexArray, dir))
 		{
 			// 원점 포함 => 충돌
 			return true;
@@ -575,31 +587,26 @@ bool Contact::isSameDirection(glm::vec3 v1, glm::vec3 v2)
 	return glm::length2(glm::cross(v1, v2)) == 0.0f;
 }
 
-EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &convexB, std::vector<Simplex> &simplexVector)
+EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &convexB, SimplexArray &simplexArray)
 {
-	std::vector<int32_t> faces = {0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2};
+	static FaceArray faceArray;
+	static FaceArray newFaceArray;
+	static int32_t initIdx[12] = {0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2};
 
+	memcpy(faceArray.faces, initIdx, sizeof(int32_t) * 12);
+	faceArray.count = 4;
+
+	// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 	// GJK에서 구한 simplex들중 원점에서 가장 가까운 삼각형의 법선과 최소 거리
-	std::vector<glm::vec4> normals;
-	int32_t minFace = getFaceNormals(normals, simplexVector, faces);
+	int32_t minFace = getFaceNormals(simplexArray, faceArray);
 	glm::vec3 minNormal(0.0f);
-
-	// for (int c = 0; c < faces.size(); c = c + 3)
-	// {
-	// 	std::cout << "face: " << faces[c] << " " << faces[c + 1] << " " << faces[c + 2] << "\n";
-	// }
-
-	// for (int c = 0; c < normals.size(); c++)
-	// {
-	// 	std::cout << "normals[" << c << "]: " << normals[c].x << " " << normals[c].y << " " << normals[c].z << "\n";
-	// }
-
 	float minDistance = FLT_MAX;
 
 	if (minFace == -1)
 	{
 		minDistance = -1.0f;
 	}
+	// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 
 	// int b = 1;
 	while (minDistance == FLT_MAX)
@@ -612,9 +619,12 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 		// 	std::cout << "(" << simplex.diff.x << ", " << simplex.diff.y << ", " << simplex.diff.z << ")\n";
 		// }
 
+		// std::cout << "loop start\n";
+		// std::cout << "faceAttray.count: " << faceArray.count << "\n";
+
 		// 최소 거리의 법선, 거리 쿼리
-		minNormal = glm::vec3(normals[minFace]);
-		minDistance = normals[minFace].w;
+		minNormal = glm::vec3(faceArray.normals[minFace]);
+		minDistance = faceArray.normals[minFace].w;
 
 		// std::cout << "minNormal: " << minNormal.x << " " << minNormal.y << " " << minNormal.z << "\n";
 		// std::cout << "minDistance: " << minDistance << "\n";
@@ -631,24 +641,28 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 		// 다시 원점에서부터 최소거리의 삼각형을 찾음
 		// std::cout << "supportDistance: " << supportDistance << "\n";
 		// std::cout << "minDistance: " << minDistance << "\n";
+		// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 
-		if (std::abs(supportDistance - minDistance) > 1e-2f && !isDuplicatedPoint(simplexVector, supportPoint))
+		if (std::abs(supportDistance - minDistance) > 1e-2f && !isDuplicatedPoint(simplexArray, supportPoint))
 		{
+			// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 			minDistance = FLT_MAX;
 			std::vector<std::pair<int32_t, int32_t>> uniqueEdges;
-			for (int32_t i = 0; i < normals.size(); i++)
+
+			for (int32_t i = 0; i < faceArray.count; i++)
 			{
 				// std::cout << "start addUniqueEdge()\n";
-				glm::vec3 center = (simplexVector[faces[i * 3]].diff + simplexVector[faces[i * 3 + 1]].diff +
-									simplexVector[faces[i * 3 + 2]].diff) /
+				glm::vec3 center = (simplexArray.simplices[faceArray.faces[i * 3]].diff +
+									simplexArray.simplices[faceArray.faces[i * 3 + 1]].diff +
+									simplexArray.simplices[faceArray.faces[i * 3 + 2]].diff) /
 								   3.0f;
-
+				// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 				// std::cout << "center: " << center.x << " " << center.y << " " << center.z << "\n";
 				// std::cout << "supportPoint: (" << supportPoint.x << ", " << supportPoint.y << ", " << supportPoint.z
 				// << ")\n"; std::cout << "supportPoint - center: " << supportPoint.x - center.x << " " <<
 				// supportPoint.y - center.y << " " << supportPoint.z - center.z << "\n"; std::cout << "normals[" << i
 				// << "]: " << normals[i].x << " " << normals[i].y << " " << normals[i].z << "\n";
-				if (isSimilarDirection(normals[i], supportPoint - center))
+				if (isSimilarDirection(faceArray.normals[i], supportPoint - center))
 				{
 					int32_t faceIdx = i * 3;
 					// std::cout << "face " << i << " is in!!!!!!!!\n";
@@ -658,38 +672,38 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 					// 해당 법선의 기존 삼각형의 edge들을 uniqueEdges에 저장
 					// 만약 같은 edge가 2번 들어오면 사라질 edge로 판단하여 삭제
 					// 1번만 들어오는 edge들만 모아서 새로운 점과 조합하여 새로운 삼각형 생성성
-					addIfUniqueEdge(uniqueEdges, faces, faceIdx, faceIdx + 1);
-					addIfUniqueEdge(uniqueEdges, faces, faceIdx + 1, faceIdx + 2);
-					addIfUniqueEdge(uniqueEdges, faces, faceIdx + 2, faceIdx);
+					addIfUniqueEdge(uniqueEdges, faceArray.faces, faceIdx, faceIdx + 1);
+					addIfUniqueEdge(uniqueEdges, faceArray.faces, faceIdx + 1, faceIdx + 2);
+					addIfUniqueEdge(uniqueEdges, faceArray.faces, faceIdx + 2, faceIdx);
 
-					faces[faceIdx + 2] = faces.back();
-					faces.pop_back();
-					faces[faceIdx + 1] = faces.back();
-					faces.pop_back();
-					faces[faceIdx] = faces.back();
-					faces.pop_back();
+					int32_t normalLastIdx = faceArray.count - 1;
+					int32_t faceLastIdx = (normalLastIdx) * 3;
+					// std::cout << "normalLastIdx: " << normalLastIdx << "\n";
+					// std::cout << "faceLastIdx: " << faceLastIdx << "\n";
+					faceArray.faces[faceIdx] = faceArray.faces[faceLastIdx];
+					faceArray.faces[faceIdx + 1] = faceArray.faces[faceLastIdx + 1];
+					faceArray.faces[faceIdx + 2] = faceArray.faces[faceLastIdx + 2];
+					faceArray.normals[i] = faceArray.normals[normalLastIdx]; // pop-erase
 
-					normals[i] = normals.back(); // pop-erase
-					normals.pop_back();
+					--faceArray.count;
 
-					i--;
+					--i;
 				}
 			}
 
 			// uniqueEdge에 있는 edge들과 새로운 점을 조함하여 face 생성
-			std::vector<int32_t> newFaces;
+
+			newFaceArray.count = 0;
 
 			for (auto [edgeIndex1, edgeIndex2] : uniqueEdges)
 			{
 				// std::cout << "add uniqueEdgeIdx1: " << edgeIndex1 << "\n";
 				// std::cout << "add uniqueEdgeIdx2: " << edgeIndex2 << "\n";
-				newFaces.push_back(edgeIndex1);
-				newFaces.push_back(edgeIndex2);
-				newFaces.push_back(simplexVector.size());
+				addFaceInFaceArray(newFaceArray, edgeIndex1, edgeIndex2, simplexArray.simplexCount);
 			}
 
 			// 새로 추가되는 면이 없다면 종료료
-			if (newFaces.size() == 0)
+			if (newFaceArray.count == 0)
 			{
 				// std::cout << "simplex!!\n";
 				// for (Simplex &simplex : simplexVector)
@@ -703,12 +717,14 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 				throw std::runtime_error("failed to EPA!");
 			}
 
+			// std::cout << "add simplex!!\n";
+
 			// 새로운 점 추가
-			simplexVector.push_back(simplex);
+			simplexArray.simplices[simplexArray.simplexCount] = simplex;
+			++simplexArray.simplexCount;
 
 			// 새로운 삼각형의 normal 벡터들과 최소 거리 쿼리
-			std::vector<glm::vec4> newNormals;
-			int32_t newMinFace = getFaceNormals(newNormals, simplexVector, newFaces);
+			int32_t newMinFace = getFaceNormals(simplexArray, newFaceArray);
 			float oldMinDistance = FLT_MAX;
 
 			if (newMinFace == -1)
@@ -718,26 +734,29 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 				break;
 			}
 
+			// std::cout << "find min dist\n";
 			// 기존 삼각형들 중 가장 거리가 짧은 삼각형 쿼리
-			for (int32_t i = 0; i < normals.size(); i++)
+			int32_t normalsSize = faceArray.count;
+			for (int32_t i = 0; i < normalsSize; i++)
 			{
-				if (normals[i].w < oldMinDistance)
+				if (faceArray.normals[i].w < oldMinDistance)
 				{
-					oldMinDistance = normals[i].w;
+					oldMinDistance = faceArray.normals[i].w;
 					minFace = i;
 				}
 			}
 
+			// std::cout << "find new min dist\n";
+
 			// 새로운 삼각형들중 가장 짧은 거리가 존재하면 해당 face를 minFace로 설정
-			if (newNormals[newMinFace].w < oldMinDistance)
+			if (newFaceArray.normals[newMinFace].w < oldMinDistance)
 			{
-				minFace = newMinFace + normals.size();
+				minFace = newMinFace + faceArray.count;
 			}
 
+			// std::cout << "merge!!\n";
 			// 새로운 face, normal 추가
-			faces.insert(faces.end(), newFaces.begin(), newFaces.end());
-			normals.insert(normals.end(), newNormals.begin(), newNormals.end());
-
+			mergeFaceArray(faceArray, newFaceArray);
 			// for (int z = 0; z < faces.size(); z = z + 3)
 			// {
 			// 	std::cout << "face: " << faces[z] << " " << faces[z + 1] << " " << faces[z + 2] << "\n";
@@ -757,17 +776,17 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 }
 
 // simplex의 삼각형들의 법선벡터와 삼각형들중 원점에서 가장 멀리 떨어져있는 놈을 찾아서 반환
-int32_t Contact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vector<Simplex> &simplexVector,
-								std::vector<int32_t> &faces)
+int32_t Contact::getFaceNormals(SimplexArray &simplexArray, FaceArray &faceArray)
 {
 	glm::vec3 center(0.0f);
 
-	for (const Simplex &simplex : simplexVector)
+	int32_t simplexSize = simplexArray.simplexCount;
+	for (int32_t i = 0; i < simplexSize; ++i)
 	{
-		center += simplex.diff;
+		center += simplexArray.simplices[i].diff;
 	}
 
-	center = center / static_cast<float>(simplexVector.size());
+	center = center / static_cast<float>(simplexSize);
 
 	// std::cout << " get Face Normals center : (" << center.x << ", " << center.y << ", " << center.z << ")\n";
 
@@ -776,12 +795,13 @@ int32_t Contact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vect
 
 	// std::cout << "faces Size: " << faces.size() << "\n";
 	// 삼각형 순회
-	for (int32_t i = 0; i < faces.size(); i = i + 3)
+	int32_t facesSize = faceArray.count * 3;
+	for (int32_t i = 0; i < facesSize; i = i + 3)
 	{
 		// 삼각형 꼭짓점들
-		glm::vec3 a = simplexVector[faces[i]].diff;
-		glm::vec3 b = simplexVector[faces[i + 1]].diff;
-		glm::vec3 c = simplexVector[faces[i + 2]].diff;
+		glm::vec3 &a = simplexArray.simplices[faceArray.faces[i]].diff;
+		glm::vec3 &b = simplexArray.simplices[faceArray.faces[i + 1]].diff;
+		glm::vec3 &c = simplexArray.simplices[faceArray.faces[i + 2]].diff;
 
 		// std::cout << "pointA: " << a.x << " " << a.y << " " << a.z << "\n";
 		// std::cout << "pointB: " << b.x << " " << b.y << " " << b.z << "\n";
@@ -815,7 +835,7 @@ int32_t Contact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vect
 		}
 
 		// 법선 벡터 저장
-		normals.emplace_back(normal, distance);
+		faceArray.normals[i / 3] = glm::vec4(normal, distance);
 
 		// 원점과 가장 가까운 삼각형 저장
 		if (distance < minDistance)
@@ -828,8 +848,8 @@ int32_t Contact::getFaceNormals(std::vector<glm::vec4> &normals, const std::vect
 	return minTriangle;
 }
 
-void Contact::addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const std::vector<int32_t> &faces,
-							  int32_t a, int32_t b)
+void Contact::addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const int32_t *faces, int32_t a,
+							  int32_t b)
 {
 	auto reverse = std::find(			   //      0--<--3
 		edges.begin(),					   //     / \ B /   A: 2-0
@@ -847,8 +867,8 @@ void Contact::addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, c
 	}
 }
 
-void Contact::generateManifolds(std::vector<CollisionInfo> &collisionInfoVector, Manifold &manifold,
-								Fixture *m_fixtureA, Fixture *m_fixtureB)
+void Contact::generateManifolds(CollisionInfo &collisionInfo, Manifold &manifold, Fixture *m_fixtureA,
+								Fixture *m_fixtureB)
 {
 	/*
 		64bit = 27bit(small proxyId) 	 |
@@ -858,15 +878,16 @@ void Contact::generateManifolds(std::vector<CollisionInfo> &collisionInfoVector,
 	*/
 	// static int64_t bitmask = 0xFFFFFFFF & ~0b11111;
 
-	int32_t i = 0;
-
-	for (const CollisionInfo &collisionInfo : collisionInfoVector)
+	int32_t collisionInfoSize = collisionInfo.size;
+	manifold.pointsCount = collisionInfoSize;
+	
+	for (int32_t i = 0; i < collisionInfoSize; ++i)
 	{
-		manifold.points[i].pointA = collisionInfo.pointA;
-		manifold.points[i].pointB = collisionInfo.pointB;
-		manifold.points[i].normal = collisionInfo.normal;
-		manifold.points[i].seperation = collisionInfo.seperation;
-		++i;
+		manifold.points[i].pointA = collisionInfo.pointA[i];
+		manifold.points[i].pointB = collisionInfo.pointB[i];
+		manifold.points[i].normal = collisionInfo.normal[i];
+		manifold.points[i].seperation = collisionInfo.seperation[i];
+
 		// int64_t proxyIdA = m_fixtureA->getFixtureProxy()->proxyId;
 		// int64_t proxyIdB = m_fixtureB->getFixtureProxy()->proxyId;
 
@@ -880,13 +901,11 @@ void Contact::generateManifolds(std::vector<CollisionInfo> &collisionInfoVector,
 		// proxyIdA = (proxyIdA << 5) & bitmask;
 		// proxyIdB = (proxyIdB << 5) & bitmask;
 		// manifoldPoint.id = (proxyIdA << 32) | (proxyIdB << 10);
-
 	}
-	manifold.pointsCount = i;
 }
 
-void Contact::buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfoVector, const Face &refFace,
-									   const Face &incFace, std::vector<glm::vec3> &polygon, EpaInfo &epaInfo)
+void Contact::buildManifoldFromPolygon(CollisionInfo &collisionInfo, const Face &refFace, const Face &incFace,
+									   std::vector<glm::vec3> &polygon, EpaInfo &epaInfo)
 {
 	if (polygon.empty())
 	{
@@ -918,8 +937,12 @@ void Contact::buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfo
 		ratio = distance / denominator;
 	}
 
-	for (const glm::vec3 &point : polygon)
+	int32_t polygonCount = polygon.size();
+
+	for (int32_t i = 0; i < polygonCount; ++i)
 	{
+		const glm::vec3 &point = polygon[i];
+
 		// B측 point
 		glm::vec3 pointB = point;
 
@@ -930,12 +953,11 @@ void Contact::buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfo
 		glm::vec3 pointA = point + normal * penentration;
 
 		// 접촉 정보
-		CollisionInfo collisionInfo;
-		collisionInfo.normal = refN;
-		collisionInfo.pointA = pointA;
-		collisionInfo.pointB = pointB;
-		collisionInfo.seperation = penentration;
-		collisionInfoVector.push_back(collisionInfo);
+		collisionInfo.normal[i] = refN;
+		collisionInfo.pointA[i] = pointA;
+		collisionInfo.pointB[i] = pointB;
+		collisionInfo.seperation[i] = penentration;
+		++collisionInfo.size;
 	}
 }
 
@@ -1070,7 +1092,7 @@ Face Contact::getBoxFace(const ConvexInfo &box, const glm::vec3 &normal)
 	int32_t pointCount = box.pointsCount;
 	for (int32_t i = 0; i < pointCount; ++i)
 	{
-		glm::vec3& point = box.points[i];
+		glm::vec3 &point = box.points[i];
 		if (glm::dot(point, axis) > centerDotRes)
 		{
 			center += point;
@@ -1240,6 +1262,64 @@ Face Contact::getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal)
 bool Contact::isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir)
 {
 	return glm::length2(glm::dot(capsule.axes[0], dir)) > 1e-4f;
+}
+
+void Contact::addFaceInFaceArray(FaceArray &faceArray, int32_t idx1, int32_t idx2, int32_t idx3)
+{
+	int32_t count = faceArray.count;
+	int32_t faceIdx = count * 3;
+
+	if (count == faceArray.maxCount)
+	{
+		sizeUpFaceArray(faceArray, count * 2);
+	}
+
+	faceArray.faces[faceIdx] = idx1;
+	faceArray.faces[faceIdx + 1] = idx2;
+	faceArray.faces[faceIdx + 2] = idx3;
+	++faceArray.count;
+}
+
+void Contact::mergeFaceArray(FaceArray &faceArray, FaceArray &newFaceArray)
+{
+	int32_t faceArrayCount = faceArray.count;
+	int32_t newFaceArrayCount = newFaceArray.count;
+	int32_t newCount = newFaceArrayCount + faceArrayCount;
+
+	if (newCount > faceArray.maxCount)
+	{
+		int32_t newMaxCount = faceArrayCount;
+		while (newMaxCount < newCount)
+		{
+			newMaxCount = newMaxCount * 2;
+		}
+
+		sizeUpFaceArray(faceArray, newMaxCount);
+	}
+
+	memcpy(faceArray.faces + faceArrayCount * 3, newFaceArray.faces, sizeof(int32_t) * newFaceArrayCount * 3);
+	memcpy(faceArray.normals + faceArrayCount, newFaceArray.normals, sizeof(glm::vec4) * newFaceArrayCount);
+
+	faceArray.count = newCount;
+}
+
+void Contact::sizeUpFaceArray(FaceArray &faceArray, int32_t newMaxCount)
+{
+	int32_t count = faceArray.count;
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(3 * newMaxCount * sizeof(int32_t));
+	int32_t *newFaces = static_cast<int32_t *>(memory);
+	memcpy(newFaces, faceArray.faces, sizeof(int32_t) * count * 3);
+
+	memory = PhysicsAllocator::m_blockAllocator.allocateBlock(newMaxCount * sizeof(glm::vec4));
+	glm::vec4 *newNormals = static_cast<glm::vec4 *>(memory);
+	memcpy(newNormals, faceArray.normals, sizeof(glm::vec4) * count);
+
+	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.faces, count * 3);
+	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.normals, count);
+
+	faceArray.maxCount = newMaxCount;
+	faceArray.faces = newFaces;
+	faceArray.normals = newNormals;
 }
 
 } // namespace ale
