@@ -87,19 +87,27 @@ ConvexInfo BoxShape::getShapeInfo(const Transform &transform) const
 
 	box.center = matrix * glm::vec4(m_center, 1.0f);
 	box.halfSize = m_halfSize;
-	box.points = {matrix * glm::vec4(m_center - m_halfSize, 1.0f),
-				  matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, -m_halfSize.y, -m_halfSize.z), 1.0f),
-				  matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, m_halfSize.y, -m_halfSize.z), 1.0f),
-				  matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, -m_halfSize.y, m_halfSize.z), 1.0f),
-				  matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, m_halfSize.y, -m_halfSize.z), 1.0f),
-				  matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, -m_halfSize.y, m_halfSize.z), 1.0f),
-				  matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, m_halfSize.y, m_halfSize.z), 1.0f),
-				  matrix * glm::vec4(m_center + m_halfSize, 1.0f)};
-	glm::vec3 axisX = glm::normalize(box.points[1] - box.points[0]);
-	glm::vec3 axisY = glm::normalize(box.points[2] - box.points[0]);
-	glm::vec3 axisZ = glm::normalize(box.points[3] - box.points[0]);
 
-	box.axes = {axisX, axisY, axisZ};
+	box.pointsCount = 8;
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(glm::vec3) * box.pointsCount);
+	box.points = static_cast<glm::vec3 *>(memory);
+
+	box.points[0] = matrix * glm::vec4(m_center - m_halfSize, 1.0f);
+	box.points[1] = matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, -m_halfSize.y, -m_halfSize.z), 1.0f);
+	box.points[2] = matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, m_halfSize.y, -m_halfSize.z), 1.0f);
+	box.points[3] =	matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, -m_halfSize.y, m_halfSize.z), 1.0f);
+	box.points[4] =	matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, m_halfSize.y, -m_halfSize.z), 1.0f);
+	box.points[5] =	matrix * glm::vec4(m_center + glm::vec3(m_halfSize.x, -m_halfSize.y, m_halfSize.z), 1.0f);
+	box.points[6] =	matrix * glm::vec4(m_center + glm::vec3(-m_halfSize.x, m_halfSize.y, m_halfSize.z), 1.0f);
+	box.points[7] =	matrix * glm::vec4(m_center + m_halfSize, 1.0f);
+
+	box.axesCount = 3;
+	memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(glm::vec3) * box.axesCount);
+	box.axes = static_cast<glm::vec3 *>(memory);
+
+	box.axes[0] = glm::normalize(box.points[1] - box.points[0]);
+	box.axes[1] = glm::normalize(box.points[2] - box.points[0]);
+	box.axes[2] = glm::normalize(box.points[3] - box.points[0]);
 
 	return box;
 }
