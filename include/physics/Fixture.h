@@ -61,7 +61,7 @@ class Fixture
 	float m_restitution;
 
 	FixtureProxy *m_proxies;
-	int32_t m_proxies_size;
+	int32_t m_proxyCount;
 	// void *userData;
 
   private:
