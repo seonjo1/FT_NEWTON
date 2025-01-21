@@ -88,8 +88,8 @@ glm::vec3 BoxToCylinderContact::supportB(const ConvexInfo &cylinder, glm::vec3 d
 }
 
 void BoxToCylinderContact::findCollisionPoints(const ConvexInfo &box, const ConvexInfo &cylinder,
-											   std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-											   std::vector<Simplex> &simplexVector)
+											   CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+											   SimplexArray &simplexArray)
 {
 	// std::cout << "box vs cylinder!!\n";
 
@@ -112,7 +112,7 @@ void BoxToCylinderContact::findCollisionPoints(const ConvexInfo &box, const Conv
 	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
-	buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
+	buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 }
 
 } // namespace ale
