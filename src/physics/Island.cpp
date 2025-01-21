@@ -5,19 +5,39 @@ namespace ale
 {
 
 const int32_t Island::VELOCITY_ITERATION = 10;
-const int32_t Island::POSITION_ITERATION = 4;
+const int32_t Island::POSITION_ITERATION = 6;
+
+Island::Island(int32_t bodyCount, int32_t contactCount)
+{
+	m_bodyCount = 0;
+	m_contactCount = 0;
+	m_bodies =
+		static_cast<Rigidbody **>(PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(Rigidbody *) * bodyCount));
+	m_contacts =
+		static_cast<Contact **>(PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(Contact *) * contactCount));
+}
+
+void Island::destroy()
+{
+	PhysicsAllocator::m_stackAllocator.freeStack();
+	PhysicsAllocator::m_stackAllocator.freeStack();
+}
 
 void Island::solve(float duration)
 {
 	// std::cout << "\n\n\nIsland Solve Start!!!!!\n";
-	int32_t bodyLength = m_bodies.size();
-	m_positions.resize(bodyLength);
-	m_velocities.resize(bodyLength);
+	m_positions =
+		static_cast<Position *>(PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(Position) * m_bodyCount));
+	m_velocities =
+		static_cast<Velocity *>(PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(Velocity) * m_bodyCount));
 
 	// 힘을 적용하여 속도, 위치, 회전 업데이트
-	for (int32_t i = 0; i < bodyLength; i++)
+	for (int32_t i = 0; i < m_bodyCount; i++)
 	{
 		Rigidbody *body = m_bodies[i];
+
+		new (m_positions + i) Position();
+		new (m_velocities + i) Velocity();
 
 		// 위치, 각도, 속도 기록
 		m_positions[i].position = body->getPosition();
@@ -26,12 +46,17 @@ void Island::solve(float duration)
 
 		// std::cout << "body: " << body->getBodyId() << "\n";
 		// std::cout << "Start bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
-		// << m_positions[i].position.z << "\n"; std::cout << "Start bodyVelocity: " << m_velocities[i].linearVelocity.x
-		// << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		// 		  << m_positions[i].position.z << "\n";
+		// std::cout << "Start bodyVelocity: " << m_velocities[i].linearVelocity.x << " "
+		// 		  << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
 	}
 
-	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities);
+	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities, m_bodyCount, m_contactCount);
 
+	// std::cout << "manifold check\n";
+	
+
+	// std::cout << "solve velocityConstraint\n";
 	// 속도 제약 반복 횟수만큼 반복
 	for (int32_t i = 0; i < VELOCITY_ITERATION; ++i)
 	{
@@ -39,43 +64,7 @@ void Island::solve(float duration)
 		contactSolver.solveVelocityConstraints(VELOCITY_ITERATION);
 	}
 
-	// // 위치, 속도 업데이트
-	// for (int32_t i = 0; i < bodyLength; ++i)
-	// {
-	// 	glm::vec3 position = m_positions[i].position;
-	// 	glm::quat orientation = m_positions[i].orientation;
-	// 	glm::vec3 linearVelocity = m_velocities[i].linearVelocity;
-	// 	glm::vec3 angularVelocity = m_velocities[i].angularVelocity;
-
-	// 	// 이동량이 너무 커지면 작게 조절
-	// 	glm::vec3 translation = duration * linearVelocity;
-	// 	if (glm::dot(translation, translation) > MAX_TRANSLATION_SQUARED)
-	// 	{
-	// 		float ratio = MAX_TRANSLATION / glm::length(translation);
-	// 		linearVelocity *= ratio;
-	// 	}
-
-	// 	// 회전량이 너무 커지면 작게 조절
-	// 	float rotation = duration * glm::length(angularVelocity);
-	// 	if (rotation * rotation > MAX_ROTATION_SQUARED)
-	// 	{
-	// 		float ratio = MAX_ROTATION / std::abs(rotation);
-	// 		angularVelocity *= ratio;
-	// 	}
-
-	// 	// 위치, 회전에 속도 적용
-	// 	position += duration * linearVelocity;
-	// 	glm::quat angularVelocityQuat = glm::quat(0.0f, angularVelocity * duration); // 각속도를 쿼터니언으로 변환
-	// 	orientation += 0.5f * angularVelocityQuat * orientation;					 // 쿼터니언 미분 공식
-	// 	orientation = glm::normalize(orientation);
-
-	// 	// 업데이트
-	// 	m_positions[i].position = position;
-	// 	m_positions[i].orientation = orientation;
-	// 	m_velocities[i].linearVelocity = linearVelocity;
-	// 	m_velocities[i].angularVelocity = angularVelocity;
-	// }
-
+	// std::cout << "solve positionConstraint\n";
 	// 위치 제약 처리 반복
 	for (int32_t i = 0; i < POSITION_ITERATION; ++i)
 	{
@@ -89,7 +78,7 @@ void Island::solve(float duration)
 	}
 
 	// 위치, 회전, 속도 업데이트
-	for (int32_t i = 0; i < bodyLength; ++i)
+	for (int32_t i = 0; i < m_bodyCount; ++i)
 	{
 		Rigidbody *body = m_bodies[i];
 		body->updateSweep();
@@ -99,31 +88,45 @@ void Island::solve(float duration)
 		body->synchronizeFixtures();
 		// std::cout << "body: " << body->getBodyId() << "\n";
 		// std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
-		// << m_positions[i].position.z << "\n"; std::cout << "Final bodyLinearVelocity: " <<
-		// m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " <<
-		// m_velocities[i].linearVelocity.z << "\n"; std::cout << "Final bodyAngularVelocity: " <<
-		// m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " <<
-		// m_velocities[i].angularVelocity.z << "\n";
+		// 		  << m_positions[i].position.z << "\n";
+		// std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " "
+		// 		  << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		// std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " "
+		// 		  << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
 	}
+	// std::cout << "islandSolve end\n";
+
+	contactSolver.destroy();
+	
+	for (int32_t i = 0; i < m_bodyCount; ++i)
+	{
+		m_positions[i].~Position();
+		m_velocities[i].~Velocity();
+	}
+
+	PhysicsAllocator::m_stackAllocator.freeStack();
+	PhysicsAllocator::m_stackAllocator.freeStack();
 }
 
 void Island::add(Rigidbody *body)
 {
-	body->setIslandIndex(m_bodies.size());
-	m_bodies.push_back(body);
+	body->setIslandIndex(m_bodyCount);
+	m_bodies[m_bodyCount] = body;
+	++m_bodyCount;
 }
 
 void Island::add(Contact *contact)
 {
-	m_contacts.push_back(contact);
+	m_contacts[m_contactCount] = contact;
+	++m_contactCount;
 }
 
 void Island::clear()
 {
-	m_bodies.clear();
-	m_contacts.clear();
-	m_positions.clear();
-	m_velocities.clear();
+	memset(m_bodies, 0, sizeof(Rigidbody *) * m_bodyCount);
+	memset(m_contacts, 0, sizeof(Contact *) * m_contactCount);
+	m_bodyCount = 0;
+	m_contactCount = 0;
 }
 
 } // namespace ale
