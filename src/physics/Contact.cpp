@@ -647,7 +647,12 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 		{
 			// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 			minDistance = FLT_MAX;
-			std::vector<std::pair<int32_t, int32_t>> uniqueEdges;
+
+			UniqueEdges uniqueEdges;
+			void *memory = PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(std::pair<int32_t, int32_t>) *
+																			faceArray.count * 3);
+			uniqueEdges.edges = static_cast<std::pair<int32_t, int32_t> *>(memory);
+			uniqueEdges.size = 0;
 
 			for (int32_t i = 0; i < faceArray.count; i++)
 			{
@@ -695,11 +700,14 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 
 			newFaceArray.count = 0;
 
-			for (auto [edgeIndex1, edgeIndex2] : uniqueEdges)
+			int32_t uniqueEdgesCount = uniqueEdges.size;
+			for (int32_t i = 0; i < uniqueEdgesCount; ++i)
 			{
+				int32_t edgeIdx1 = uniqueEdges.edges[i].first;
+				int32_t edgeIdx2 = uniqueEdges.edges[i].second;
 				// std::cout << "add uniqueEdgeIdx1: " << edgeIndex1 << "\n";
 				// std::cout << "add uniqueEdgeIdx2: " << edgeIndex2 << "\n";
-				addFaceInFaceArray(newFaceArray, edgeIndex1, edgeIndex2, simplexArray.simplexCount);
+				addFaceInFaceArray(newFaceArray, edgeIdx1, edgeIdx2, simplexArray.simplexCount);
 			}
 
 			// 새로 추가되는 면이 없다면 종료료
@@ -716,6 +724,8 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 
 				throw std::runtime_error("failed to EPA!");
 			}
+
+			PhysicsAllocator::m_stackAllocator.freeStack();
 
 			// std::cout << "add simplex!!\n";
 
@@ -848,22 +858,35 @@ int32_t Contact::getFaceNormals(SimplexArray &simplexArray, FaceArray &faceArray
 	return minTriangle;
 }
 
-void Contact::addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const int32_t *faces, int32_t a,
-							  int32_t b)
+void Contact::addIfUniqueEdge(UniqueEdges &uniqueEdges, const int32_t *faces, int32_t p1, int32_t p2)
 {
-	auto reverse = std::find(			   //      0--<--3
-		edges.begin(),					   //     / \ B /   A: 2-0
-		edges.end(),					   //    / A \ /    B: 0-2
-		std::make_pair(faces[b], faces[a]) //   1-->--2
-	);
-
-	if (reverse != edges.end())
+	int32_t size = uniqueEdges.size;
+	int32_t i = 0;
+	bool removeEdge = false;
+	for (; i < size; ++i)
 	{
-		edges.erase(reverse);
+		std::pair<int32_t, int32_t> &edge = uniqueEdges.edges[i];
+		if (edge.first == faces[p2] && edge.second == faces[p1])
+		{
+			removeEdge = true;
+			++i;
+			break ;
+		}
+	}
+
+	for (; i < size; ++i)
+	{
+		uniqueEdges.edges[i - 1] = uniqueEdges.edges[i];
+	}
+
+	if (removeEdge)
+	{
+		--uniqueEdges.size;
 	}
 	else
 	{
-		edges.emplace_back(faces[a], faces[b]);
+		uniqueEdges.edges[uniqueEdges.size] = std::make_pair(faces[p1], faces[p2]);
+		++uniqueEdges.size;
 	}
 }
 
@@ -880,7 +903,7 @@ void Contact::generateManifolds(CollisionInfo &collisionInfo, Manifold &manifold
 
 	int32_t collisionInfoSize = collisionInfo.size;
 	manifold.pointsCount = collisionInfoSize;
-	
+
 	for (int32_t i = 0; i < collisionInfoSize; ++i)
 	{
 		manifold.points[i].pointA = collisionInfo.pointA[i];

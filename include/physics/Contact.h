@@ -46,6 +46,12 @@ struct FaceArray
 	}
 };
 
+struct UniqueEdges
+{
+	std::pair<int32_t, int32_t> *edges;
+	int32_t size;
+};
+
 struct Simplex
 {
 	glm::vec3 diff;
@@ -145,7 +151,7 @@ class Contact
 	bool isDuplicatedPoint(const SimplexArray &simplexArray, const glm::vec3 &supportPoint);
 	bool isSameDirection(glm::vec3 v1, glm::vec3 v2);
 	bool isSimilarDirection(glm::vec3 v1, glm::vec3 v2);
-	void addIfUniqueEdge(std::vector<std::pair<int32_t, int32_t>> &edges, const int32_t *faces, int32_t a, int32_t b);
+	void addIfUniqueEdge(UniqueEdges &uniqueEdges, const int32_t *faces, int32_t p1, int32_t p2);
 
 	virtual glm::vec3 supportA(const ConvexInfo &convexA, glm::vec3 dir) = 0;
 	virtual glm::vec3 supportB(const ConvexInfo &convexB, glm::vec3 dir) = 0;
