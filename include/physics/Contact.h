@@ -8,6 +8,8 @@
 namespace ale
 {
 
+const int32_t MAX_MANIFOLD_COUNT = 20;
+
 struct Face
 {
 	glm::vec3 normal;
@@ -96,7 +98,7 @@ class Contact
 	Fixture *getFixtureB() const;
 	ContactLink *getNodeA();
 	ContactLink *getNodeB();
-	const Manifold &getManifold() const;
+	Manifold &getManifold();
 
 	void setPrev(Contact *contact);
 	void setNext(Contact *contact);

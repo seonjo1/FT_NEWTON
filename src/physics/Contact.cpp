@@ -186,10 +186,11 @@ void Contact::update()
 	// 2. 충돌에 따른 manifold 생성
 	// 3. manifold의 내부 값을 impulse를 제외하고 채워줌
 	// 4. 실제 충돌이 일어나지 않은 경우 manifold.pointCount = 0인 충돌 생성
-	m_manifold.points.clear();
+	m_manifold.pointsCount = 0;
+	// std::cout << "start evaluate!!\n";
 	evaluate(m_manifold, transformA, transformB);
-	int32_t pointCount = m_manifold.points.size();
-	touching = pointCount > 0;
+	// std::cout << "finish evaluate!!\n";
+	touching = m_manifold.pointsCount > 0;
 
 	// manifold의 충격량 0으로 초기화 및 old manifold 중
 	// 같은 충돌이 있는경우 Impulse 재사용
@@ -270,7 +271,7 @@ ContactLink *Contact::getNodeB()
 	return &m_nodeB;
 }
 
-const Manifold &Contact::getManifold() const
+Manifold &Contact::getManifold()
 {
 	return m_manifold;
 }
@@ -857,15 +858,15 @@ void Contact::generateManifolds(std::vector<CollisionInfo> &collisionInfoVector,
 	*/
 	// static int64_t bitmask = 0xFFFFFFFF & ~0b11111;
 
+	int32_t i = 0;
+
 	for (const CollisionInfo &collisionInfo : collisionInfoVector)
 	{
-
-		ManifoldPoint manifoldPoint;
-		manifoldPoint.pointA = collisionInfo.pointA;
-		manifoldPoint.pointB = collisionInfo.pointB;
-		manifoldPoint.normal = collisionInfo.normal;
-		manifoldPoint.seperation = collisionInfo.seperation;
-
+		manifold.points[i].pointA = collisionInfo.pointA;
+		manifold.points[i].pointB = collisionInfo.pointB;
+		manifold.points[i].normal = collisionInfo.normal;
+		manifold.points[i].seperation = collisionInfo.seperation;
+		++i;
 		// int64_t proxyIdA = m_fixtureA->getFixtureProxy()->proxyId;
 		// int64_t proxyIdB = m_fixtureB->getFixtureProxy()->proxyId;
 
@@ -880,8 +881,8 @@ void Contact::generateManifolds(std::vector<CollisionInfo> &collisionInfoVector,
 		// proxyIdB = (proxyIdB << 5) & bitmask;
 		// manifoldPoint.id = (proxyIdA << 32) | (proxyIdB << 10);
 
-		manifold.points.push_back(manifoldPoint);
 	}
+	manifold.pointsCount = i;
 }
 
 void Contact::buildManifoldFromPolygon(std::vector<CollisionInfo> &collisionInfoVector, const Face &refFace,
@@ -1065,6 +1066,7 @@ Face Contact::getBoxFace(const ConvexInfo &box, const glm::vec3 &normal)
 	glm::vec3 axis = axes[maxIdx];
 	float centerDotRes = glm::dot(box.center, axis);
 	glm::vec3 center(0.0f);
+
 
 	for (const glm::vec3 point : box.points)
 	{
