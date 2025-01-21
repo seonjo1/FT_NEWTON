@@ -13,7 +13,8 @@ Contact *SphereToCapsuleContact::create(Fixture *fixtureA, Fixture *fixtureB, in
 	{
 		throw std::runtime_error("failed to allocate block");
 	}
-	return new (static_cast<SphereToCapsuleContact *>(memory)) SphereToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
+	return new (static_cast<SphereToCapsuleContact *>(memory))
+		SphereToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
 }
 
 glm::vec3 SphereToCapsuleContact::supportA(const ConvexInfo &sphere, glm::vec3 dir)
@@ -40,17 +41,14 @@ glm::vec3 SphereToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3 
 }
 
 void SphereToCapsuleContact::findCollisionPoints(const ConvexInfo &sphere, const ConvexInfo &capsule,
-												 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-												 std::vector<Simplex> &simplexVector)
+												 CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+												 SimplexArray &simplexArray)
 {
-	CollisionInfo collisionInfo;
-
-	collisionInfo.normal = epaInfo.normal;
-	collisionInfo.seperation = epaInfo.distance;
-	collisionInfo.pointA = sphere.center + epaInfo.normal * sphere.radius;
-	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
-
-	collisionInfoVector.push_back(collisionInfo);
+	collisionInfo.normal[0] = epaInfo.normal;
+	collisionInfo.seperation[0] = epaInfo.distance;
+	collisionInfo.pointA[0] = sphere.center + epaInfo.normal * sphere.radius;
+	collisionInfo.pointB[0] = collisionInfo.pointA[0] - collisionInfo.normal[0] * collisionInfo.seperation[0];
+	++collisionInfo.size;
 }
 
 } // namespace ale
