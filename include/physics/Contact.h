@@ -32,8 +32,10 @@ struct Simplex
 
 struct ConvexInfo
 {
-	std::vector<glm::vec3> points;
-	std::vector<glm::vec3> axes;
+	glm::vec3 *points;
+	glm::vec3 *axes;
+	int32_t pointsCount;
+	int32_t axesCount;
 	glm::vec3 halfSize;
 	glm::vec3 center;
 	float radius;

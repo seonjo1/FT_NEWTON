@@ -1067,9 +1067,10 @@ Face Contact::getBoxFace(const ConvexInfo &box, const glm::vec3 &normal)
 	float centerDotRes = glm::dot(box.center, axis);
 	glm::vec3 center(0.0f);
 
-
-	for (const glm::vec3 point : box.points)
+	int32_t pointCount = box.pointsCount;
+	for (int32_t i = 0; i < pointCount; ++i)
 	{
+		glm::vec3& point = box.points[i];
 		if (glm::dot(point, axis) > centerDotRes)
 		{
 			center += point;
