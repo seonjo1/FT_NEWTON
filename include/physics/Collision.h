@@ -117,7 +117,8 @@ struct ManifoldPoint
 
 struct Manifold
 {
-	std::vector<ManifoldPoint> points;
+	ManifoldPoint points[MAX_MANIFOLD_COUNT];
+	int32_t pointsCount;
 };
 
 } // namespace ale
