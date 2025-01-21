@@ -38,7 +38,7 @@ class World
 
   private:
 	Rigidbody *m_rigidbodies;
-	int32_t m_rigidbodies_size;
+	int32_t m_rigidbodyCount;
 };
 } // namespace ale
 #endif

@@ -7,7 +7,7 @@
 
 namespace ale
 {
-World::World(App &app) : m_app(app), m_rigidbodies(nullptr), m_rigidbodies_size(0) {};
+World::World(App &app) : m_app(app), m_rigidbodies(nullptr), m_rigidbodyCount(0) {};
 
 World::~World()
 {
@@ -61,6 +61,8 @@ void World::runPhysics()
 	// std::cout << "solve\n";
 	solve(duration);
 
+	// std::cout << "transform setting\n";
+
 	body = m_rigidbodies;
 
 	while (body != nullptr)
@@ -74,7 +76,7 @@ void World::solve(float duration)
 {
 	// std::cout << "solve start\n";
 	// island 초기화
-	Island island;
+	Island island(m_rigidbodyCount, m_contactManager.m_contactCount);
 
 	// 모든 body들의 플래그에 islandFlag 제거
 	for (Rigidbody *body = m_rigidbodies; body; body = body->next)
@@ -89,7 +91,7 @@ void World::solve(float duration)
 	}
 
 	// Body를 순회하며 island를 생성후 solve 처리
-	Rigidbody **stack = static_cast<Rigidbody **>(PhysicsAllocator::m_stackAllocator.allocateStack(m_rigidbodies_size));
+	Rigidbody **stack = static_cast<Rigidbody **>(PhysicsAllocator::m_stackAllocator.allocateStack(m_rigidbodyCount));
 	int32_t stackPtr = 0;
 
 	// body 순회
@@ -171,14 +173,18 @@ void World::solve(float duration)
 		island.solve(duration);
 
 		// island의 staticBody들의 island 플래그 off
-		for (Rigidbody *islandBody : island.m_bodies)
+		Rigidbody **islandBodies = island.m_bodies;
+		for (int32_t i = 0; i < island.m_bodyCount; ++i)
 		{
-			if (islandBody->getType() == EBodyType::STATIC_BODY)
+
+			if (islandBodies[i]->getType() == EBodyType::STATIC_BODY)
 			{
-				islandBody->unsetFlag(EBodyFlag::ISLAND);
+				islandBodies[i]->unsetFlag(EBodyFlag::ISLAND);
 			}
 		}
 	}
+
+	island.destroy();
 
 	PhysicsAllocator::m_stackAllocator.freeStack();
 	// std::cout << "finish solve\n\n\n";
@@ -252,7 +258,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	if (m_rigidbodies_size != 0)
+	if (m_rigidbodyCount != 0)
 	{
 		m_rigidbodies->prev = body;
 	}
@@ -261,7 +267,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	body->next = m_rigidbodies;
 	m_rigidbodies = body;
 
-	++m_rigidbodies_size;
+	++m_rigidbodyCount;
 }
 
 void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
@@ -297,7 +303,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.8f;
 	body->createFixture(&fd);
 
-	if (m_rigidbodies_size != 0)
+	if (m_rigidbodyCount != 0)
 	{
 		m_rigidbodies->prev = body;
 	}
@@ -306,7 +312,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	body->next = m_rigidbodies;
 	m_rigidbodies = body;
 
-	++m_rigidbodies_size;
+	++m_rigidbodyCount;
 	// std::cout << "World:: Create Sphere end\n";
 }
 
@@ -339,7 +345,7 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.3f;
 
 	body->createFixture(&fd);
-	if (m_rigidbodies_size != 0)
+	if (m_rigidbodyCount != 0)
 	{
 		m_rigidbodies->prev = body;
 	}
@@ -348,7 +354,7 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	body->next = m_rigidbodies;
 	m_rigidbodies = body;
 
-	++m_rigidbodies_size;
+	++m_rigidbodyCount;
 }
 
 void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
@@ -386,8 +392,8 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
-	
-	if (m_rigidbodies_size != 0)
+
+	if (m_rigidbodyCount != 0)
 	{
 		m_rigidbodies->prev = body;
 	}
@@ -396,7 +402,7 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	body->next = m_rigidbodies;
 	m_rigidbodies = body;
 
-	++m_rigidbodies_size;
+	++m_rigidbodyCount;
 }
 
 void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
@@ -443,7 +449,7 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 
 	body->createFixture(&fd);
 
-	if (m_rigidbodies_size != 0)
+	if (m_rigidbodyCount != 0)
 	{
 		m_rigidbodies->prev = body;
 	}
@@ -452,14 +458,14 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	body->next = m_rigidbodies;
 	m_rigidbodies = body;
 
-	++m_rigidbodies_size;
+	++m_rigidbodyCount;
 }
 
 void World::registerBodyForce(int32_t idx, const glm::vec3 &force)
 {
 	// check idx
 	Rigidbody *body = m_rigidbodies;
-	for (int32_t i = m_rigidbodies_size - 1; i > idx; --i)
+	for (int32_t i = m_rigidbodyCount - 1; i > idx; --i)
 	{
 		body = body->next;
 	}
