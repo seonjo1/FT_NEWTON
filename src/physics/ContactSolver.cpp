@@ -3,13 +3,19 @@
 namespace ale
 {
 
-ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, std::vector<Position> &positions,
-							 std::vector<Velocity> &velocities)
+ContactSolver::ContactSolver(float duration, Contact **contacts, Position *positions, Velocity *velocities,
+							 int32_t bodyCount, int32_t contactCount)
 	: m_duration(duration), m_positions(positions), m_velocities(velocities), m_contacts(contacts),
-	  m_stopVelocity(0.005f)
+	  m_stopVelocity(0.005f), m_bodyCount(bodyCount), m_contactCount(contactCount)
 {
-	int32_t size = contacts.size();
-	for (int32_t i = 0; i < size; i++)
+	// std::cout << "ContactSolver Constructor\n";
+	// std::cout << "constactCount: " << contactCount << "\n";
+	m_positionConstraints = static_cast<ContactPositionConstraint *>(
+		PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(ContactPositionConstraint) * contactCount));
+	m_velocityConstraints = static_cast<ContactVelocityConstraint *>(
+		PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(ContactVelocityConstraint) * contactCount));
+
+	for (int32_t i = 0; i < contactCount; i++)
 	{
 		Contact *contact = m_contacts[i];
 
@@ -20,43 +26,61 @@ ContactSolver::ContactSolver(float duration, std::vector<Contact *> &contacts, s
 		Shape *shapeB = fixtureB->getShape();
 		Rigidbody *bodyA = fixtureA->getBody();
 		Rigidbody *bodyB = fixtureB->getBody();
-		Manifold manifold = contact->getManifold();
+		Manifold &manifold = contact->getManifold();
+
+		new (m_velocityConstraints + i) ContactVelocityConstraint();
+		new (m_positionConstraints + i) ContactPositionConstraint();
 
 		// 속도 제약 설정
-		ContactVelocityConstraint velocityConstraint;
-		velocityConstraint.friction = contact->getFriction();
-		velocityConstraint.restitution = contact->getRestitution();
-		velocityConstraint.worldCenterA = bodyA->getTransform().toMatrix() * glm::vec4(shapeA->m_center, 1.0f);
-		velocityConstraint.worldCenterB = bodyB->getTransform().toMatrix() * glm::vec4(shapeB->m_center, 1.0f);
-		velocityConstraint.indexA = bodyA->getIslandIndex();
-		velocityConstraint.indexB = bodyB->getIslandIndex();
-		velocityConstraint.invMassA = bodyA->getInverseMass();
-		velocityConstraint.invMassB = bodyB->getInverseMass();
-		velocityConstraint.invIA = bodyA->getInverseInertiaTensorWorld();
-		velocityConstraint.invIB = bodyB->getInverseInertiaTensorWorld();
-		velocityConstraint.pointCount = manifold.points.size();
-		velocityConstraint.points = manifold.points;
+		m_velocityConstraints[i].friction = contact->getFriction();
+		m_velocityConstraints[i].restitution = contact->getRestitution();
+		m_velocityConstraints[i].worldCenterA = bodyA->getTransform().toMatrix() * glm::vec4(shapeA->m_center, 1.0f);
+		m_velocityConstraints[i].worldCenterB = bodyB->getTransform().toMatrix() * glm::vec4(shapeB->m_center, 1.0f);
+		m_velocityConstraints[i].indexA = bodyA->getIslandIndex();
+		m_velocityConstraints[i].indexB = bodyB->getIslandIndex();
+		m_velocityConstraints[i].invMassA = bodyA->getInverseMass();
+		m_velocityConstraints[i].invMassB = bodyB->getInverseMass();
+		m_velocityConstraints[i].invIA = bodyA->getInverseInertiaTensorWorld();
+		m_velocityConstraints[i].invIB = bodyB->getInverseInertiaTensorWorld();
+		m_velocityConstraints[i].pointCount = manifold.pointsCount;
+		m_velocityConstraints[i].points = manifold.points;
+
+		// for (int j = 0; j < m_velocityConstraints[i].pointCount; j++)
+		// {
+		// 	std::cout << "manifoldPoints[" << j << "]: " << &(m_velocityConstraints[i].points[j]) << "\n";
+		// 	std::cout << "pointA: " << m_velocityConstraints[i].points[j].pointA.x << " " << m_velocityConstraints[i].points[j].pointA.y << " " << m_velocityConstraints[i].points[j].pointA.z << "\n";
+		// 	std::cout << "pointB: " << m_velocityConstraints[i].points[j].pointB.x << " " << m_velocityConstraints[i].points[j].pointB.y << " " << m_velocityConstraints[i].points[j].pointB.z << "\n";
+		// 	std::cout << "normal: " << m_velocityConstraints[i].points[j].normal.x << " " << m_velocityConstraints[i].points[j].normal.y << " " << m_velocityConstraints[i].points[j].normal.z << "\n";
+		// 	std::cout << "seperation: " << m_velocityConstraints[i].points[j].seperation << "\n";
+		// }
 
 		// 위치 제약 설정
-		ContactPositionConstraint positionConstraint;
-		positionConstraint.worldCenterA = bodyA->getTransform().toMatrix() * glm::vec4(shapeA->m_center, 1.0f);
-		positionConstraint.worldCenterB = bodyB->getTransform().toMatrix() * glm::vec4(shapeB->m_center, 1.0f);
-		positionConstraint.indexA = bodyA->getIslandIndex();
-		positionConstraint.indexB = bodyB->getIslandIndex();
-		positionConstraint.invMassA = bodyA->getInverseMass();
-		positionConstraint.invMassB = bodyB->getInverseMass();
-		positionConstraint.pointCount = manifold.points.size();
-		positionConstraint.points = manifold.points;
-
-		m_velocityConstraints.push_back(velocityConstraint);
-		m_positionConstraints.push_back(positionConstraint);
+		m_positionConstraints[i].worldCenterA = bodyA->getTransform().toMatrix() * glm::vec4(shapeA->m_center, 1.0f);
+		m_positionConstraints[i].worldCenterB = bodyB->getTransform().toMatrix() * glm::vec4(shapeB->m_center, 1.0f);
+		m_positionConstraints[i].indexA = bodyA->getIslandIndex();
+		m_positionConstraints[i].indexB = bodyB->getIslandIndex();
+		m_positionConstraints[i].invMassA = bodyA->getInverseMass();
+		m_positionConstraints[i].invMassB = bodyB->getInverseMass();
+		m_positionConstraints[i].pointCount = manifold.pointsCount;
+		m_positionConstraints[i].points = manifold.points;
 	}
+}
+
+void ContactSolver::destroy()
+{
+	for (int32_t i = 0; i < m_contactCount; i++)
+	{
+		m_positionConstraints[i].~ContactPositionConstraint();
+		m_velocityConstraints[i].~ContactVelocityConstraint();
+	}
+
+	PhysicsAllocator::m_stackAllocator.freeStack();
+	PhysicsAllocator::m_stackAllocator.freeStack();
 }
 
 void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 {
-	int32_t length = m_contacts.size();
-	for (int32_t i = 0; i < length; i++)
+	for (int32_t i = 0; i < m_contactCount; i++)
 	{
 		Contact *contact = m_contacts[i];
 		ContactVelocityConstraint &velocityConstraint = m_velocityConstraints[i];
@@ -96,10 +120,15 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 		for (int32_t j = 0; j < pointCount; j++)
 		{
 			ManifoldPoint &manifoldPoint = velocityConstraint.points[j];
+
+			// std::cout << "manifoldPoint: " << &(velocityConstraint.points[j]) << "\n";
 			// std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " "
 			// 		  << manifoldPoint.pointA.z << "\n";
-			// std::cout << "pointB: " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " "
-			// 		  << manifoldPoint.pointB.z << "\n";
+			// std::cout << "pointB: " << (velocityConstraint.points[j].pointB.x) << " " << (velocityConstraint.points[j].pointB.y) << " "
+			// 		  << (velocityConstraint.points[j].pointB.z) << "\n";
+			// std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
+			// 		  << manifoldPoint.normal.z << "\n";
+			// std::cout << "seperation: " << manifoldPoint.seperation << "\n";
 			glm::vec3 rA = manifoldPoint.pointA - velocityConstraint.worldCenterA; // bodyA의 충돌 지점까지의 벡터
 			glm::vec3 rB = manifoldPoint.pointB - velocityConstraint.worldCenterB; // bodyB의 충돌 지점까지의 벡터
 			// std::cout << "RARARA pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " <<
@@ -266,8 +295,7 @@ bool ContactSolver::solvePositionConstraints(const int32_t positionIteration)
 	const float alpha = 1.0f / positionIteration;
 	bool solved = true;
 
-	int32_t length = m_contacts.size();
-	for (int i = 0; i < length; ++i)
+	for (int i = 0; i < m_contactCount; ++i)
 	{
 		Contact *contact = m_contacts[i];
 		ContactPositionConstraint &positionConstraint = m_positionConstraints[i];

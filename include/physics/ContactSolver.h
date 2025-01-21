@@ -2,24 +2,28 @@
 #define CONTACTSOLVER_H
 
 #include "Island.h"
+#include "PhysicsAllocator.h"
 
 namespace ale
 {
 
 struct ContactPositionConstraint
 {
-	std::vector<ManifoldPoint> points;
+	ManifoldPoint *points;
+	int32_t pointCount;
 	glm::vec3 worldCenterA;
 	glm::vec3 worldCenterB;
-	int32_t pointCount;
 	int32_t indexA;
 	int32_t indexB;
 	float invMassA, invMassB;
+
+	~ContactPositionConstraint() = default;
 };
 
 struct ContactVelocityConstraint
 {
-	std::vector<ManifoldPoint> points;
+	ManifoldPoint *points;
+	int32_t pointCount;
 	glm::vec3 worldCenterA;
 	glm::vec3 worldCenterB;
 	glm::mat3 invIA, invIB;
@@ -28,25 +32,29 @@ struct ContactVelocityConstraint
 	float invMassA, invMassB;
 	float friction;
 	float restitution;
-	int32_t pointCount;
+
+	~ContactVelocityConstraint() = default;
 };
 
 class ContactSolver
 {
   public:
-	ContactSolver(float duration, std::vector<Contact *> &contacts, std::vector<Position> &positions,
-				  std::vector<Velocity> &velocities);
+	ContactSolver(float duration, Contact **contacts, Position *positions, Velocity *velocities, int32_t bodyCount,
+				  int32_t contactCount);
+	void destroy();
 	void initializeVelocityConstraints();
 	void solveVelocityConstraints(const int32_t velocityIteration);
 	bool solvePositionConstraints(const int32_t positionIteration);
 
+	int32_t m_bodyCount;
+	int32_t m_contactCount;
 	float m_duration;
 	float m_stopVelocity;
-	std::vector<Contact *> &m_contacts;
-	std::vector<Position> &m_positions;
-	std::vector<Velocity> &m_velocities;
-	std::vector<ContactPositionConstraint> m_positionConstraints;
-	std::vector<ContactVelocityConstraint> m_velocityConstraints;
+	Contact **m_contacts;
+	Position *m_positions;
+	Velocity *m_velocities;
+	ContactPositionConstraint *m_positionConstraints;
+	ContactVelocityConstraint *m_velocityConstraints;
 };
 
 } // namespace ale
