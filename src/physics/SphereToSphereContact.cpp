@@ -27,16 +27,13 @@ glm::vec3 SphereToSphereContact::supportB(const ConvexInfo &sphere, glm::vec3 di
 }
 
 void SphereToSphereContact::findCollisionPoints(const ConvexInfo &sphereA, const ConvexInfo &sphereB,
-												std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-												std::vector<Simplex> &simplexVector)
+												CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+												SimplexArray &simplexArray)
 {
-	CollisionInfo collisionInfo;
-
-	collisionInfo.normal = epaInfo.normal;
-	collisionInfo.seperation = epaInfo.distance;
-	collisionInfo.pointA = sphereA.center + epaInfo.normal * sphereA.radius;
-	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
-
-	collisionInfoVector.push_back(collisionInfo);
+	collisionInfo.normal[0] = epaInfo.normal;
+	collisionInfo.seperation[0] = epaInfo.distance;
+	collisionInfo.pointA[0] = sphereA.center + epaInfo.normal * sphereA.radius;
+	collisionInfo.pointB[0] = collisionInfo.pointA[0] - collisionInfo.normal[0] * collisionInfo.seperation[0];
+	++collisionInfo.size;
 }
 } // namespace ale
