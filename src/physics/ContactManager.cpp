@@ -5,6 +5,7 @@ namespace ale
 {
 ContactManager::ContactManager()
 {
+	m_contactCount = 0;
 	m_contactList = nullptr;
 }
 
@@ -124,6 +125,8 @@ void ContactManager::addPair(void *proxyUserDataA, void *proxyUserDataB)
 		bodyBContactLinks->prev = nodeB;
 	}
 	bodyB->setContactLinks(nodeB);
+
+	++m_contactCount;
 }
 
 void ContactManager::findNewContacts()
