@@ -115,6 +115,8 @@ struct ManifoldPoint
 	glm::vec3 normal; // 법선 벡터
 };
 
+const int32_t MAX_MANIFOLD_COUNT = 20;
+
 struct Manifold
 {
 	ManifoldPoint points[MAX_MANIFOLD_COUNT];

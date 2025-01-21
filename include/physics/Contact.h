@@ -8,8 +8,6 @@
 namespace ale
 {
 
-const int32_t MAX_MANIFOLD_COUNT = 20;
-
 struct Face
 {
 	glm::vec3 normal;
