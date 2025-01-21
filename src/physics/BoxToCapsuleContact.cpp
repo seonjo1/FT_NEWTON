@@ -49,31 +49,28 @@ glm::vec3 BoxToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3 dir
 }
 
 void BoxToCapsuleContact::findCollisionPoints(const ConvexInfo &box, const ConvexInfo &capsule,
-											  std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-											  std::vector<Simplex> &simplexVector)
+											  CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+											  SimplexArray &simplexArray)
 {
 	// std::cout << "box to capsule!!!!\n";
 	if (isCollideToHemisphere(capsule, -epaInfo.normal))
 	{
-		CollisionInfo collisionInfo;
+		collisionInfo.normal[0] = epaInfo.normal;
+		collisionInfo.seperation[0] = epaInfo.distance;
 
-		collisionInfo.normal = epaInfo.normal;
-		collisionInfo.seperation = epaInfo.distance;
-
-		if (glm::dot(capsule.axes[0], collisionInfo.normal) < 0)
+		if (glm::dot(capsule.axes[0], collisionInfo.normal[0]) < 0)
 		{
 			glm::vec3 hemisphereCenter = capsule.center + capsule.axes[0] * 0.5f * capsule.height;
-			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsule.radius;
-			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB[0] = hemisphereCenter - collisionInfo.normal[0] * capsule.radius;
+			collisionInfo.pointA[0] = collisionInfo.pointB[0] + collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
 		else
 		{
 			glm::vec3 hemisphereCenter = capsule.center - capsule.axes[0] * 0.5f * capsule.height;
-			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsule.radius;
-			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB[0] = hemisphereCenter - collisionInfo.normal[0] * capsule.radius;
+			collisionInfo.pointA[0] = collisionInfo.pointB[0] + collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
-
-		collisionInfoVector.push_back(collisionInfo);
+		++collisionInfo.size;
 	}
 	else
 	{
@@ -82,7 +79,7 @@ void BoxToCapsuleContact::findCollisionPoints(const ConvexInfo &box, const Conve
 		Face incFace = getCapsuleFace(capsule, -epaInfo.normal);
 
 		std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
-		buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
+		buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 	}
 }
 
