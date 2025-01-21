@@ -14,7 +14,8 @@ Contact *CylinderToCylinderContact::create(Fixture *fixtureA, Fixture *fixtureB,
 	{
 		throw std::runtime_error("failed to allocate block");
 	}
-	return new (static_cast<CylinderToCylinderContact *>(memory)) CylinderToCylinderContact(fixtureA, fixtureB, indexA, indexB);
+	return new (static_cast<CylinderToCylinderContact *>(memory))
+		CylinderToCylinderContact(fixtureA, fixtureB, indexA, indexB);
 }
 
 glm::vec3 CylinderToCylinderContact::supportA(const ConvexInfo &cylinder, glm::vec3 dir)
@@ -132,8 +133,8 @@ glm::vec3 CylinderToCylinderContact::supportB(const ConvexInfo &cylinder, glm::v
 }
 
 void CylinderToCylinderContact::findCollisionPoints(const ConvexInfo &cylinderA, const ConvexInfo &cylinderB,
-													std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-													std::vector<Simplex> &simplexVector)
+													CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+													SimplexArray &simplexArray)
 {
 	// std::cout << "cylinder vs cylinder!!\n";
 	// clipping
@@ -155,7 +156,7 @@ void CylinderToCylinderContact::findCollisionPoints(const ConvexInfo &cylinderA,
 	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
-	buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
+	buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 }
 
 } // namespace ale
