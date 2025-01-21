@@ -13,9 +13,8 @@ class SphereToBoxContact : public Contact
 
 	virtual glm::vec3 supportA(const ConvexInfo &sphere, glm::vec3 dir) override;
 	virtual glm::vec3 supportB(const ConvexInfo &box, glm::vec3 dir) override;
-	virtual void findCollisionPoints(const ConvexInfo &sphere, const ConvexInfo &box,
-									 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-									 std::vector<Simplex> &simplexVector) override;
+	virtual void findCollisionPoints(const ConvexInfo &sphere, const ConvexInfo &box, CollisionInfo &collisionInfo,
+									 EpaInfo &epaInfo, SimplexArray &simplexArray) override;
 };
 } // namespace ale
 

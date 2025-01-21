@@ -36,17 +36,13 @@ glm::vec3 SphereToBoxContact::supportB(const ConvexInfo &box, glm::vec3 dir)
 }
 
 void SphereToBoxContact::findCollisionPoints(const ConvexInfo &sphere, const ConvexInfo &box,
-											 std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-											 std::vector<Simplex> &simplexVector)
+											 CollisionInfo &collisionInfo, EpaInfo &epaInfo, SimplexArray &simplexArray)
 {
-	CollisionInfo collisionInfo;
-
-	collisionInfo.normal = epaInfo.normal;
-	collisionInfo.seperation = epaInfo.distance;
-	collisionInfo.pointA = sphere.center + epaInfo.normal * sphere.radius;
-	collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
-
-	collisionInfoVector.push_back(collisionInfo);
+	collisionInfo.normal[0] = epaInfo.normal;
+	collisionInfo.seperation[0] = epaInfo.distance;
+	collisionInfo.pointA[0] = sphere.center + epaInfo.normal * sphere.radius;
+	collisionInfo.pointB[0] = collisionInfo.pointA[0] - collisionInfo.normal[0] * collisionInfo.seperation[0];
+	++collisionInfo.size;
 }
 
 } // namespace ale
