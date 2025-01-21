@@ -147,16 +147,21 @@ ConvexInfo CapsuleShape::getShapeInfo(const Transform &transform) const
 	int32_t segments = 20;
 	int32_t len = segments * 2;
 
-	capsule.axes.resize(segments + 1);
-	capsule.axes[0] = glm::normalize(matrix * glm::vec4(m_axes[0], 0.0f));
+	int32_t axesSize = segments + 1;
+	capsule.axesCount = axesSize;
+	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(glm::vec3) * capsule.axesCount);
+	capsule.axes = static_cast<glm::vec3 *>(memory);
 
-	for (int32_t i = 1; i <= segments; ++i)
+	capsule.axes[0] = glm::normalize(matrix * glm::vec4(m_axes[0], 0.0f));
+	for (int32_t i = 1; i < axesSize; ++i)
 	{
 		capsule.axes[i] = matrix * glm::vec4(m_axes[i], 1.0f);
 	}
 
-	capsule.points.resize(len);
-	// std::cout << "points size: " << capsule.points.size() << " " << len << "\n";
+	int32_t pointsSize = segments * 2;
+	capsule.pointsCount = pointsSize;
+	memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(glm::vec3) * capsule.pointsCount);
+	capsule.points = static_cast<glm::vec3 *>(memory);
 
 	for (int32_t i = 0; i < segments; i++)
 	{
