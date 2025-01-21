@@ -44,9 +44,8 @@ glm::vec3 BoxToBoxContact::supportB(const ConvexInfo &box, glm::vec3 dir)
 	return point;
 }
 
-void BoxToBoxContact::findCollisionPoints(const ConvexInfo &boxA, const ConvexInfo &boxB,
-										  std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-										  std::vector<Simplex> &simplexVector)
+void BoxToBoxContact::findCollisionPoints(const ConvexInfo &boxA, const ConvexInfo &boxB, CollisionInfo &collisionInfo,
+										  EpaInfo &epaInfo, SimplexArray &simplexArray)
 {
 	// clipping
 	Face refFace = getBoxFace(boxA, epaInfo.normal);
@@ -55,7 +54,7 @@ void BoxToBoxContact::findCollisionPoints(const ConvexInfo &boxA, const ConvexIn
 	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
-	buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
+	buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 }
 
 } // namespace ale
