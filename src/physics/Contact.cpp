@@ -119,8 +119,8 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 	ConvexInfo convexA = shapeA->getShapeInfo(transformA);
 	ConvexInfo convexB = shapeB->getShapeInfo(transformB);
 
-	static SimplexArray simplexArray;
-	static CollisionInfo collisionInfo;
+	SimplexArray simplexArray;
+	CollisionInfo collisionInfo;
 
 	simplexArray.simplexCount = 0;
 	collisionInfo.size = 0;
@@ -523,7 +523,7 @@ bool Contact::checkSphereToSphereCollide(const ConvexInfo &convexA, const Convex
 
 bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB, SimplexArray &simplexArray)
 {
-	static const int32_t ITERATION = 64;
+	const int32_t ITERATION = 64;
 
 	// 첫 번째 support point 구하기
 	glm::vec3 dir = glm::normalize(convexB.center - convexA.center);
@@ -589,9 +589,9 @@ bool Contact::isSameDirection(glm::vec3 v1, glm::vec3 v2)
 
 EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &convexB, SimplexArray &simplexArray)
 {
-	static FaceArray faceArray;
-	static FaceArray newFaceArray;
-	static int32_t initIdx[12] = {0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2};
+	FaceArray faceArray;
+	FaceArray newFaceArray;
+	int32_t initIdx[12] = {0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2};
 
 	memcpy(faceArray.faces, initIdx, sizeof(int32_t) * 12);
 	faceArray.count = 4;
