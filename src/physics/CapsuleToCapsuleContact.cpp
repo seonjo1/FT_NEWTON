@@ -7,13 +7,14 @@ CapsuleToCapsuleContact::CapsuleToCapsuleContact(Fixture *fixtureA, Fixture *fix
 	: Contact(fixtureA, fixtureB, indexA, indexB) {};
 
 Contact *CapsuleToCapsuleContact::create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)
-{	
+{
 	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(CapsuleToCapsuleContact));
 	if (memory == nullptr)
 	{
 		throw std::runtime_error("failed to allocate block");
 	}
-	return new (static_cast<CapsuleToCapsuleContact *>(memory)) CapsuleToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
+	return new (static_cast<CapsuleToCapsuleContact *>(memory))
+		CapsuleToCapsuleContact(fixtureA, fixtureB, indexA, indexB);
 }
 
 glm::vec3 CapsuleToCapsuleContact::supportA(const ConvexInfo &capsule, glm::vec3 dir)
@@ -58,53 +59,47 @@ glm::vec3 CapsuleToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3
 }
 
 void CapsuleToCapsuleContact::findCollisionPoints(const ConvexInfo &capsuleA, const ConvexInfo &capsuleB,
-												  std::vector<CollisionInfo> &collisionInfoVector, EpaInfo &epaInfo,
-												  std::vector<Simplex> &simplexVector)
+												  CollisionInfo &collisionInfo, EpaInfo &epaInfo,
+												  SimplexArray &simplexArray)
 {
 	// clipping
 	if (isCollideToHemisphere(capsuleA, epaInfo.normal))
 	{
-		CollisionInfo collisionInfo;
-
-		collisionInfo.normal = epaInfo.normal;
-		collisionInfo.seperation = epaInfo.distance;
+		collisionInfo.normal[0] = epaInfo.normal;
+		collisionInfo.seperation[0] = epaInfo.distance;
 
 		if (glm::dot(capsuleA.axes[0], epaInfo.normal) > 0)
 		{
 			glm::vec3 hemisphereCenter = capsuleA.center + capsuleA.axes[0] * 0.5f * capsuleA.height;
-			collisionInfo.pointA = hemisphereCenter + epaInfo.normal * capsuleA.radius;
-			collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointA[0] = hemisphereCenter + epaInfo.normal * capsuleA.radius;
+			collisionInfo.pointB[0] = collisionInfo.pointA[0] - collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
 		else
 		{
 			glm::vec3 hemisphereCenter = capsuleA.center - capsuleA.axes[0] * 0.5f * capsuleA.height;
-			collisionInfo.pointA = hemisphereCenter + epaInfo.normal * capsuleA.radius;
-			collisionInfo.pointB = collisionInfo.pointA - collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointA[0] = hemisphereCenter + epaInfo.normal * capsuleA.radius;
+			collisionInfo.pointB[0] = collisionInfo.pointA[0] - collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
-
-		collisionInfoVector.push_back(collisionInfo);
+		++collisionInfo.size;
 	}
 	else if (isCollideToHemisphere(capsuleB, -epaInfo.normal))
 	{
-		CollisionInfo collisionInfo;
+		collisionInfo.normal[0] = epaInfo.normal;
+		collisionInfo.seperation[0] = epaInfo.distance;
 
-		collisionInfo.normal = epaInfo.normal;
-		collisionInfo.seperation = epaInfo.distance;
-
-		if (glm::dot(capsuleB.axes[0], collisionInfo.normal) < 0)
+		if (glm::dot(capsuleB.axes[0], collisionInfo.normal[0]) < 0)
 		{
 			glm::vec3 hemisphereCenter = capsuleB.center + capsuleB.axes[0] * 0.5f * capsuleB.height;
-			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsuleB.radius;
-			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB[0] = hemisphereCenter - collisionInfo.normal[0] * capsuleB.radius;
+			collisionInfo.pointA[0] = collisionInfo.pointB[0] + collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
 		else
 		{
 			glm::vec3 hemisphereCenter = capsuleB.center - capsuleB.axes[0] * 0.5f * capsuleB.height;
-			collisionInfo.pointB = hemisphereCenter - collisionInfo.normal * capsuleB.radius;
-			collisionInfo.pointA = collisionInfo.pointB + collisionInfo.normal * collisionInfo.seperation;
+			collisionInfo.pointB[0] = hemisphereCenter - collisionInfo.normal[0] * capsuleB.radius;
+			collisionInfo.pointA[0] = collisionInfo.pointB[0] + collisionInfo.normal[0] * collisionInfo.seperation[0];
 		}
-
-		collisionInfoVector.push_back(collisionInfo);
+		++collisionInfo.size;
 	}
 	else
 	{
@@ -112,7 +107,7 @@ void CapsuleToCapsuleContact::findCollisionPoints(const ConvexInfo &capsuleA, co
 		Face incFace = getCapsuleFace(capsuleB, -epaInfo.normal);
 
 		std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
-		buildManifoldFromPolygon(collisionInfoVector, refFace, incFace, contactPolygon, epaInfo);
+		buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 	}
 }
 
