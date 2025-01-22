@@ -870,7 +870,7 @@ void Contact::addIfUniqueEdge(UniqueEdges &uniqueEdges, const int32_t *faces, in
 		{
 			removeEdge = true;
 			++i;
-			break ;
+			break;
 		}
 	}
 
@@ -928,9 +928,9 @@ void Contact::generateManifolds(CollisionInfo &collisionInfo, Manifold &manifold
 }
 
 void Contact::buildManifoldFromPolygon(CollisionInfo &collisionInfo, const Face &refFace, const Face &incFace,
-									   std::vector<glm::vec3> &polygon, EpaInfo &epaInfo)
+									   ContactPolygon &contactPolygon, EpaInfo &epaInfo)
 {
-	if (polygon.empty())
+	if (contactPolygon.pointsCount == 0)
 	{
 		return;
 	}
@@ -944,12 +944,12 @@ void Contact::buildManifoldFromPolygon(CollisionInfo &collisionInfo, const Face 
 	glm::vec3 refN = refFace.normal;
 	glm::vec3 incN = incFace.normal;
 
-	std::sort(polygon.begin(), polygon.end(),
+	std::sort(contactPolygon.points, contactPolygon.points + contactPolygon.pointsCount,
 			  [&refN](const glm::vec3 &a, const glm::vec3 &b) { return glm::dot(a, refN) < glm::dot(b, refN); });
 
 	// 각 꼭지점마다 물체 A,B에서의 좌표를 구해 penetration 등 계산
 	// 여기서는 "Ref Face plane에서 A 물체 좌표, Incident Face plane에서 B 물체 좌표" 라고 가정
-	float denominator = (-(glm::dot(polygon[0], refN) - refPlaneDist));
+	float denominator = (-(glm::dot(contactPolygon.points[0], refN) - refPlaneDist));
 	float ratio;
 	if (denominator < 1e-8f)
 	{
@@ -960,11 +960,11 @@ void Contact::buildManifoldFromPolygon(CollisionInfo &collisionInfo, const Face 
 		ratio = distance / denominator;
 	}
 
-	int32_t polygonCount = polygon.size();
+	int32_t polygonCount = contactPolygon.pointsCount;
 
 	for (int32_t i = 0; i < polygonCount; ++i)
 	{
-		const glm::vec3 &point = polygon[i];
+		const glm::vec3 &point = contactPolygon.points[i];
 
 		// B측 point
 		glm::vec3 pointB = point;
@@ -984,17 +984,18 @@ void Contact::buildManifoldFromPolygon(CollisionInfo &collisionInfo, const Face 
 	}
 }
 
-std::vector<glm::vec3> Contact::clipPolygonAgainstPlane(const std::vector<glm::vec3> &polygon,
-														const glm::vec3 &planeNormal, float planeDist)
+void Contact::clipPolygonAgainstPlane(ContactPolygon &contactPolygon, const glm::vec3 &planeNormal, float planeDist)
 {
-	std::vector<glm::vec3> out;
-	if (polygon.empty())
-		return out;
+	int32_t polygonCount = contactPolygon.pointsCount;
+	if (polygonCount == 0)
+		return;
 
-	for (size_t i = 0; i < polygon.size(); i++)
+	int32_t idx = 0;
+
+	for (size_t i = 0; i < polygonCount; i++)
 	{
-		const glm::vec3 &curr = polygon[i];
-		const glm::vec3 &next = polygon[(i + 1) % polygon.size()];
+		glm::vec3 &curr = contactPolygon.points[i];
+		glm::vec3 &next = contactPolygon.points[(i + 1) % polygonCount];
 
 		float distCurr = glm::dot(planeNormal, curr) - planeDist;
 		float distNext = glm::dot(planeNormal, next) - planeDist;
@@ -1004,38 +1005,46 @@ std::vector<glm::vec3> Contact::clipPolygonAgainstPlane(const std::vector<glm::v
 		// CASE1: 둘 다 내부
 		if (currInside && nextInside)
 		{
-			out.push_back(next);
+			contactPolygon.buffer[idx] = next;
+			++idx;
 		}
+
 		// CASE2: 밖->안
 		else if (!currInside && nextInside)
 		{
 			float t = distCurr / (distCurr - distNext);
 			glm::vec3 intersect = curr + t * (next - curr);
-			out.push_back(intersect);
-			out.push_back(next);
+			contactPolygon.buffer[idx] = intersect;
+			++idx;
+			contactPolygon.buffer[idx] = next;
+			++idx;
 		}
 		// CASE3: 안->밖
 		else if (currInside && !nextInside)
 		{
 			float t = distCurr / (distCurr - distNext);
 			glm::vec3 intersect = curr + t * (next - curr);
-			out.push_back(intersect);
+			contactPolygon.buffer[idx] = intersect;
+			++idx;
 		}
 		// CASE4: 둘 다 밖 => nothing
 	}
 
-	return out;
+	memcpy(contactPolygon.points, contactPolygon.buffer, sizeof(glm::vec3) * idx);
+	contactPolygon.pointsCount = idx;
 }
 
-std::vector<glm::vec3> Contact::computeContactPolygon(const Face &refFace, const Face &incFace)
+void Contact::computeContactPolygon(ContactPolygon &contactPolygon, Face &refFace, Face &incFace)
 {
 	// 초기 polygon: Incident Face의 4점
-	std::vector<glm::vec3> poly = incFace.vertices;
+	memcpy(contactPolygon.points, incFace.vertices, sizeof(glm::vec3) * incFace.verticesCount);
+	contactPolygon.pointsCount = incFace.verticesCount;
 
 	// Ref Face의 4개 엣지로 만들어지는 '4개 사이드 평면'에 대해 클리핑
 	// refFace.vertices = v0,v1,v2,v3 라고 가정, CCW 형태
-	const std::vector<glm::vec3> &vertices = refFace.vertices;
-	int32_t len = vertices.size();
+	glm::vec3 *vertices = refFace.vertices;
+	int32_t len = refFace.verticesCount;
+
 	for (int32_t i = 0; i < len; i++)
 	{
 		glm::vec3 start = vertices[i];
@@ -1049,24 +1058,25 @@ std::vector<glm::vec3> Contact::computeContactPolygon(const Face &refFace, const
 		sideN = glm::normalize(sideN);
 
 		float planeDist = glm::dot(sideN, start);
-		poly = clipPolygonAgainstPlane(poly, sideN, planeDist);
+		clipPolygonAgainstPlane(contactPolygon, sideN, planeDist);
 
-		if (poly.empty())
+		if (contactPolygon.pointsCount == 0)
+		{
 			break;
+		}
 	}
-
 	// 마지막으로 "Ref Face 자체" 평면에 대해서도 클리핑(뒤집힌 면 제거)
-	poly = clipPolygonAgainstPlane(poly, refFace.normal, refFace.distance);
-
-	return poly;
+	clipPolygonAgainstPlane(contactPolygon, refFace.normal, refFace.distance);
 }
 
-void Contact::sortPointsClockwise(std::vector<glm::vec3> &points, const glm::vec3 &center, const glm::vec3 &normal)
+void Contact::sortVerticesClockwise(glm::vec3 *vertices, const glm::vec3 &center, const glm::vec3 &normal,
+									int32_t verticesSize)
 {
 	// 1. 법선 벡터 기준으로 평면의 두 축 정의
 	glm::vec3 u = glm::normalize(glm::cross(normal, glm::vec3(1.0f, 0.0f, 0.0f)));
 	if (glm::length(u) < 1e-6)
-	{ // normal이 x축과 평행한 경우 y축 사용
+	{
+		// normal이 x축과 평행한 경우 y축 사용
 		u = glm::normalize(glm::cross(normal, glm::vec3(0.0f, 1.0f, 0.0f)));
 	}
 	glm::vec3 v = glm::normalize(glm::cross(normal, u)); // 법선과 u의 외적
@@ -1082,17 +1092,16 @@ void Contact::sortPointsClockwise(std::vector<glm::vec3> &points, const glm::vec
 
 		return angleA > angleB; // 시계 방향 정렬
 	};
-	std::sort(points.begin(), points.end(), angleComparator);
+
+	std::sort(vertices, vertices + verticesSize, angleComparator);
 }
 
-Face Contact::getBoxFace(const ConvexInfo &box, const glm::vec3 &normal)
+void Contact::setBoxFace(Face &face, const ConvexInfo &box, const glm::vec3 &normal)
 {
 	// 1) box의 6개 면 중, worldNormal과 가장 유사한 면( dot > 0 ) 찾기
 	// 2) 그 면의 4개 꼭지점을 구함
 	// 여기서는 '법선이 박스의 +Y축과 가장 가까우면 top face' 식으로 단순화 예시
 	// 실제 구현은 회전/transform 고려해야 함
-
-	Face face;
 
 	glm::vec3 axes[6] = {-box.axes[0], -box.axes[1], -box.axes[2], box.axes[0], box.axes[1], box.axes[2]};
 
@@ -1113,30 +1122,28 @@ Face Contact::getBoxFace(const ConvexInfo &box, const glm::vec3 &normal)
 	glm::vec3 center(0.0f);
 
 	int32_t pointCount = box.pointsCount;
+	int32_t idx = 0;
 	for (int32_t i = 0; i < pointCount; ++i)
 	{
 		glm::vec3 &point = box.points[i];
 		if (glm::dot(point, axis) > centerDotRes)
 		{
 			center += point;
-			face.vertices.push_back(point);
+			face.vertices[idx] = point;
+			++idx;
 		}
 	}
 
-	center = glm::vec3((center.x / face.vertices.size()), (center.y / face.vertices.size()),
-					   (center.z / face.vertices.size()));
+	center = glm::vec3((center.x / idx), (center.y / idx), (center.z / idx));
+	face.verticesCount = idx;
 	face.normal = axis;
 	face.distance = glm::dot(axis, face.vertices[0]);
 
-	sortPointsClockwise(face.vertices, center, face.normal);
-
-	return face;
+	sortVerticesClockwise(face.vertices, center, face.normal, face.verticesCount);
 }
 
-Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &normal)
+void Contact::setCylinderFace(Face &face, const ConvexInfo &cylinder, const glm::vec3 &normal)
 {
-	Face face;
-
 	glm::vec3 center;
 	int32_t segments = 20;
 	float length = glm::dot(normal, cylinder.axes[0]);
@@ -1145,7 +1152,7 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	if (length > 0.9f)
 	{
 		// std::cout << "top!!!\n";
-		face.vertices.resize(segments);
+		face.verticesCount = segments;
 		int32_t len = segments;
 		for (int32_t i = 0; i < len; ++i)
 		{
@@ -1160,8 +1167,8 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 	{
 		// std::cout << "bottom!!!\n";
 
+		face.verticesCount = segments;
 		int32_t len = segments * 2;
-		face.vertices.resize(segments);
 		for (int32_t i = segments; i < len; ++i)
 		{
 			face.vertices[i - segments] = cylinder.points[i];
@@ -1203,12 +1210,11 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 		int32_t idx1 = dir - 1;
 		int32_t idx2 = dir % segments;
 
-		face.vertices.resize(4);
+		face.verticesCount = 4;
 		face.vertices[0] = cylinder.points[idx1];
 		face.vertices[1] = cylinder.points[idx2];
 		face.vertices[2] = cylinder.points[idx1 + segments];
 		face.vertices[3] = cylinder.points[idx2 + segments];
-
 		// std::cout << "face 4 start\n";
 		// for (int i = 0; i < 4; i ++)
 		// {
@@ -1220,15 +1226,11 @@ Face Contact::getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &norma
 		center = (face.vertices[0] + face.vertices[1] + face.vertices[2] + face.vertices[3]) / 4.0f;
 	}
 
-	sortPointsClockwise(face.vertices, center, face.normal);
-
-	return face;
+	sortVerticesClockwise(face.vertices, center, face.normal, face.verticesCount);
 }
 
-Face Contact::getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal)
+void Contact::setCapsuleFace(Face &face, const ConvexInfo &capsule, const glm::vec3 &normal)
 {
-	Face face;
-
 	int32_t segments = 20;
 	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
 
@@ -1261,7 +1263,7 @@ Face Contact::getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal)
 	int32_t idx1 = dir - 1;
 	int32_t idx2 = dir % segments;
 
-	face.vertices.resize(4);
+	face.verticesCount = 4;
 	face.vertices[0] = capsule.points[idx1];
 	face.vertices[1] = capsule.points[idx2];
 	face.vertices[2] = capsule.points[idx1 + segments];
@@ -1277,9 +1279,7 @@ Face Contact::getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal)
 	face.distance = glm::dot(face.normal, face.vertices[0]);
 	glm::vec3 center = (face.vertices[0] + face.vertices[1] + face.vertices[2] + face.vertices[3]) / 4.0f;
 
-	sortPointsClockwise(face.vertices, center, face.normal);
-
-	return face;
+	sortVerticesClockwise(face.vertices, center, face.normal, face.verticesCount);
 }
 
 bool Contact::isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir)
