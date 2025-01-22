@@ -234,12 +234,11 @@ ConvexInfo CylinderShape::getShapeInfo(const Transform &transform) const
 		cylinder.axes[i] = matrix * glm::vec4(m_axes[i], 1.0f);
 	}
 
-	int32_t pointsSize = segments * 2;
-	cylinder.pointsCount = pointsSize;
+	cylinder.pointsCount = segments * 2;
 	memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(glm::vec3) * cylinder.pointsCount);
 	cylinder.points = static_cast<glm::vec3 *>(memory);
 
-	for (int32_t i = 0; i < pointsSize; i++)
+	for (int32_t i = 0; i < segments; i++)
 	{
 		cylinder.points[i] = matrix * glm::vec4(m_points[i], 1.0f);
 		cylinder.points[i + segments] = matrix * glm::vec4(m_points[i + segments], 1.0f);
