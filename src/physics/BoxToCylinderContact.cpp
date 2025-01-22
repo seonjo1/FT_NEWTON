@@ -94,9 +94,10 @@ void BoxToCylinderContact::findCollisionPoints(const ConvexInfo &box, const Conv
 	// std::cout << "box vs cylinder!!\n";
 
 	// clipping
-	Face refFace = getBoxFace(box, epaInfo.normal);
-	Face incFace = getCylinderFace(cylinder, -epaInfo.normal);
-
+	Face refFace, incFace;
+	
+	setBoxFace(refFace, box, epaInfo.normal);
+	setCylinderFace(incFace, cylinder, -epaInfo.normal);
 	// for (int i = 0; i < refFace.vertices.size(); i++)
 	// {
 	// 	std::cout << "refFace[" << i << "]: (" << refFace.vertices[i].x << ", " << refFace.vertices[i].y << ", " <<
@@ -109,7 +110,8 @@ void BoxToCylinderContact::findCollisionPoints(const ConvexInfo &box, const Conv
 	// incFace.vertices[i].z << ")\n";
 	// }
 
-	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+	ContactPolygon contactPolygon;
+	computeContactPolygon(contactPolygon, refFace, incFace);
 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
 	buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
