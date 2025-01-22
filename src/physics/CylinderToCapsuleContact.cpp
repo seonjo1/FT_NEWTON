@@ -117,10 +117,14 @@ void CylinderToCapsuleContact::findCollisionPoints(const ConvexInfo &cylinder, c
 	}
 	else
 	{
-		Face refFace = getCylinderFace(cylinder, epaInfo.normal);
-		Face incFace = getCapsuleFace(capsule, -epaInfo.normal);
+		Face refFace, incFace;
 
-		std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+		setCylinderFace(refFace, cylinder, epaInfo.normal);
+		setCapsuleFace(incFace, capsule, -epaInfo.normal);
+
+		ContactPolygon contactPolygon;
+		computeContactPolygon(contactPolygon, refFace, incFace);
+
 		buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 	}
 }
