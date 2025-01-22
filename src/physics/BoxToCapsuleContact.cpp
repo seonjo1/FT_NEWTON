@@ -75,10 +75,14 @@ void BoxToCapsuleContact::findCollisionPoints(const ConvexInfo &box, const Conve
 	else
 	{
 		// std::cout << "edge side!!!\n";
-		Face refFace = getBoxFace(box, epaInfo.normal);
-		Face incFace = getCapsuleFace(capsule, -epaInfo.normal);
+		Face refFace, incFace;
 
-		std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+		setBoxFace(refFace, box, epaInfo.normal);
+		setCapsuleFace(incFace, capsule, -epaInfo.normal);
+
+		ContactPolygon contactPolygon;
+		computeContactPolygon(contactPolygon, refFace, incFace);
+		
 		buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
 	}
 }
