@@ -8,11 +8,19 @@
 namespace ale
 {
 
+struct ContactPolygon
+{
+	glm::vec3 points[20];
+	glm::vec3 buffer[20];
+	int32_t pointsCount;
+};
+
 struct Face
 {
 	glm::vec3 normal;
 	float distance;
-	std::vector<glm::vec3> vertices;
+	glm::vec3 vertices[20];
+	int32_t verticesCount;
 };
 
 struct CollisionInfo
@@ -158,17 +166,17 @@ class Contact
 	virtual void findCollisionPoints(const ConvexInfo &convexA, const ConvexInfo &convexB, CollisionInfo &collisionInfo,
 									 EpaInfo &epaInfo, SimplexArray &simplexArray) = 0;
 
-	std::vector<glm::vec3> computeContactPolygon(const Face &refFace, const Face &incFace);
-	std::vector<glm::vec3> clipPolygonAgainstPlane(const std::vector<glm::vec3> &polygon, const glm::vec3 &planeNormal,
-												   float planeDist);
+	void computeContactPolygon(ContactPolygon &contactPolygon, Face &refFace, Face &incFace);
+	void clipPolygonAgainstPlane(ContactPolygon &contactPolygon, const glm::vec3 &planeNormal, float planeDist);
 
 	void buildManifoldFromPolygon(CollisionInfo &collisionInfo, const Face &refFace, const Face &incFace,
-								  std::vector<glm::vec3> &polygon, EpaInfo &epaInfo);
-	void sortPointsClockwise(std::vector<glm::vec3> &points, const glm::vec3 &center, const glm::vec3 &normal);
+								  ContactPolygon &contactPolygon, EpaInfo &epaInfo);
+	void sortVerticesClockwise(glm::vec3 *vertices, const glm::vec3 &center, const glm::vec3 &normal,
+							   int32_t verticesSize);
 
-	Face getBoxFace(const ConvexInfo &box, const glm::vec3 &normal);
-	Face getCylinderFace(const ConvexInfo &cylinder, const glm::vec3 &normal);
-	Face getCapsuleFace(const ConvexInfo &capsule, const glm::vec3 &normal);
+	void setBoxFace(Face &face, const ConvexInfo &box, const glm::vec3 &normal);
+	void setCylinderFace(Face &face, const ConvexInfo &cylinder, const glm::vec3 &normal);
+	void setCapsuleFace(Face &face, const ConvexInfo &capsule, const glm::vec3 &normal);
 
 	bool isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir);
 
