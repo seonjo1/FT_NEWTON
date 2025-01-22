@@ -422,11 +422,12 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
-	// sphere
-	float mh = 5.0f;
+	// hemisphere
+	float mh = 3.0f;
 	float r = shape->m_radius;
 	float h = shape->m_height;
-	float val = (2.0f / 5.0f) * mh * r * r + (h / 2.0f + 3.0f * r / 8.0f);
+	float d = (3.0f * r / 8.0f);
+	float val = (2.0f / 5.0f) * mh * r * r + (h / 2.0f * d * d);
 	glm::mat3 ih(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
 
 	// cylinder
