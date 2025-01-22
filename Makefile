@@ -29,6 +29,9 @@ re: fclean all
 t: all
 	@./$(NAME)_debug
 
+r: release
+	@./$(NAME)_release
+
 w: all
 	@./$(NAME)_debug > test
 
