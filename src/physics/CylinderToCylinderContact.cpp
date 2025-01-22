@@ -138,8 +138,10 @@ void CylinderToCylinderContact::findCollisionPoints(const ConvexInfo &cylinderA,
 {
 	// std::cout << "cylinder vs cylinder!!\n";
 	// clipping
-	Face refFace = getCylinderFace(cylinderA, epaInfo.normal);
-	Face incFace = getCylinderFace(cylinderB, -epaInfo.normal);
+	Face refFace, incFace;
+
+	setCylinderFace(refFace, cylinderA, epaInfo.normal);
+	setCylinderFace(incFace, cylinderB, -epaInfo.normal);
 
 	// for (int i = 0; i < refFace.vertices.size(); i++)
 	// {
@@ -153,7 +155,8 @@ void CylinderToCylinderContact::findCollisionPoints(const ConvexInfo &cylinderA,
 	// incFace.vertices[i].z << ")\n";
 	// }
 
-	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+	ContactPolygon contactPolygon;
+	computeContactPolygon(contactPolygon, refFace, incFace);
 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
 	buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
