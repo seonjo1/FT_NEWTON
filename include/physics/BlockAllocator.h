@@ -7,8 +7,8 @@ namespace ale
 {
 
 const int32_t CHUNK_SIZE = 1024 * 1024;
-const int32_t MAX_BLOCK_SIZE = 2048;
-const int32_t BLOCK_SIZE_COUNT = 15;
+const int32_t MAX_BLOCK_SIZE = 4096;
+const int32_t BLOCK_SIZE_COUNT = 16;
 const int32_t CHUNK_ARRAY_INCREMENT = 256;
 
 struct Block

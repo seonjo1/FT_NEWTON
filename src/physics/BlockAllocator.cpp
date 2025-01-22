@@ -18,6 +18,7 @@ int32_t BlockAllocator::blockSizes[BLOCK_SIZE_COUNT] = {
 	512, // 12
 	1024, // 13
 	2048, // 14
+	4096,
 };
 
 uint8_t BlockAllocator::blockSizeLookup[MAX_BLOCK_SIZE + 1];
@@ -81,7 +82,7 @@ void *BlockAllocator::allocateBlock(int32_t size)
 	// 설정해 놓은 block의 최대 크기보다 큰 경우 따로 malloc
 	if (size > MAX_BLOCK_SIZE)
 	{
-		std::cerr << "size: " << size << "\n";
+		std::cerr << "requested block size: " << size << "\n";
 		throw std::runtime_error("try too large memory allocated");
 	}
 
