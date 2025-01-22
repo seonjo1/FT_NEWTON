@@ -32,7 +32,7 @@ struct CollisionInfo
 	int32_t size;
 };
 
-const int32_t MAX_SIMPLEX_COUNT = 256;
+const int32_t MAX_SIMPLEX_COUNT = 100;
 
 struct FaceArray
 {

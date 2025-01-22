@@ -525,11 +525,16 @@ bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB,
 {
 	const int32_t ITERATION = 64;
 
+	glm::vec3 dir;
+
 	// 첫 번째 support point 구하기
-	glm::vec3 dir = glm::normalize(convexB.center - convexA.center);
-	if (glm::length2(dir) < 1e-8f)
+	if (glm::length2(convexB.center - convexA.center) < 1e-8f)
 	{
 		dir = glm::vec3(1.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		dir = glm::normalize(convexB.center - convexA.center);
 	}
 
 	simplexArray.simplices[0] = getSupportPoint(convexA, convexB, dir);
@@ -571,7 +576,7 @@ bool Contact::getGjkResult(const ConvexInfo &convexA, const ConvexInfo &convexB,
 			// 원점 포함 => 충돌
 			return true;
 		}
-		iter++;
+		++iter;
 	}
 
 	return false;
@@ -595,6 +600,13 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 
 	memcpy(faceArray.faces, initIdx, sizeof(int32_t) * 12);
 	faceArray.count = 4;
+
+	// std::cout << "simplex!!\n";
+	// for (int i = 0; i < simplexArray.simplexCount; ++i)
+	// {
+	// 	std::cout << "simplex[" << i << "]: (" << simplexArray.simplices[i].diff.x << ", "
+	// 			  << simplexArray.simplices[i].diff.y << ", " << simplexArray.simplices[i].diff.z << ")\n";
+	// }
 
 	// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 	// GJK에서 구한 simplex들중 원점에서 가장 가까운 삼각형의 법선과 최소 거리
@@ -643,7 +655,8 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 		// std::cout << "minDistance: " << minDistance << "\n";
 		// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 
-		if (std::abs(supportDistance - minDistance) > 1e-2f && !isDuplicatedPoint(simplexArray, supportPoint))
+		if (std::abs(supportDistance - minDistance) > 1e-2f && !isDuplicatedPoint(simplexArray, supportPoint) &&
+			simplexArray.simplexCount < MAX_SIMPLEX_COUNT)
 		{
 			// std::cout << "faceAttray.count: " << faceArray.count << "\n";
 			minDistance = FLT_MAX;
@@ -772,6 +785,12 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 			// 	std::cout << "face: " << faces[z] << " " << faces[z + 1] << " " << faces[z + 2] << "\n";
 			// }
 		}
+		// std::cout << "simplex!!\n";
+		// for (int i = 0; i < simplexArray.simplexCount; ++i)
+		// {
+		// 	std::cout << "simplex[" << i << "]: (" << simplexArray.simplices[i].diff.x << ", "
+		// 			  << simplexArray.simplices[i].diff.y << ", " << simplexArray.simplices[i].diff.z << ")\n";
+		// }
 	}
 
 	EpaInfo epaInfo;
