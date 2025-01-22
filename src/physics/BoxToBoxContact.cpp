@@ -48,10 +48,12 @@ void BoxToBoxContact::findCollisionPoints(const ConvexInfo &boxA, const ConvexIn
 										  EpaInfo &epaInfo, SimplexArray &simplexArray)
 {
 	// clipping
-	Face refFace = getBoxFace(boxA, epaInfo.normal);
-	Face incFace = getBoxFace(boxB, -epaInfo.normal);
+	Face refFace, incFace;
+	setBoxFace(refFace, boxA, epaInfo.normal);
+	setBoxFace(incFace, boxB, -epaInfo.normal);
 
-	std::vector<glm::vec3> contactPolygon = computeContactPolygon(refFace, incFace);
+	ContactPolygon contactPolygon;
+	computeContactPolygon(contactPolygon, refFace, incFace);
 
 	// 폴리곤의 각 꼭지점 -> 충돌점 여러 개
 	buildManifoldFromPolygon(collisionInfo, refFace, incFace, contactPolygon, epaInfo);
