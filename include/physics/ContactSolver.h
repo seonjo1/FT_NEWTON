@@ -44,12 +44,16 @@ class ContactSolver
 	void destroy();
 	void initializeVelocityConstraints();
 	void solveVelocityConstraints(const int32_t velocityIteration);
-	bool solvePositionConstraints(const int32_t positionIteration);
+	void solvePositionConstraints(const int32_t positionIteration);
+
+	static const float NORMAL_STOP_VELOCITY;
+	static const float TANGENT_STOP_VELOCITY;
+	static const float NORMAL_SLEEP_VELOCITY;
+	static const float TANGENT_SLEEP_VELOCITY;
 
 	int32_t m_bodyCount;
 	int32_t m_contactCount;
 	float m_duration;
-	float m_stopVelocity;
 	Contact **m_contacts;
 	Position *m_positions;
 	Velocity *m_velocities;
