@@ -9,14 +9,17 @@ namespace ale
 struct Position
 {
 	glm::vec3 position;
-	~Position() = default;
+	glm::vec3 positionBuffer;
+	bool isStop {true};
 };
+
 
 struct Velocity
 {
 	glm::vec3 linearVelocity;
 	glm::vec3 angularVelocity;
-	~Velocity() = default;
+	glm::vec3 linearVelocityBuffer;
+	glm::vec3 angularVelocityBuffer;
 };
 
 class Island
@@ -32,6 +35,8 @@ class Island
 
 	static const int32_t VELOCITY_ITERATION;
 	static const int32_t POSITION_ITERATION;
+	static const float STOP_LINEAR_VELOCITY;
+	static const float STOP_ANGULAR_VELOCITY;
 
 	Rigidbody **m_bodies;
 	Contact **m_contacts;

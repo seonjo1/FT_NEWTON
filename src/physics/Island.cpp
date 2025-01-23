@@ -4,8 +4,10 @@
 namespace ale
 {
 
-const int32_t Island::VELOCITY_ITERATION = 10;
-const int32_t Island::POSITION_ITERATION = 6;
+const int32_t Island::VELOCITY_ITERATION = 8;
+const int32_t Island::POSITION_ITERATION = 4;
+const float Island::STOP_LINEAR_VELOCITY = 1.0f;
+const float Island::STOP_ANGULAR_VELOCITY = 0.01f;
 
 Island::Island(int32_t bodyCount, int32_t contactCount)
 {
@@ -25,6 +27,10 @@ void Island::destroy()
 
 void Island::solve(float duration)
 {
+	if (m_bodyCount == 1)
+	{
+		return;
+	}
 	// std::cout << "\n\n\nIsland Solve Start!!!!!\n";
 	m_positions =
 		static_cast<Position *>(PhysicsAllocator::m_stackAllocator.allocateStack(sizeof(Position) * m_bodyCount));
@@ -41,6 +47,7 @@ void Island::solve(float duration)
 
 		// 위치, 각도, 속도 기록
 		m_positions[i].position = body->getPosition();
+		m_positions[i].positionBuffer = glm::vec3(0.0f);
 		m_velocities[i].linearVelocity = body->getLinearVelocity();
 		m_velocities[i].angularVelocity = body->getAngularVelocity();
 
@@ -54,12 +61,12 @@ void Island::solve(float duration)
 	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities, m_bodyCount, m_contactCount);
 
 	// std::cout << "manifold check\n";
-	
 
 	// std::cout << "solve velocityConstraint\n";
 	// 속도 제약 반복 횟수만큼 반복
 	for (int32_t i = 0; i < VELOCITY_ITERATION; ++i)
 	{
+		// std::cout << "\n\niteration " << i << "!!!!!!!!!!\n";
 		// 충돌 속도 제약 해결
 		contactSolver.solveVelocityConstraints(VELOCITY_ITERATION);
 	}
@@ -68,36 +75,46 @@ void Island::solve(float duration)
 	// 위치 제약 처리 반복
 	for (int32_t i = 0; i < POSITION_ITERATION; ++i)
 	{
-		bool isConstraintSolved = contactSolver.solvePositionConstraints(POSITION_ITERATION);
-
-		// 위치 제약 해제시 반복문 탈출
-		if (isConstraintSolved)
-		{
-			break;
-		}
+		contactSolver.solvePositionConstraints(POSITION_ITERATION);
 	}
 
 	// 위치, 회전, 속도 업데이트
 	for (int32_t i = 0; i < m_bodyCount; ++i)
 	{
+
 		Rigidbody *body = m_bodies[i];
 		body->updateSweep();
-		body->setPosition(m_positions[i].position);
+		body->setPosition(m_positions[i].position + m_positions[i].positionBuffer);
 		body->setLinearVelocity(m_velocities[i].linearVelocity);
 		body->setAngularVelocity(m_velocities[i].angularVelocity);
 		body->synchronizeFixtures();
-		// std::cout << "body: " << body->getBodyId() << "\n";
-		// std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
-		// 		  << m_positions[i].position.z << "\n";
-		// std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " "
-		// 		  << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
-		// std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " "
-		// 		  << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
+
+		if (m_positions[i].isStop && glm::length2(m_velocities[i].linearVelocity) < STOP_LINEAR_VELOCITY &&
+			glm::length2(m_velocities[i].angularVelocity) < STOP_ANGULAR_VELOCITY)
+		{
+			// std::cout << "body[" << i << "] sleep\n";
+			body->setSleep(duration);
+		}
+		else
+		{
+			// if (!m_positions[i].isStop)
+			// 	std::cout << "is not stop\n";
+			// std::cout << "body[" << i <<  "] awake\n";
+			body->setAwake();
+		}
+
+	// 	std::cout << "body: " << body->getBodyId() << "\n";
+	// 	std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
+	// 			  << m_positions[i].position.z << "\n";
+	// 	std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " "
+	// 			  << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+	// 	std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " "
+	// 			  << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
 	}
 	// std::cout << "islandSolve end\n";
 
 	contactSolver.destroy();
-	
+
 	for (int32_t i = 0; i < m_bodyCount; ++i)
 	{
 		m_positions[i].~Position();
