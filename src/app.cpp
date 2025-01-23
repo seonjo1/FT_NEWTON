@@ -127,7 +127,6 @@ void App::processEvents()
 		models.push_back(Model::createSphere(deviceManager.get(), commandManager->getCommandPool(), sphereXf,
 											 "C:/Users/seonjo/FT_NEWTON/models/sphere.png"));
 		transforms.push_back(sphereXf);
-
 		int32_t idx = models.size() - 1;
 		world->createBody(models[idx], idx);
 		world->registerBodyForce(idx, cameraFront * 100000.0f);
@@ -192,7 +191,8 @@ void App::mainLoop()
 	while (!glfwWindowShouldClose(window))
 	{
 		float time = glfwGetTime();
-		float duration = time - lastTime;
+		// float duration = time - lastTime;
+		float duration = 0.004f;
 		lastTime = time;
 		glfwPollEvents();
 		processCameraControl();
@@ -268,7 +268,7 @@ void App::createModels()
 	transforms.push_back(groundXf);
 
 	// 박스
-	int32_t N = 5;
+	int32_t N = 6;
 	float bz = 0.0f;
 	for (int32_t i = 0; i < N; i++)
 	{
