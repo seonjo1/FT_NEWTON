@@ -23,6 +23,7 @@ static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::mat3 
 }
 
 int32_t Rigidbody::BODY_COUNT = 0;
+const float Rigidbody::START_SLEEP_TIME = 1.0f;
 
 Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {
@@ -40,8 +41,9 @@ Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 	m_angularDamping = bd->m_angularDamping;
 	m_gravityScale = bd->m_gravityScale;
 
-	// canSleep = bd->m_canSleep;
-	// isAwake = bd->m_isAwake;
+	m_canSleep = bd->m_canSleep;
+	m_isAwake = bd->m_isAwake;
+	m_sleepTime = 0.0f;
 	m_acceleration = glm::vec3(0.0f);
 	m_flags = 0;
 	m_contactLinks = nullptr;
@@ -175,6 +177,8 @@ void Rigidbody::calculateForceAccum()
 
 void Rigidbody::registerForce(const glm::vec3 &force)
 {
+	setAwake();
+
 	m_forceRegistry.push(force);
 }
 
@@ -365,6 +369,30 @@ bool Rigidbody::shouldCollide(const Rigidbody *other) const
 		return false;
 	}
 	return true;
+}
+
+void Rigidbody::setSleep(float duration)
+{
+	if (m_canSleep)
+	{
+		m_sleepTime += duration;
+
+		if (m_sleepTime > START_SLEEP_TIME)
+		{
+			m_isAwake = false;
+		}
+	}
+}
+
+void Rigidbody::setAwake()
+{
+	m_sleepTime = 0.0f;
+	m_isAwake = true;
+}
+
+bool Rigidbody::isAwake()
+{
+	return m_isAwake;
 }
 
 } // namespace ale

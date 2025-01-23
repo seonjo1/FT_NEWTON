@@ -38,8 +38,8 @@ struct BodyDef
 		m_angularVelocity = glm::vec3(0.0f);
 		m_linearDamping = 0.0f;
 		m_angularDamping = 0.0f;
-		// m_canSleep = true;
-		// m_isAwake = true;
+		m_canSleep = true;
+		m_isAwake = true;
 		m_type = EBodyType::STATIC_BODY;
 		m_gravityScale = 15.0f;
 	}
@@ -52,8 +52,8 @@ struct BodyDef
 	glm::vec3 m_angularVelocity;
 	float m_linearDamping;
 	float m_angularDamping;
-	// bool m_canSleep;
-	// bool m_isAwake;
+	bool m_canSleep;
+	bool m_isAwake;
 	// void *userData;
 	float m_gravityScale;
 	int32_t m_xfId;
@@ -112,12 +112,16 @@ class Rigidbody
 	void setContactLinks(ContactLink *contactLink);
 	void setLinearVelocity(const glm::vec3 &linearVelocity);
 	void setAngularVelocity(const glm::vec3 &angularVelocity);
+	void setSleep(float duration);
+	void setAwake();
+	bool isAwake();
 
 	Rigidbody *next;
 	Rigidbody *prev;
 
   protected:
 	static int32_t BODY_COUNT;
+	static const float START_SLEEP_TIME;
 
 	World *m_world;
 
@@ -138,8 +142,9 @@ class Rigidbody
 	Fixture *m_fixtures;
 
 	// float motion;
-	// bool isAwake;
-	// bool canSleep;
+	bool m_isAwake;
+	bool m_canSleep;
+	float m_sleepTime;
 
 	float m_inverseMass;
 	float m_linearDamping;
