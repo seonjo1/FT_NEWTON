@@ -41,12 +41,15 @@ void World::runPhysics(float duration)
 	Rigidbody *body = m_rigidbodies;
 	while (body != nullptr)
 	{
-		// std::cout << "body: " << body->getBodyId() << "\n";
-		body->calculateForceAccum();
+		if (body->isAwake())
+		{
+			// std::cout << "body: " << body->getBodyId() << "\n";
+			body->calculateForceAccum();
 
-		body->integrate(duration);
+			body->integrate(duration);
 
-		body->synchronizeFixtures();
+			body->synchronizeFixtures();
+		}
 
 		body = body->next;
 	}
@@ -230,8 +233,8 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_position = m_app.getTransformById(xfId).position;
 	bd.m_orientation = m_app.getTransformById(xfId).orientation;
 	bd.m_xfId = xfId;
-	bd.m_linearDamping = 0.0001f;
-	bd.m_angularDamping = 0.0001f;
+	bd.m_linearDamping = 0.001f;
+	bd.m_angularDamping = 0.001f;
 
 	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
@@ -282,8 +285,8 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_position = m_app.getTransformById(xfId).position;
 	bd.m_orientation = m_app.getTransformById(xfId).orientation;
 	bd.m_xfId = xfId;
-	bd.m_linearDamping = 0.0001f;
-	bd.m_angularDamping = 0.0001f;
+	bd.m_linearDamping = 0.001f;
+	bd.m_angularDamping = 0.001f;
 
 	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
@@ -341,7 +344,7 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	BoxShape *box = shape->clone();
 	FixtureDef fd;
 	fd.shape = box;
-	fd.friction = 0.7f;
+	fd.friction = 0.8f;
 	fd.restitution = 0.3f;
 
 	body->createFixture(&fd);
@@ -368,8 +371,8 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_position = m_app.getTransformById(xfId).position;
 	bd.m_orientation = m_app.getTransformById(xfId).orientation;
 	bd.m_xfId = xfId;
-	bd.m_linearDamping = 0.0001f;
-	bd.m_angularDamping = 0.0001f;
+	bd.m_linearDamping = 0.001f;
+	bd.m_angularDamping = 0.001f;
 
 	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
@@ -416,8 +419,8 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	bd.m_position = m_app.getTransformById(xfId).position;
 	bd.m_orientation = m_app.getTransformById(xfId).orientation;
 	bd.m_xfId = xfId;
-	bd.m_linearDamping = 0.0001f;
-	bd.m_angularDamping = 0.0001f;
+	bd.m_linearDamping = 0.001f;
+	bd.m_angularDamping = 0.001f;
 
 	void *bodyMemory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(Rigidbody));
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
