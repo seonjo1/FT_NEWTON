@@ -26,13 +26,16 @@ fclean: clean
 
 re: fclean all
 
-t: all
+t1: all
 	@./$(NAME)_debug
 
-r: release
+t2: release
 	@./$(NAME)_release
 
-w: all
+w1: all
 	@./$(NAME)_debug > test
+
+w2: release
+	@./$(NAME)_release > test
 
 .PHONY: all clean fclean re debug release
