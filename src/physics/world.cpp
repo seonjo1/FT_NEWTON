@@ -34,10 +34,10 @@ void World::startFrame()
 	}
 }
 
-void World::runPhysics()
+void World::runPhysics(float duration)
 {
 	// std::cout << "start runPhysics\n";
-	float duration = 0.003f;
+
 	Rigidbody *body = m_rigidbodies;
 	while (body != nullptr)
 	{

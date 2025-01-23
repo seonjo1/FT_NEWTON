@@ -23,7 +23,7 @@ class World
 	~World();
 
 	void startFrame();
-	void runPhysics();
+	void runPhysics(float duration);
 	void solve(float duration);
 	void createBody(std::unique_ptr<Model> &model, int32_t xfId);
 	void createBox(std::unique_ptr<Model> &model, int32_t xfId);
