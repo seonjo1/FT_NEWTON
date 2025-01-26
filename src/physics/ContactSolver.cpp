@@ -95,237 +95,102 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 		int32_t pointCount = velocityConstraint.pointCount;
 		int32_t indexA = velocityConstraint.indexA;
 		int32_t indexB = velocityConstraint.indexB;
-		// std::cout << "\n\nbodyA: " << contact->getFixtureA()->getBody()->getBodyId() << "\n";
-		// std::cout << "bodyB: " << contact->getFixtureB()->getBody()->getBodyId() << "\n";
-		// std::cout << "before velocityA: " << m_velocities[indexA].linearVelocity.x << " "
-		// 		  << m_velocities[indexA].linearVelocity.y << " " << m_velocities[indexA].linearVelocity.z << "\n";
-		// std::cout << "before velocityB: " << m_velocities[indexB].linearVelocity.x << " "
-		// 		  << m_velocities[indexB].linearVelocity.y << " " << m_velocities[indexB].linearVelocity.z << "\n";
-		// std::cout << "before angularVelocityA: " << m_velocities[indexA].angularVelocity.x << " "
-		// 		  << m_velocities[indexA].angularVelocity.y << " " << m_velocities[indexA].angularVelocity.z << "\n";
-		// std::cout << "before angularVelocityB: " << m_velocities[indexB].angularVelocity.x << " "
-		// 		  << m_velocities[indexB].angularVelocity.y << " " << m_velocities[indexB].angularVelocity.z << "\n";
 
-		float seperationSum = 0;
-		for (int32_t j = 0; j < pointCount; j++)
-		{
-			seperationSum += velocityConstraint.points[j].seperation;
-		}
-		if (seperationSum < 1e-8)
-		{
-			seperationSum = 1.0f;
-		}
-
-		glm::vec3 &initLinearVelocityA = m_velocities[indexA].linearVelocity;
-		glm::vec3 &initLinearVelocityB = m_velocities[indexB].linearVelocity;
-		glm::vec3 &initAngularVelocityA = m_velocities[indexA].angularVelocity;
-		glm::vec3 &initAngularVelocityB = m_velocities[indexB].angularVelocity;
-		glm::vec3 &linearVelocityBufferA = m_velocities[indexA].linearVelocityBuffer;
-		glm::vec3 &linearVelocityBufferB = m_velocities[indexB].linearVelocityBuffer;
-		glm::vec3 &angularVelocityBufferA = m_velocities[indexA].angularVelocityBuffer;
-		glm::vec3 &angularVelocityBufferB = m_velocities[indexB].angularVelocityBuffer;
-
-		linearVelocityBufferA = glm::vec3(0.0f);
-		linearVelocityBufferB = glm::vec3(0.0f);
-		angularVelocityBufferA = glm::vec3(0.0f);
-		angularVelocityBufferB = glm::vec3(0.0f);
+		glm::vec3 &linearVelocityA = m_velocities[indexA].linearVelocity;
+		glm::vec3 &linearVelocityB = m_velocities[indexB].linearVelocity;
+		glm::vec3 &angularVelocityA = m_velocities[indexA].angularVelocity;
+		glm::vec3 &angularVelocityB = m_velocities[indexB].angularVelocity;
 
 		bool isStop = true;
 
-		// std::cout << "bodyA: " << indexA << "\n";
-		// std::cout << "bodyB: " << indexB << "\n";
-		// std::cout << "bodyA linearVelocity: " << m_velocities[indexA].linearVelocity.x << " " <<
-		// m_velocities[indexA].linearVelocity.y << " " << m_velocities[indexA].linearVelocity.z << "\n"; std::cout <<
-		// "bodyA angularVelocity: " << m_velocities[indexA].angularVelocity.x << " " <<
-		// m_velocities[indexA].angularVelocity.y << " " << m_velocities[indexA].angularVelocity.z << "\n"; std::cout <<
-		// "bodyB linearVelocity: " << m_velocities[indexB].linearVelocity.x << " " <<
-		// m_velocities[indexB].linearVelocity.y << " " << m_velocities[indexB].linearVelocity.z << "\n"; std::cout <<
-		// "bodyB angularVelocity: " << m_velocities[indexB].angularVelocity.x << " " <<
-		// m_velocities[indexB].angularVelocity.y << " " << m_velocities[indexB].angularVelocity.z << "\n";
 		for (int32_t j = 0; j < pointCount; j++)
 		{
 			ManifoldPoint &manifoldPoint = velocityConstraint.points[j];
 
-			// std::cout << "manifoldPoint: " << &(velocityConstraint.points[j]) << "\n";
-			// std::cout << "pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " "
-			// 		  << manifoldPoint.pointA.z << "\n";
-			// std::cout << "pointB: " << (velocityConstraint.points[j].pointB.x) << " " <<
-			// (velocityConstraint.points[j].pointB.y) << " "
-			// 		  << (velocityConstraint.points[j].pointB.z) << "\n";
-			// std::cout << "normal: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
-			// 		  << manifoldPoint.normal.z << "\n";
-			// std::cout << "seperation: " << manifoldPoint.seperation << "\n";
 			glm::vec3 rA = manifoldPoint.pointA - velocityConstraint.worldCenterA; // bodyA의 충돌 지점까지의 벡터
 			glm::vec3 rB = manifoldPoint.pointB - velocityConstraint.worldCenterB; // bodyB의 충돌 지점까지의 벡터
-			// std::cout << "RARARA pointA: " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " " <<
-			// manifoldPoint.pointA.z << "\n"; std::cout << "worldCenterA: " << velocityConstraint.worldCenterA.x << " "
-			// << velocityConstraint.worldCenterA.y << " " << velocityConstraint.worldCenterA.z << "\n"; std::cout <<
-			// "worldCenterB: " << velocityConstraint.worldCenterB.x << " " << velocityConstraint.worldCenterB.y << " "
-			// << velocityConstraint.worldCenterB.z << "\n"; std::cout << "rB: " << rB.x << " " << rB.y << " " << rB.z
-			// << "\n";
 
 			// 상대 속도 계산
-			// A에서 본 B의 상대속도
-			glm::vec3 velocityA = initLinearVelocityA + glm::cross(initAngularVelocityA, rA);
-			glm::vec3 velocityB = initLinearVelocityB + glm::cross(initAngularVelocityB, rB);
-			// std::cout << "velocityA : " << glm::length(velocityA) << "\n";
-			// std::cout << "velocityB : " << glm::length(velocityB) << "\n";
-
+			glm::vec3 velocityA = linearVelocityA + glm::cross(angularVelocityA, rA);
+			glm::vec3 velocityB = linearVelocityB + glm::cross(angularVelocityB, rB);
 			glm::vec3 relativeVelocity = velocityB - velocityA;
 
-			// if (glm::length2(velocityA) < 1.0f && glm::length2(velocityB) < 1.0f)
-			// {
-			// 	float damping = 0.999f;
-			// 	m_velocities[indexA].linearVelocity *= damping;
-			// 	m_velocities[indexB].linearVelocity *= damping;
-			// 	m_velocities[indexA].angularVelocity *= damping;
-			// 	m_velocities[indexB].angularVelocity *= damping;
-			// 	return;
-			// }
-
-			// std::cout << "relativeVelocity: " << relativeVelocity.x << " " << relativeVelocity.y << " "
-			// 		  << relativeVelocity.z << "\n";
-			// std::cout << "normalVector: " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
-			// 		  << manifoldPoint.normal.z << "\n";
-
 			// 법선 방향 속도
-			float normalSpeed = glm::dot(relativeVelocity, manifoldPoint.normal); // 음수
-			// std::cout << "normalSpeed: " << normalSpeed << "\n";
 
-			// 법선 방향 충격량 계산
-			float normalImpulse =
-				-(1.0f + velocityConstraint.restitution) * normalSpeed * (manifoldPoint.seperation / seperationSum);
-			// std::cout << "before normalImpulse: " << normalImpulse << "\n";
-			float inverseMasses = (velocityConstraint.invMassA + velocityConstraint.invMassB);
-			float normalEffectiveMassA = glm::dot(glm::cross(manifoldPoint.normal, rA),
-												  velocityConstraint.invIA * glm::cross(manifoldPoint.normal, rA));
-			float normalEffectiveMassB = glm::dot(glm::cross(manifoldPoint.normal, rB),
-												  velocityConstraint.invIB * glm::cross(manifoldPoint.normal, rB));
-			// std::cout << "rA : " << rA.x << " " << rA.y << " " << rA.z << "\n";
-			// std::cout << "rB : " << rB.x << " " << rB.y << " " << rB.z << "\n";
-			// std::cout << "inverseMasses: " << inverseMasses << "\n";
-			// std::cout << "normalEffectiveMassA: " << normalEffectiveMassA << "\n";
-			// std::cout << "normalEffectiveMassB: " << normalEffectiveMassB << "\n";
-
-			normalImpulse = normalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
-			float normalImpulseForFriction = normalImpulse;
-			// std::cout << "m_stopVelocity: " << m_stopVelocity << "\n";
-			// std::cout << "normalSpeed: " << normalSpeed << "\n";
-			if (normalSpeed > -NORMAL_STOP_VELOCITY)
+			float normalSpeed = glm::dot(relativeVelocity, manifoldPoint.normal);
+	
+			if (normalSpeed < 0.0f)
 			{
-				normalImpulse = 0.0f;
-				if (normalSpeed > NORMAL_STOP_VELOCITY)
+				isStop = false;
+
+				float oldNormalImpulse = manifoldPoint.normalImpulse;
+
+				float appliedNormalImpulse = -(1.0f + velocityConstraint.restitution) * normalSpeed;
+				float inverseMasses = (velocityConstraint.invMassA + velocityConstraint.invMassB);
+				float normalEffectiveMassA = glm::dot(glm::cross(manifoldPoint.normal, rA),
+													  velocityConstraint.invIA * glm::cross(manifoldPoint.normal, rA));
+				float normalEffectiveMassB = glm::dot(glm::cross(manifoldPoint.normal, rB),
+													  velocityConstraint.invIB * glm::cross(manifoldPoint.normal, rB));
+
+				appliedNormalImpulse = appliedNormalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
+				
+				float newNormalImpulse = appliedNormalImpulse + oldNormalImpulse;
+
+				if (newNormalImpulse < 0.0f)
 				{
-					continue;
+					newNormalImpulse = 0.0f;
 				}
-			}
-			else
-			{
-				// std::cout << "normal not stop!!\n";
-			}
-			// std::cout << "normalImpulse: " << normalImpulse << "\n";
 
-			glm::vec3 tangent(0.0f);
+				manifoldPoint.normalImpulse = newNormalImpulse;
+
+				linearVelocityA -= velocityConstraint.invMassA * appliedNormalImpulse * manifoldPoint.normal;
+				linearVelocityB += velocityConstraint.invMassB * appliedNormalImpulse * manifoldPoint.normal;
+				angularVelocityA -= velocityConstraint.invIA * glm::cross(rA, appliedNormalImpulse * manifoldPoint.normal);
+				angularVelocityB += velocityConstraint.invIB * glm::cross(rB, appliedNormalImpulse * manifoldPoint.normal);
+			}
+
+			velocityA = linearVelocityA + glm::cross(angularVelocityA, rA);
+			velocityB = linearVelocityB + glm::cross(angularVelocityB, rB);
+			relativeVelocity = velocityB - velocityA;
+
+			// 접선 방향 충격량 계산
+			normalSpeed = glm::dot(relativeVelocity, manifoldPoint.normal);
 			glm::vec3 tangentVelocity = relativeVelocity - (normalSpeed * manifoldPoint.normal);
 			float tangentSpeed = glm::length(tangentVelocity);
-			float tangentImpulse;
-			// std::cout << "tangentVelocity: " << tangentVelocity.x << " " << tangentVelocity.y << " "
-			// 		  << tangentVelocity.z << "\n";
-			// std::cout << "tangentSpeed: " << tangentSpeed << "\n";
-			if (tangentSpeed > TANGENT_STOP_VELOCITY)
+			if (tangentSpeed > 1e-6f)
 			{
-				tangent = glm::normalize(tangentVelocity);
+				isStop = false;
 
-				tangentImpulse = -glm::dot(relativeVelocity, tangent);
-				// std::cout << "tangent: " << tangent.x << " " << tangent.y << " " << tangent.z << "\n";
+				glm::vec3 tangent = glm::normalize(tangentVelocity);
 
+				float oldTangentImpulse = manifoldPoint.tangentImpulse;
+				float newTangentImpulse = glm::dot(relativeVelocity, tangent);
+
+				float inverseMasses = (velocityConstraint.invMassA + velocityConstraint.invMassB);
 				float tangentEffectiveMassA =
 					glm::dot(glm::cross(tangent, rA), velocityConstraint.invIA * glm::cross(tangent, rA));
 				float tangentEffectiveMassB =
 					glm::dot(glm::cross(tangent, rB), velocityConstraint.invIB * glm::cross(tangent, rB));
-				float maxFriction = velocityConstraint.friction * normalImpulseForFriction;
-				tangentImpulse = tangentImpulse / (inverseMasses + tangentEffectiveMassA + tangentEffectiveMassB);
-				// std::cout << "before clamp tangentImpulse: " << tangentImpulse << "\n";
-				tangentImpulse = glm::clamp(tangentImpulse, -maxFriction, maxFriction);
-				// std::cout << "after clamp tangentImpulse: " << tangentImpulse << "\n";
-				// std::cout << "tangent not stop!!\n";
-			}
-			else
-			{
-				tangentImpulse = 0.0f;
-			}
+				newTangentImpulse = newTangentImpulse / (inverseMasses + tangentEffectiveMassA + tangentEffectiveMassB);
+				newTangentImpulse += oldTangentImpulse;
 
-			// std::cout << "GO!!!!!!!!!!!!!\n";
+				float maxFriction = velocityConstraint.friction * manifoldPoint.normalImpulse;
+				newTangentImpulse = glm::clamp(newTangentImpulse, -maxFriction, maxFriction);
 
-			// glm::vec3 plusLinear = -normalImpulse * velocityConstraint.invMassA * manifoldPoint.normal;
-			// glm::vec3 plusLinearF = velocityConstraint.invMassA * std::abs(tangentImpulse) * tangent;
-			// std::cout << "A normal Linear +: " << plusLinear.x << " " << plusLinear.y << " " << plusLinear.z << "\n";
-			// std::cout << "A normal LinearF +: " << plusLinearF.x << " " << plusLinearF.y << " " << plusLinearF.z
-			// 		  << "\n";
+				manifoldPoint.tangentImpulse = newTangentImpulse;
 
-			if (normalImpulse != 0)
-			{
-				linearVelocityBufferA -= velocityConstraint.invMassA * normalImpulse * manifoldPoint.normal;
-				linearVelocityBufferB += velocityConstraint.invMassB * normalImpulse * manifoldPoint.normal;
-				angularVelocityBufferA -=
-					velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal);
-				angularVelocityBufferB +=
-					velocityConstraint.invIB * glm::cross(rB, normalImpulse * manifoldPoint.normal);
-			}
+				float appliedTangentImpulse = newTangentImpulse - oldTangentImpulse;
 
-			if (tangentImpulse != 0)
-			{
-				linearVelocityBufferA += velocityConstraint.invMassA * std::abs(tangentImpulse) * tangent;
-				linearVelocityBufferB -= velocityConstraint.invMassB * std::abs(tangentImpulse) * tangent;
-				angularVelocityBufferA += velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent);
-				angularVelocityBufferB -= velocityConstraint.invIB * glm::cross(rB, std::abs(tangentImpulse) * tangent);
+				linearVelocityA += velocityConstraint.invMassA * appliedTangentImpulse * tangent;
+				linearVelocityB -= velocityConstraint.invMassB * appliedTangentImpulse * tangent;
+				angularVelocityA += velocityConstraint.invIA * glm::cross(rA, appliedTangentImpulse * tangent);
+				angularVelocityB -= velocityConstraint.invIB * glm::cross(rB, appliedTangentImpulse * tangent);
 			}
 
 			if (std::abs(normalSpeed) > NORMAL_SLEEP_VELOCITY || tangentSpeed > TANGENT_SLEEP_VELOCITY)
 			{
-				// std::cout << "non stop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-				// std::cout << "normalSpeed: " << std::abs(normalSpeed) << "\n";
-				// std::cout << "tangentSpeed: " << tangentSpeed << "\n";
 				isStop = false;
 			}
-
-			// glm::vec3 plusAngular = -velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal);
-			// glm::vec3 plusAngularT = velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)
-			// * 1.0f; std::cout << "Angular +: " << plusAngular.x << " " << plusAngular.y << " " << plusAngular.z <<
-			// "\n"; std::cout << "AngularT +: " << plusAngularT.x << " " << plusAngularT.y << " " << plusAngularT.z <<
-			// "\n";
-
-			// std::cout << "normal adjust angularVelocityA: " << m_velocities[indexA].angularVelocity.x << " "
-			// 		  << m_velocities[indexA].angularVelocity.y << " " << m_velocities[indexA].angularVelocity.z
-			// 		  << "\n";
-			// std::cout << "normal adjust angularVelocityB: " << m_velocities[indexB].angularVelocity.x << " "
-			// 		  << m_velocities[indexB].angularVelocity.y << " " << m_velocities[indexB].angularVelocity.z
-			// 		  << "\n";
-
-			// std::cout << "tangent adjust angularVelocityA: " << m_velocities[indexA].angularVelocity.x << " "
-			// 		  << m_velocities[indexA].angularVelocity.y << " " << m_velocities[indexA].angularVelocity.z
-			// 		  << "\n";
-			// std::cout << "tangent adjust angularVelocityB: " << m_velocities[indexB].angularVelocity.x << " "
-			// 		  << m_velocities[indexB].angularVelocity.y << " " << m_velocities[indexB].angularVelocity.z
-			// 		  << "\n";
-
-			// std::cout << "normalA power: "
-			// 		  << (velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal)).x << " "
-			// 		  << (velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal)).y << " "
-			// 		  << (velocityConstraint.invIA * glm::cross(rA, normalImpulse * manifoldPoint.normal)).z << "\n";
-			// std::cout << "normalB power: "
-			// 		  << (velocityConstraint.invIB * glm::cross(rB, normalImpulse * manifoldPoint.normal)).x << " "
-			// 		  << (velocityConstraint.invIB * glm::cross(rB, normalImpulse * manifoldPoint.normal)).y << " "
-			// 		  << (velocityConstraint.invIB * glm::cross(rB, normalImpulse * manifoldPoint.normal)).z << "\n";
-
-			// std::cout << "tangentA power: "
-			// 		  << (velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)).x << " "
-			// 		  << (velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)).y << " "
-			// 		  << (velocityConstraint.invIA * glm::cross(rA, std::abs(tangentImpulse) * tangent)).z << "\n";
-			// std::cout << "tangentB power: "
-			// 		  << (velocityConstraint.invIB * glm::cross(rB, std::abs(tangentImpulse) * tangent)).x << " "
-			// 		  << (velocityConstraint.invIB * glm::cross(rB, std::abs(tangentImpulse) * tangent)).y << " "
-			// 		  << (velocityConstraint.invIB * glm::cross(rB, std::abs(tangentImpulse) * tangent)).z << "\n";
 		}
 
 		if (isStop == false)
@@ -333,20 +198,6 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			m_positions[indexA].isStop = false;
 			m_positions[indexB].isStop = false;
 		}
-
-		m_velocities[indexA].linearVelocity += linearVelocityBufferA;
-		m_velocities[indexA].angularVelocity += angularVelocityBufferA;
-		m_velocities[indexB].linearVelocity += linearVelocityBufferB;
-		m_velocities[indexB].angularVelocity += angularVelocityBufferB;
-
-		// std::cout << "after velocityA: " << m_velocities[indexA].linearVelocity.x << " "
-		// 		  << m_velocities[indexA].linearVelocity.y << " " << m_velocities[indexA].linearVelocity.z << "\n";
-		// std::cout << "after velocityB: " << m_velocities[indexB].linearVelocity.x << " "
-		// 		  << m_velocities[indexB].linearVelocity.y << " " << m_velocities[indexB].linearVelocity.z << "\n";
-		// std::cout << "after angularVelocityA: " << m_velocities[indexA].angularVelocity.x << " "
-		// 		  << m_velocities[indexA].angularVelocity.y << " " << m_velocities[indexA].angularVelocity.z << "\n";
-		// std::cout << "after angularVelocityB: " << m_velocities[indexB].angularVelocity.x << " "
-		// 		  << m_velocities[indexB].angularVelocity.y << " " << m_velocities[indexB].angularVelocity.z << "\n";
 	}
 }
 
