@@ -47,35 +47,25 @@ void Island::solve(float duration)
 
 		// 위치, 각도, 속도 기록
 		m_positions[i].position = body->getPosition();
-		m_positions[i].positionBuffer = glm::vec3(0.0f);
+		m_positions[i].orientation = body->getOrientation();
 		m_velocities[i].linearVelocity = body->getLinearVelocity();
 		m_velocities[i].angularVelocity = body->getAngularVelocity();
 
-		// std::cout << "body: " << body->getBodyId() << "\n";
-		// std::cout << "Start bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
-		// 		  << m_positions[i].position.z << "\n";
-		// std::cout << "Start bodyVelocity: " << m_velocities[i].linearVelocity.x << " "
-		// 		  << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
 	}
 
 	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities, m_bodyCount, m_contactCount);
 
-	// std::cout << "manifold check\n";
-
-	// std::cout << "solve velocityConstraint\n";
 	// 속도 제약 반복 횟수만큼 반복
 	for (int32_t i = 0; i < VELOCITY_ITERATION; ++i)
 	{
-		// std::cout << "\n\niteration " << i << "!!!!!!!!!!\n";
 		// 충돌 속도 제약 해결
-		contactSolver.solveVelocityConstraints(VELOCITY_ITERATION);
+		contactSolver.solveVelocityConstraints();
 	}
 
-	// std::cout << "solve positionConstraint\n";
 	// 위치 제약 처리 반복
 	for (int32_t i = 0; i < POSITION_ITERATION; ++i)
 	{
-		contactSolver.solvePositionConstraints(POSITION_ITERATION);
+		contactSolver.solvePositionConstraints();
 	}
 
 	// 위치, 회전, 속도 업데이트
@@ -84,7 +74,8 @@ void Island::solve(float duration)
 
 		Rigidbody *body = m_bodies[i];
 		body->updateSweep();
-		body->setPosition(m_positions[i].position + m_positions[i].positionBuffer);
+		body->setPosition(m_positions[i].position);
+		body->setOrientation(m_positions[i].orientation);
 		body->setLinearVelocity(m_velocities[i].linearVelocity);
 		body->setAngularVelocity(m_velocities[i].angularVelocity);
 		body->synchronizeFixtures();
