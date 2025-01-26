@@ -30,8 +30,8 @@ void *StackAllocator::allocateStack(int32_t size)
 	entry->size = size;
 	if (m_index + size > STACK_SIZE)
 	{
-		entry->data = (char *)malloc(size);
-		entry->usedMalloc = true;
+		std::cerr << "required size: " << size << "\n";
+		throw std::runtime_error("stack over size");
 	}
 	else
 	{

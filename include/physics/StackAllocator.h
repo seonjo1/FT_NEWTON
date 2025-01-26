@@ -6,7 +6,7 @@
 namespace ale
 {
 
-const int32_t STACK_SIZE = 100 * 1024; // 100k
+const int32_t STACK_SIZE = 10 * 1024 * 1024; // 100k
 const int32_t MAX_STACK_ENTRY_SIZE = 32;
 
 struct StackEntry
