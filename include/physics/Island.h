@@ -18,8 +18,6 @@ struct Velocity
 {
 	glm::vec3 linearVelocity;
 	glm::vec3 angularVelocity;
-	glm::vec3 linearVelocityBuffer;
-	glm::vec3 angularVelocityBuffer;
 };
 
 class Island
