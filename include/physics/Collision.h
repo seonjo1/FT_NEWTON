@@ -106,9 +106,8 @@ inline bool testOverlap(const AABB &a, const AABB &b)
 
 struct ManifoldPoint
 {
-	// float normalImpulse;  // 법선 방향 충격량
-	// float tangentImpulse; // 접촉면 충격량
-	// uint64_t id;		  // 충돌 지점의 고유 id
+	float normalImpulse;  // 법선 방향 충격량
+	float tangentImpulse; // 접촉면 충격량
 	float seperation; // 관통 깊이
 	glm::vec3 pointA; // 충돌 지점의 위치
 	glm::vec3 pointB; // 충돌 지점의 위치
