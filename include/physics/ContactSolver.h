@@ -13,8 +13,10 @@ struct ContactPositionConstraint
 	int32_t pointCount;
 	glm::vec3 worldCenterA;
 	glm::vec3 worldCenterB;
+	glm::mat3 invIA, invIB;
 	int32_t indexA;
 	int32_t indexB;
+	float resolvedSeperation;
 	float invMassA, invMassB;
 
 	~ContactPositionConstraint() = default;
@@ -43,8 +45,8 @@ class ContactSolver
 				  int32_t contactCount);
 	void destroy();
 	void initializeVelocityConstraints();
-	void solveVelocityConstraints(const int32_t velocityIteration);
-	void solvePositionConstraints(const int32_t positionIteration);
+	void solveVelocityConstraints();
+	void solvePositionConstraints();
 
 	static const float NORMAL_STOP_VELOCITY;
 	static const float TANGENT_STOP_VELOCITY;

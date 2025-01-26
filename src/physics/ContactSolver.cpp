@@ -50,18 +50,6 @@ ContactSolver::ContactSolver(float duration, Contact **contacts, Position *posit
 		m_velocityConstraints[i].pointCount = manifold.pointsCount;
 		m_velocityConstraints[i].points = manifold.points;
 
-		// for (int j = 0; j < m_velocityConstraints[i].pointCount; j++)
-		// {
-		// 	std::cout << "manifoldPoints[" << j << "]: " << &(m_velocityConstraints[i].points[j]) << "\n";
-		// 	std::cout << "pointA: " << m_velocityConstraints[i].points[j].pointA.x << " " <<
-		// m_velocityConstraints[i].points[j].pointA.y << " " << m_velocityConstraints[i].points[j].pointA.z << "\n";
-		// 	std::cout << "pointB: " << m_velocityConstraints[i].points[j].pointB.x << " " <<
-		// m_velocityConstraints[i].points[j].pointB.y << " " << m_velocityConstraints[i].points[j].pointB.z << "\n";
-		// 	std::cout << "normal: " << m_velocityConstraints[i].points[j].normal.x << " " <<
-		// m_velocityConstraints[i].points[j].normal.y << " " << m_velocityConstraints[i].points[j].normal.z << "\n";
-		// 	std::cout << "seperation: " << m_velocityConstraints[i].points[j].seperation << "\n";
-		// }
-
 		// 위치 제약 설정
 		m_positionConstraints[i].worldCenterA = bodyA->getTransform().toMatrix() * glm::vec4(shapeA->m_center, 1.0f);
 		m_positionConstraints[i].worldCenterB = bodyB->getTransform().toMatrix() * glm::vec4(shapeB->m_center, 1.0f);
@@ -69,6 +57,9 @@ ContactSolver::ContactSolver(float duration, Contact **contacts, Position *posit
 		m_positionConstraints[i].indexB = bodyB->getIslandIndex();
 		m_positionConstraints[i].invMassA = bodyA->getInverseMass();
 		m_positionConstraints[i].invMassB = bodyB->getInverseMass();
+		m_velocityConstraints[i].invIA = bodyA->getInverseInertiaTensorWorld();
+		m_velocityConstraints[i].invIB = bodyB->getInverseInertiaTensorWorld();
+		m_positionConstraints[i].resolvedSeperation = 0.0f;
 		m_positionConstraints[i].pointCount = manifold.pointsCount;
 		m_positionConstraints[i].points = manifold.points;
 	}
@@ -86,7 +77,7 @@ void ContactSolver::destroy()
 	PhysicsAllocator::m_stackAllocator.freeStack();
 }
 
-void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
+void ContactSolver::solveVelocityConstraints()
 {
 	for (int32_t i = 0; i < m_contactCount; i++)
 	{
@@ -118,7 +109,7 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 			// 법선 방향 속도
 
 			float normalSpeed = glm::dot(relativeVelocity, manifoldPoint.normal);
-	
+
 			if (normalSpeed < 0.0f)
 			{
 				isStop = false;
@@ -132,8 +123,9 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 				float normalEffectiveMassB = glm::dot(glm::cross(manifoldPoint.normal, rB),
 													  velocityConstraint.invIB * glm::cross(manifoldPoint.normal, rB));
 
-				appliedNormalImpulse = appliedNormalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
-				
+				appliedNormalImpulse =
+					appliedNormalImpulse / (inverseMasses + normalEffectiveMassA + normalEffectiveMassB);
+
 				float newNormalImpulse = appliedNormalImpulse + oldNormalImpulse;
 
 				if (newNormalImpulse < 0.0f)
@@ -145,8 +137,10 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 
 				linearVelocityA -= velocityConstraint.invMassA * appliedNormalImpulse * manifoldPoint.normal;
 				linearVelocityB += velocityConstraint.invMassB * appliedNormalImpulse * manifoldPoint.normal;
-				angularVelocityA -= velocityConstraint.invIA * glm::cross(rA, appliedNormalImpulse * manifoldPoint.normal);
-				angularVelocityB += velocityConstraint.invIB * glm::cross(rB, appliedNormalImpulse * manifoldPoint.normal);
+				angularVelocityA -=
+					velocityConstraint.invIA * glm::cross(rA, appliedNormalImpulse * manifoldPoint.normal);
+				angularVelocityB +=
+					velocityConstraint.invIB * glm::cross(rB, appliedNormalImpulse * manifoldPoint.normal);
 			}
 
 			velocityA = linearVelocityA + glm::cross(angularVelocityA, rA);
@@ -201,73 +195,80 @@ void ContactSolver::solveVelocityConstraints(const int32_t velocityIteration)
 	}
 }
 
-void ContactSolver::solvePositionConstraints(const int32_t positionIteration)
+void ContactSolver::solvePositionConstraints()
 {
 	const float kSlop = 0.001f; // 허용 관통 오차
-	const float alpha = 1.0f / positionIteration;
+	const float alpha = 0.2f;
 
 	for (int i = 0; i < m_contactCount; ++i)
 	{
 		Contact *contact = m_contacts[i];
 		ContactPositionConstraint &positionConstraint = m_positionConstraints[i];
+	
 		int32_t pointCount = positionConstraint.pointCount;
 		int32_t indexA = positionConstraint.indexA;
 		int32_t indexB = positionConstraint.indexB;
-		glm::vec3 &positionBufferA = m_positions[indexA].positionBuffer;
-		glm::vec3 &positionBufferB = m_positions[indexB].positionBuffer;
 
-		float seperationSum = 0;
-		for (int32_t j = 0; j < pointCount; j++)
-		{
-			seperationSum += positionConstraint.points[j].seperation;
-		}
+		float &resolvedSeperation = positionConstraint.resolvedSeperation;
 
-		if (seperationSum < 1e-8)
-		{
-			seperationSum = 1.0f;
-		}
+		glm::mat3 &invIA = positionConstraint.invIA;
+		glm::mat3 &invIB = positionConstraint.invIB;
+	
+		float sumMass = positionConstraint.invMassA + positionConstraint.invMassB;
+		float ratioA = positionConstraint.invMassA / sumMass;
+		float ratioB = positionConstraint.invMassB / sumMass;
+
+		glm::vec3 &positionA = m_positions[indexA].position;
+		glm::vec3 &positionB = m_positions[indexB].position;
+		glm::quat &orientationA = m_positions[indexA].orientation;
+		glm::quat &orientationB = m_positions[indexB].orientation;
 
 		for (int32_t j = 0; j < pointCount; j++)
 		{
 
 			ManifoldPoint &manifoldPoint = positionConstraint.points[j];
-			// std::cout << "seperation: " << manifoldPoint.seperation << "\n";
 
-			glm::vec3 &pointA = manifoldPoint.pointA;
-			glm::vec3 &pointB = manifoldPoint.pointB;
-			float seperation = glm::dot((pointA + positionBufferA) - (pointB + positionBufferB), manifoldPoint.normal);
+			if (manifoldPoint.seperation <= 0.0f)
+			{
+				continue;
+			}
+
+			// glm::vec3 &pointA = manifoldPoint.pointA;
+			// glm::vec3 &pointB = manifoldPoint.pointB;
+
+			float seperation = manifoldPoint.seperation - resolvedSeperation;
 
 			// 관통 해소된상태면 무시
 			if (seperation < kSlop)
 			{
-				// std::cout << "pointA : " << manifoldPoint.pointA.x << " " << manifoldPoint.pointA.y << " "
-				// 		  << manifoldPoint.pointA.z << "\n";
-				// std::cout << "pointB : " << manifoldPoint.pointB.x << " " << manifoldPoint.pointB.y << " "
-				// 		  << manifoldPoint.pointB.z << "\n";
-				// std::cout << "normal : " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
-				// 		  << manifoldPoint.normal.z << "\n";
-
-				// std::cout << "Siu!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 				continue;
 			}
+			
 			// 관통 깊이에 따른 보정량 계산
-
-			float correction = manifoldPoint.seperation * alpha * (manifoldPoint.seperation / seperationSum);
+			float correction = seperation * alpha;
 			glm::vec3 correctionVector = correction * manifoldPoint.normal;
 
-			// std::cout << "correction: " << correction << "\n";
-			// std::cout << "normal : " << manifoldPoint.normal.x << " " << manifoldPoint.normal.y << " "
-			// 		  << manifoldPoint.normal.z << "\n";
-			// std::cout << "correctionVector : " << correctionVector.x << " " << correctionVector.y << " "
-			// 		  << correctionVector.z << "\n";
+			resolvedSeperation += correction;
 
-			// 위치 보정
-			positionBufferA -= correctionVector * positionConstraint.invMassA /
-							   (positionConstraint.invMassA + positionConstraint.invMassB);
-			positionBufferB += correctionVector * positionConstraint.invMassB /
-							   (positionConstraint.invMassA + positionConstraint.invMassB);
-			// std::cout << "pos dA: " << positionA.x << " " << positionA.y << " " << positionA.z << "\n";
-			// std::cout << "pos dB: " << positionB.x << " " << positionB.y << " " << positionB.z << "\n";
+			positionA -= correctionVector * ratioA;
+			positionB += correctionVector * ratioB;
+
+			// 회전 보정
+
+			glm::vec3 rA = (manifoldPoint.pointA - manifoldPoint.normal * resolvedSeperation) - positionConstraint.worldCenterA;
+			glm::vec3 rB = (manifoldPoint.pointB + manifoldPoint.normal * resolvedSeperation) - positionConstraint.worldCenterB;
+
+			glm::vec3 angularVelocityA =  positionConstraint.invIA * glm::cross(rA, correctionVector * ratioA);
+			glm::vec3 angularVelocityB =  positionConstraint.invIB * glm::cross(rB, correctionVector * ratioB);
+			
+			glm::quat angularVelocityQuat = glm::quat(0.0f, angularVelocityA);
+			orientationA += 0.5f * angularVelocityQuat * orientationA;
+			orientationA = glm::normalize(orientationA);
+
+			angularVelocityQuat = glm::quat(0.0f, angularVelocityB);
+			orientationB += 0.5f * angularVelocityQuat * orientationB;
+			orientationB = glm::normalize(orientationB);
+
 		}
 	}
 }
