@@ -9,7 +9,7 @@ namespace ale
 struct Position
 {
 	glm::vec3 position;
-	glm::vec3 positionBuffer;
+	glm::quat orientation;
 	bool isStop {true};
 };
 
