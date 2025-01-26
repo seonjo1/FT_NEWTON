@@ -178,6 +178,7 @@ void Contact::update()
 	// Manifold oldManifold = m_manifold;
 
 	// 이전 프레임에서 두 객체가 충돌중이었는지 확인
+	// bool wasTouched = hasFlag(EContactFlag::TOUCHING);
 	bool touching = false;
 
 	// bodyA, bodyB의 Transform 가져오기
@@ -205,24 +206,22 @@ void Contact::update()
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 
 	// warm start
-	// for (ManifoldPoint &manifoldPoint : m_manifold.points)
-	// {
+	for (ManifoldPoint &manifoldPoint : m_manifold.points)
+	{
+		manifoldPoint.normalImpulse = 0.0f;
+		manifoldPoint.tangentImpulse = 0.0f;
 
-	// 	manifoldPoint.normalImpulse = 0.0f;
-	// 	manifoldPoint.tangentImpulse = 0.0f;
-	// 	uint32_t manifoldPointId = manifoldPoint.id;
-
-	// 	for (ManifoldPoint &oldManifoldPoint : oldManifold.points)
-	// 	{
-	// 		// oldmanifold에 똑같은 manifold가 존재하는 경우 impulse 덮어쓰기
-	// 		if (oldManifoldPoint.id == manifoldPointId)
-	// 		{
-	// 			manifoldPoint.normalImpulse = oldManifoldPoint.normalImpulse;
-	// 			manifoldPoint.tangentImpulse = oldManifoldPoint.tangentImpulse;
-	// 			break;
-	// 		}
-	// 	}
-	// }
+		// for (ManifoldPoint &oldManifoldPoint : oldManifold.points)
+		// {
+		// 	// oldmanifold에 똑같은 manifold가 존재하는 경우 impulse 덮어쓰기
+		// 	if (m_manifold.)
+		// 	{
+		// 		manifoldPoint.normalImpulse = oldManifoldPoint.normalImpulse;
+		// 		manifoldPoint.tangentImpulse = oldManifoldPoint.tangentImpulse;
+		// 		break;
+		// 	}
+		// }
+	}
 
 	if (touching)
 	{
