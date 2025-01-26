@@ -89,7 +89,8 @@ ConvexInfo BoxShape::getShapeInfo(const Transform &transform) const
 	box.halfSize = m_halfSize;
 
 	box.pointsCount = 8;
-	void *memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(glm::vec3) * box.pointsCount);
+	void *memory;
+	memory = PhysicsAllocator::m_blockAllocator.allocateBlock(sizeof(glm::vec3) * box.pointsCount);
 	box.points = static_cast<glm::vec3 *>(memory);
 
 	box.points[0] = matrix * glm::vec4(m_center - m_halfSize, 1.0f);
@@ -108,6 +109,7 @@ ConvexInfo BoxShape::getShapeInfo(const Transform &transform) const
 	box.axes[0] = glm::normalize(box.points[1] - box.points[0]);
 	box.axes[1] = glm::normalize(box.points[2] - box.points[0]);
 	box.axes[2] = glm::normalize(box.points[3] - box.points[0]);
+
 
 	return box;
 }
