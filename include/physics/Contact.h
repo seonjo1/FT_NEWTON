@@ -10,8 +10,8 @@ namespace ale
 
 struct ContactPolygon
 {
-	glm::vec3 points[20];
-	glm::vec3 buffer[20];
+	glm::vec3 points[MAX_MANIFOLD_COUNT];
+	glm::vec3 buffer[MAX_MANIFOLD_COUNT];
 	int32_t pointsCount;
 };
 
@@ -19,7 +19,7 @@ struct Face
 {
 	glm::vec3 normal;
 	float distance;
-	glm::vec3 vertices[20];
+	glm::vec3 vertices[MAX_MANIFOLD_COUNT];
 	int32_t verticesCount;
 };
 
@@ -75,8 +75,8 @@ struct SimplexArray
 
 struct ConvexInfo
 {
-	glm::vec3 *points;
-	glm::vec3 *axes;
+	glm::vec3 *points {nullptr};
+	glm::vec3 *axes {nullptr};
 	int32_t pointsCount;
 	int32_t axesCount;
 	glm::vec3 halfSize;
@@ -183,6 +183,7 @@ class Contact
 	void addFaceInFaceArray(FaceArray &faceArray, int32_t idx1, int32_t idx2, int32_t idx3);
 	void mergeFaceArray(FaceArray &faceArray, FaceArray &newFaceArray);
 	void sizeUpFaceArray(FaceArray &faceArray, int32_t newMaxCount);
+	void freeConvexInfo(ConvexInfo &convexA, ConvexInfo &convexB);
 
 	float m_friction;
 	float m_restitution;

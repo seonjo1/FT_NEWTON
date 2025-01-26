@@ -141,6 +141,9 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 			// std::cout << "createManifold start\n";
 			generateManifolds(collisionInfo, manifold, m_fixtureA, m_fixtureB);
 		}
+
+		freeConvexInfo(convexA, convexB);
+
 		return;
 	}
 
@@ -154,6 +157,7 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 
 		if (epaInfo.distance == -1.0f)
 		{
+			freeConvexInfo(convexA, convexB);
 			return;
 		}
 
@@ -163,6 +167,9 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 		// std::cout << "createManifold start\n";
 		generateManifolds(collisionInfo, manifold, m_fixtureA, m_fixtureB);
 	}
+
+	freeConvexInfo(convexA, convexB);
+	// std::cout << "evaluate end!!\n";
 }
 
 void Contact::update()
@@ -793,6 +800,11 @@ EpaInfo Contact::getEpaResult(const ConvexInfo &convexA, const ConvexInfo &conve
 		// }
 	}
 
+	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.faces, sizeof(int32_t) * faceArray.maxCount * 3);
+	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.normals, sizeof(glm::vec4) * faceArray.maxCount);
+	PhysicsAllocator::m_blockAllocator.freeBlock(newFaceArray.faces, sizeof(int32_t) * newFaceArray.maxCount * 3);
+	PhysicsAllocator::m_blockAllocator.freeBlock(newFaceArray.normals, sizeof(glm::vec4) * newFaceArray.maxCount);
+
 	EpaInfo epaInfo;
 	epaInfo.normal = minNormal;
 	epaInfo.distance = minDistance;
@@ -1311,7 +1323,7 @@ void Contact::addFaceInFaceArray(FaceArray &faceArray, int32_t idx1, int32_t idx
 	int32_t count = faceArray.count;
 	int32_t faceIdx = count * 3;
 
-	if (count == faceArray.maxCount)
+	if (count >= faceArray.maxCount)
 	{
 		sizeUpFaceArray(faceArray, count * 2);
 	}
@@ -1356,12 +1368,34 @@ void Contact::sizeUpFaceArray(FaceArray &faceArray, int32_t newMaxCount)
 	glm::vec4 *newNormals = static_cast<glm::vec4 *>(memory);
 	memcpy(newNormals, faceArray.normals, sizeof(glm::vec4) * count);
 
-	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.faces, count * 3);
-	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.normals, count);
+	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.faces, sizeof(int32_t) * faceArray.maxCount * 3);
+	PhysicsAllocator::m_blockAllocator.freeBlock(faceArray.normals, sizeof(glm::vec4) * faceArray.maxCount);
 
 	faceArray.maxCount = newMaxCount;
 	faceArray.faces = newFaces;
 	faceArray.normals = newNormals;
+}
+
+void Contact::freeConvexInfo(ConvexInfo &convexA, ConvexInfo &convexB)
+{
+	if (convexA.points != nullptr)
+	{
+		PhysicsAllocator::m_blockAllocator.freeBlock(convexA.points, sizeof(glm::vec3) * convexA.pointsCount);
+	}
+	if (convexB.points != nullptr)
+	{
+		PhysicsAllocator::m_blockAllocator.freeBlock(convexB.points, sizeof(glm::vec3) * convexB.pointsCount);
+	}
+
+	if (convexA.axes != nullptr)
+	{
+		PhysicsAllocator::m_blockAllocator.freeBlock(convexA.axes, sizeof(glm::vec3) * convexA.axesCount);
+	}
+
+	if (convexB.axes != nullptr)
+	{
+		PhysicsAllocator::m_blockAllocator.freeBlock(convexB.axes, sizeof(glm::vec3) * convexB.axesCount);
+	}
 }
 
 } // namespace ale
