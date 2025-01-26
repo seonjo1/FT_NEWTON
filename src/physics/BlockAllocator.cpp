@@ -18,7 +18,7 @@ int32_t BlockAllocator::blockSizes[BLOCK_SIZE_COUNT] = {
 	512, // 12
 	1024, // 13
 	2048, // 14
-	4096,
+	4096, // 15
 };
 
 uint8_t BlockAllocator::blockSizeLookup[MAX_BLOCK_SIZE + 1];
@@ -74,6 +74,7 @@ BlockAllocator::~BlockAllocator()
 
 void *BlockAllocator::allocateBlock(int32_t size)
 {
+	// std::cout << "allocateBlock!!\n";
 	if (size <= 0)
 	{
 		return nullptr;
@@ -87,16 +88,22 @@ void *BlockAllocator::allocateBlock(int32_t size)
 	}
 
 	int32_t index = blockSizeLookup[size];
+	// std::cout << "allocate index: " << index << "\n";
 
 	if (m_availableBlocks[index] != nullptr)
 	{
+		// std::cout << "chunk exist!!\n";
 		// 청크 내부에 할당된 블록이 존재하는 경우 해당 블록 return
+
 		Block *block = m_availableBlocks[index];
 		m_availableBlocks[index] = block->next;
+		// std::cout << "block: " << block << "\n";
+		// std::cout << "m_availableBlocks[index]: " << m_availableBlocks[index] << "\n";
 		return block;
 	}
 	else
 	{
+		// std::cout << "chunk is empty\n";
 		// 할당된 블록이 없는 경우 블록 새로 할당
 		if (m_chunkCount == m_chunkSpace)
 		{
@@ -105,7 +112,6 @@ void *BlockAllocator::allocateBlock(int32_t size)
 			m_chunkSpace += CHUNK_ARRAY_INCREMENT;
 			m_chunks = (Chunk *)malloc(m_chunkSpace * sizeof(Chunk));
 			memcpy(m_chunks, oldChunks, m_chunkCount * sizeof(Chunk));
-			memset(m_chunks + m_chunkCount, 0, CHUNK_ARRAY_INCREMENT * sizeof(Chunk));
 			free(oldChunks);
 		}
 
@@ -136,6 +142,7 @@ void *BlockAllocator::allocateBlock(int32_t size)
 
 void BlockAllocator::freeBlock(void *pointer, int32_t size)
 {
+	// std::cout << "freeBlock!!\n";
 	if (size <= 0)
 	{
 		return;
@@ -145,13 +152,18 @@ void BlockAllocator::freeBlock(void *pointer, int32_t size)
 	{
 		return;
 	}
-
+	// std::cout << "size: " << size << "\n";
 	int32_t index = blockSizeLookup[size];
+
+	// std::cout << "allocate index: " << index << "\n";
 
 	// free한 pointer를 다시 avilableBlock에 편입
 	Block *block = (Block *)pointer;
+	// std::cout << "m_availableBlocks[index]: " << m_availableBlocks[index] << "\n";
 	block->next = m_availableBlocks[index];
 	m_availableBlocks[index] = block;
+	// std::cout << "block: " << block << "\n";
+	// std::cout << "block->next: " << block->next << "\n";
 }
 
 } // namespace ale
