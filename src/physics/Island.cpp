@@ -4,7 +4,7 @@
 namespace ale
 {
 
-const int32_t Island::VELOCITY_ITERATION = 8;
+const int32_t Island::VELOCITY_ITERATION = 6;
 const int32_t Island::POSITION_ITERATION = 4;
 const float Island::STOP_LINEAR_VELOCITY = 1.0f;
 const float Island::STOP_ANGULAR_VELOCITY = 0.01f;
@@ -47,10 +47,18 @@ void Island::solve(float duration)
 
 		// 위치, 각도, 속도 기록
 		m_positions[i].position = body->getPosition();
-		m_positions[i].orientation = body->getOrientation();
 		m_velocities[i].linearVelocity = body->getLinearVelocity();
 		m_velocities[i].angularVelocity = body->getAngularVelocity();
 
+		m_positions[i].positionBuffer = glm::vec3(0.0f);
+		m_velocities[i].linearVelocityBuffer = glm::vec3(0.0f);
+		m_velocities[i].angularVelocityBuffer = glm::vec3(0.0f);
+
+		// std::cout << "\n\nstart!!!\n";
+		// std::cout << "position[" << i << "].position: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
+		// std::cout << "position[" << i << "].orientation: " << m_positions[i].orientation.x << " " << m_positions[i].orientation.y << " " << m_positions[i].orientation.z << "\n";
+		// std::cout << "velocities[" << i << "].linearVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		// std::cout << "velocities[" << i << "].angularVelocity: " << m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
 	}
 
 	ContactSolver contactSolver(duration, m_contacts, m_positions, m_velocities, m_bodyCount, m_contactCount);
@@ -58,6 +66,7 @@ void Island::solve(float duration)
 	// 속도 제약 반복 횟수만큼 반복
 	for (int32_t i = 0; i < VELOCITY_ITERATION; ++i)
 	{
+		// std::cout << "iteration[" << i << "]\n";
 		// 충돌 속도 제약 해결
 		contactSolver.solveVelocityConstraints();
 	}
@@ -74,35 +83,27 @@ void Island::solve(float duration)
 
 		Rigidbody *body = m_bodies[i];
 		body->updateSweep();
-		body->setPosition(m_positions[i].position);
-		body->setOrientation(m_positions[i].orientation);
+		body->setPosition(m_positions[i].position + m_positions[i].positionBuffer);
 		body->setLinearVelocity(m_velocities[i].linearVelocity);
 		body->setAngularVelocity(m_velocities[i].angularVelocity);
 		body->synchronizeFixtures();
+		// std::cout << "\n\nfinal!!\n";
+		// std::cout << "position[" << i << "].position: " << m_positions[i].position.x << " " << m_positions[i].position.y << " " << m_positions[i].position.z << "\n";
+		// std::cout << "position[" << i << "].orientation: " << m_positions[i].orientation.x << " " << m_positions[i].orientation.y << " " << m_positions[i].orientation.z << "\n";
+		// std::cout << "velocities[" << i << "].linearVelocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
+		// std::cout << "velocities[" << i << "].angularVelocity: " << m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
+		// std::cout << "\n\n";
 
 		if (m_positions[i].isStop && glm::length2(m_velocities[i].linearVelocity) < STOP_LINEAR_VELOCITY &&
 			glm::length2(m_velocities[i].angularVelocity) < STOP_ANGULAR_VELOCITY)
 		{
-			// std::cout << "body[" << i << "] sleep\n";
 			body->setSleep(duration);
 		}
 		else
 		{
-			// if (!m_positions[i].isStop)
-			// 	std::cout << "is not stop\n";
-			// std::cout << "body[" << i <<  "] awake\n";
 			body->setAwake();
 		}
-
-	// 	std::cout << "body: " << body->getBodyId() << "\n";
-	// 	std::cout << "Final bodyPosition: " << m_positions[i].position.x << " " << m_positions[i].position.y << " "
-	// 			  << m_positions[i].position.z << "\n";
-	// 	std::cout << "Final bodyLinearVelocity: " << m_velocities[i].linearVelocity.x << " "
-	// 			  << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
-	// 	std::cout << "Final bodyAngularVelocity: " << m_velocities[i].angularVelocity.x << " "
-	// 			  << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
 	}
-	// std::cout << "islandSolve end\n";
 
 	contactSolver.destroy();
 
@@ -114,6 +115,8 @@ void Island::solve(float duration)
 
 	PhysicsAllocator::m_stackAllocator.freeStack();
 	PhysicsAllocator::m_stackAllocator.freeStack();
+	
+	// std::cout << "island end!!!\n\n\n";
 }
 
 void Island::add(Rigidbody *body)

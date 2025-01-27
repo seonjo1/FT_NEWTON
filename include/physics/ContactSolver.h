@@ -29,8 +29,7 @@ struct ContactVelocityConstraint
 	glm::vec3 worldCenterA;
 	glm::vec3 worldCenterB;
 	glm::mat3 invIA, invIB;
-	int32_t indexA;
-	int32_t indexB;
+	int32_t indexA, indexB;
 	float invMassA, invMassB;
 	float friction;
 	float restitution;
