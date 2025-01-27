@@ -61,14 +61,17 @@ struct Transform
 	Transform()
 	{
 	}
+
 	Transform(const glm::vec3 &p, const glm::quat &r) : position(p), orientation(r)
 	{
 	}
+
 	void set(const glm::vec3 &p, float angle)
 	{
 		position = p;
 		// set orientation by angle
 	}
+
 	glm::mat4 toMatrix() const
 	{
 		// Create a 4x4 transformation matrix
@@ -108,10 +111,10 @@ struct ManifoldPoint
 {
 	float normalImpulse;  // 법선 방향 충격량
 	float tangentImpulse; // 접촉면 충격량
-	float seperation; // 관통 깊이
-	glm::vec3 pointA; // 충돌 지점의 위치
-	glm::vec3 pointB; // 충돌 지점의 위치
-	glm::vec3 normal; // 법선 벡터
+	float seperation;	  // 관통 깊이
+	glm::vec3 pointA;	  // 충돌 지점의 위치
+	glm::vec3 pointB;	  // 충돌 지점의 위치
+	glm::vec3 normal;	  // 법선 벡터
 };
 
 const int32_t MAX_MANIFOLD_COUNT = 40;
