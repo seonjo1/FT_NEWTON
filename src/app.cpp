@@ -191,8 +191,7 @@ void App::mainLoop()
 	while (!glfwWindowShouldClose(window))
 	{
 		float time = glfwGetTime();
-		// float duration = time - lastTime;
-		float duration = 0.004f;
+		float duration = time - lastTime;
 		lastTime = time;
 		glfwPollEvents();
 		processCameraControl();
@@ -268,18 +267,18 @@ void App::createModels()
 	transforms.push_back(groundXf);
 
 	// 박스
-	int32_t N = 6;
+	int32_t N = 1;
 	float bz = 0.0f;
 	for (int32_t i = 0; i < N; i++)
 	{
-		float by = 0.0f;
+		float by = 2.0f;
 		for (int32_t j = 0; j < N; j++)
 		{
 			float bx = 0.0f;
 			for (int32_t k = 0; k < N; k++)
 			{
 				ale::Transform boxXf(glm::vec3(bx, by, bz),
-									 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+									 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(40.0f))));
 				models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf,
 												  "C:/Users/seonjo/FT_NEWTON/models/container.png"));
 				transforms.push_back(boxXf);
@@ -291,11 +290,11 @@ void App::createModels()
 	}
 
 	// 실린더
-	// int32_t M = 2;
+	// int32_t M = 1;
 	// float cz = 0.0f;
 	// for (int32_t i = 0; i < M; i++)
 	// {
-	// 	float cy = 0.0f;
+	// 	float cy = 2.0f;
 	// 	for (int32_t j = 0; j < M; j++)
 	// 	{
 	// 		float cx = 0.0f;
@@ -303,7 +302,7 @@ void App::createModels()
 	// 		{
 	// 			ale::Transform cylinderXf(
 	// 				glm::vec3(cx, cy, cz),
-	// 				glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// 				glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(50.0f))));
 	// 			models.push_back(Model::createCylinder(deviceManager.get(), commandManager->getCommandPool(),
 	// 												   cylinderXf, "models/container.png"));
 	// 			transforms.push_back(cylinderXf);
@@ -315,11 +314,11 @@ void App::createModels()
 	// }
 
 	// 구
-	// int32_t L = 2;
+	// int32_t L = 1;
 	// float sz = 0.0f;
 	// for (int32_t i = 0; i < L; i++)
 	// {
-	// 	float sy = 0.0f;
+	// 	float sy = 4.0f;
 	// 	for (int32_t j = 0; j < L; j++)
 	// 	{
 	// 		float sx = 0.0f;
