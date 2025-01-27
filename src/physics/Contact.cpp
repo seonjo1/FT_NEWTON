@@ -112,9 +112,6 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 	Shape *shapeA = m_fixtureA->getShape();
 	Shape *shapeB = m_fixtureB->getShape();
 
-	// std::cout << "bodyA: " << m_fixtureA->getBody()->getBodyId() << "\n";
-	// std::cout << "bodyB: " << m_fixtureB->getBody()->getBodyId() << "\n";
-
 	// std::cout << "getShapeInfo!!\n";
 	ConvexInfo convexA = shapeA->getShapeInfo(transformA);
 	ConvexInfo convexB = shapeB->getShapeInfo(transformB);
@@ -124,28 +121,6 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 
 	simplexArray.simplexCount = 0;
 	collisionInfo.size = 0;
-
-	// Sphere to Sphere Collide
-	if (shapeA->getType() == EType::SPHERE && shapeB->getType() == EType::SPHERE)
-	{
-		if (checkSphereToSphereCollide(convexA, convexB) == true)
-		{
-			EpaInfo epaInfo;
-			glm::vec3 centerDistance = convexB.center - convexA.center;
-			epaInfo.normal = glm::normalize(centerDistance);
-			epaInfo.distance = convexA.radius + convexB.radius - glm::length(centerDistance);
-
-			// std::cout << "CLIPPING start\n";
-			findCollisionPoints(convexA, convexB, collisionInfo, epaInfo, simplexArray);
-
-			// std::cout << "createManifold start\n";
-			generateManifolds(collisionInfo, manifold, m_fixtureA, m_fixtureB);
-		}
-
-		freeConvexInfo(convexA, convexB);
-
-		return;
-	}
 
 	// std::cout << "GJK start\n";
 	bool isCollide = getGjkResult(convexA, convexB, simplexArray);
@@ -174,11 +149,8 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 
 void Contact::update()
 {
-	// 기존 manifold 저장
-	// Manifold oldManifold = m_manifold;
-
 	// 이전 프레임에서 두 객체가 충돌중이었는지 확인
-	// bool wasTouched = hasFlag(EContactFlag::TOUCHING);
+	bool wasTouched = hasFlag(EContactFlag::TOUCHING);
 	bool touching = false;
 
 	// bodyA, bodyB의 Transform 가져오기
@@ -206,21 +178,19 @@ void Contact::update()
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 
 	// warm start
-	for (ManifoldPoint &manifoldPoint : m_manifold.points)
+
+	for (int32_t i = 0; i < m_manifold.pointsCount; ++i)
 	{
+		ManifoldPoint &manifoldPoint = m_manifold.points[i];
+
 		manifoldPoint.normalImpulse = 0.0f;
 		manifoldPoint.tangentImpulse = 0.0f;
+	}
 
-		// for (ManifoldPoint &oldManifoldPoint : oldManifold.points)
-		// {
-		// 	// oldmanifold에 똑같은 manifold가 존재하는 경우 impulse 덮어쓰기
-		// 	if (m_manifold.)
-		// 	{
-		// 		manifoldPoint.normalImpulse = oldManifoldPoint.normalImpulse;
-		// 		manifoldPoint.tangentImpulse = oldManifoldPoint.tangentImpulse;
-		// 		break;
-		// 	}
-		// }
+	if (touching != wasTouched)
+	{
+		bodyA->setAwake();
+		bodyB->setAwake();
 	}
 
 	if (touching)
@@ -1178,10 +1148,8 @@ void Contact::setCylinderFace(Face &face, const ConvexInfo &cylinder, const glm:
 	int32_t segments = 20;
 	float length = glm::dot(normal, cylinder.axes[0]);
 	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
-	// std::cout << "normal: " << normal.x << " " << normal.y << " " << normal.z << "\n";
 	if (length > 0.9f)
 	{
-		// std::cout << "top!!!\n";
 		face.verticesCount = segments;
 		int32_t len = segments;
 		for (int32_t i = 0; i < len; ++i)
@@ -1195,8 +1163,6 @@ void Contact::setCylinderFace(Face &face, const ConvexInfo &cylinder, const glm:
 	}
 	else if (length < -0.9f)
 	{
-		// std::cout << "bottom!!!\n";
-
 		face.verticesCount = segments;
 		int32_t len = segments * 2;
 		for (int32_t i = segments; i < len; ++i)
