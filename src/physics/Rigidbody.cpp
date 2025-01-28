@@ -23,7 +23,7 @@ static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::mat3 
 }
 
 int32_t Rigidbody::BODY_COUNT = 0;
-const float Rigidbody::START_SLEEP_TIME = 0.1f;
+const float Rigidbody::START_SLEEP_TIME = 0.3f;
 
 Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {

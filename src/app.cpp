@@ -191,8 +191,7 @@ void App::mainLoop()
 	while (!glfwWindowShouldClose(window))
 	{
 		float time = glfwGetTime();
-		// float duration = time - lastTime;
-		float duration = 0.004f;
+		float duration = time - lastTime;
 		lastTime = time;
 		glfwPollEvents();
 		processCameraControl();
@@ -268,7 +267,7 @@ void App::createModels()
 	transforms.push_back(groundXf);
 
 	// 박스
-	int32_t N = 4;
+	int32_t N = 7;
 	float bz = 0.0f;
 	for (int32_t i = 0; i < N; i++)
 	{

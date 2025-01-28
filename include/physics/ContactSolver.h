@@ -16,7 +16,6 @@ struct ContactPositionConstraint
 	glm::mat3 invIA, invIB;
 	int32_t indexA;
 	int32_t indexB;
-	float resolvedSeperation;
 	float invMassA, invMassB;
 
 	~ContactPositionConstraint() = default;

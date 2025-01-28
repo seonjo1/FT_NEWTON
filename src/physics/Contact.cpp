@@ -84,7 +84,7 @@ Contact::Contact(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t i
 	m_nodeB.other = nullptr;
 
 	m_friction = std::sqrt(m_fixtureA->getFriction() * m_fixtureB->getFriction());
-	m_restitution = (m_fixtureA->getRestitution() + m_fixtureB->getRestitution()) / 2.0f;
+	m_restitution = std::max(m_fixtureA->getRestitution(), m_fixtureB->getRestitution());
 }
 
 Contact *Contact::create(Fixture *fixtureA, Fixture *fixtureB, int32_t indexA, int32_t indexB)

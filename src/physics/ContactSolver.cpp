@@ -59,7 +59,6 @@ ContactSolver::ContactSolver(float duration, Contact **contacts, Position *posit
 		m_positionConstraints[i].invMassB = bodyB->getInverseMass();
 		m_velocityConstraints[i].invIA = bodyA->getInverseInertiaTensorWorld();
 		m_velocityConstraints[i].invIB = bodyB->getInverseInertiaTensorWorld();
-		m_positionConstraints[i].resolvedSeperation = 0.0f;
 		m_positionConstraints[i].pointCount = manifold.pointsCount;
 		m_positionConstraints[i].points = manifold.points;
 	}
@@ -288,14 +287,18 @@ void ContactSolver::solveVelocityConstraints()
 			// }
 
 		}
+		linearVelocityA += linearVelocityBufferA;
+		linearVelocityB += linearVelocityBufferB;
+		angularVelocityA += angularVelocityBufferA;
+		angularVelocityB += angularVelocityBufferB;
+		linearVelocityBufferA = glm::vec3(0.0f);
+		linearVelocityBufferB = glm::vec3(0.0f);
+		angularVelocityBufferA = glm::vec3(0.0f);
+		angularVelocityBufferB = glm::vec3(0.0f);
 	}
 
 	for (int32_t i = 0; i < m_bodyCount; ++i)
 	{
-		m_velocities[i].linearVelocity += m_velocities[i].linearVelocityBuffer;
-		m_velocities[i].angularVelocity += m_velocities[i].angularVelocityBuffer;
-		m_velocities[i].linearVelocityBuffer = glm::vec3(0.0f);
-		m_velocities[i].angularVelocityBuffer = glm::vec3(0.0f);
 		
 		// std::cout << "\n\nafter velocity!!!\n";
 		// std::cout << "linear velocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
@@ -317,9 +320,6 @@ void ContactSolver::solvePositionConstraints()
 		int32_t indexA = positionConstraint.indexA;
 		int32_t indexB = positionConstraint.indexB;
 
-		float tmpResolvedSeperation = 0.0f;
-		float &resolvedSeperation = positionConstraint.resolvedSeperation;
-
 		glm::mat3 &invIA = positionConstraint.invIA;
 		glm::mat3 &invIB = positionConstraint.invIB;
 
@@ -330,24 +330,15 @@ void ContactSolver::solvePositionConstraints()
 		glm::vec3 &positionBufferA = m_positions[indexA].positionBuffer;
 		glm::vec3 &positionBufferB = m_positions[indexB].positionBuffer;
 
-		float seperationSum = 0.0f;
-
-		for (int32_t j = 0; j < pointCount; ++j)
-		{
-			seperationSum += positionConstraint.points[j].seperation;
-		}
-
-		if (seperationSum <= 0.0f)
-		{
-			continue ;
-		}
-
 		for (int32_t j = 0; j < pointCount; j++)
 		{
 
 			ManifoldPoint &manifoldPoint = positionConstraint.points[j];
 
-			float seperation = manifoldPoint.seperation - resolvedSeperation;
+			glm::vec3 movedPointA = manifoldPoint.pointA + positionBufferA;
+			glm::vec3 movedPointB = manifoldPoint.pointB + positionBufferB;
+
+			float seperation = glm::dot(manifoldPoint.normal, movedPointA - movedPointB);
 
 			// 관통 해소된상태면 무시
 			if (seperation < kSlop)
@@ -356,16 +347,12 @@ void ContactSolver::solvePositionConstraints()
 			}
 
 			// 관통 깊이에 따른 보정량 계산
-			float correction = seperation * alpha * (manifoldPoint.seperation / seperationSum);
+			float correction = seperation * alpha / pointCount;
 			glm::vec3 correctionVector = correction * manifoldPoint.normal;
-
-			tmpResolvedSeperation += correction;
 
 			positionBufferA -= correctionVector * ratioA;
 			positionBufferB += correctionVector * ratioB;
 		}
-
-		resolvedSeperation += tmpResolvedSeperation;
 	}
 }
 
@@ -384,8 +371,7 @@ void ContactSolver::checkSleepContact()
 		glm::vec3 &linearVelocityB = m_velocities[indexB].linearVelocity;
 		glm::vec3 &angularVelocityA = m_velocities[indexA].angularVelocity;
 		glm::vec3 &angularVelocityB = m_velocities[indexB].angularVelocity;
-
-		float seperationSum = 0.0f;
+		glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 
 		for (int32_t j = 0; j < pointCount; ++j)
 		{
@@ -406,15 +392,18 @@ void ContactSolver::checkSleepContact()
 				m_positions[indexB].isTangentStop = false;
 			}
 
-			seperationSum += manifoldPoint.seperation;
+			float normalDotUpVector = glm::dot(manifoldPoint.normal, upVector);
+			if (normalDotUpVector < -0.95f)
+			{
+				// std::cout << "!!!!!!!!!!!!!!!!!!seperation: " << seperationSum << "\n";
+				m_positions[indexA].isNormal = true;
+			}
+			if (normalDotUpVector > 0.95f)
+			{
+				m_positions[indexB].isNormal = true;
+			}
 		}
 
-		if (seperationSum / pointCount > 0.0001f)
-		{
-			// std::cout << "!!!!!!!!!!!!!!!!!!seperation: " << seperationSum << "\n";
-			m_positions[indexA].isNormal = true;
-			m_positions[indexB].isNormal = true;
-		}
 	}
 }
 

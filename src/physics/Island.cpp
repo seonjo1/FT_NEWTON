@@ -89,6 +89,11 @@ void Island::solve(float duration)
 	{
 
 		Rigidbody *body = m_bodies[i];
+		if (body->getType() == EBodyType::STATIC_BODY)
+		{
+			continue;
+		}
+
 		body->updateSweep();
 		body->setPosition(m_positions[i].position + m_positions[i].positionBuffer);
 		body->setLinearVelocity(m_velocities[i].linearVelocity);
@@ -113,8 +118,8 @@ void Island::solve(float duration)
 			// {
 			// std::cout << "sleep!!!!!!!!!!\n";
 			// }
-			m_velocities[i].linearVelocity = glm::vec3(0.0f);
-			body->setLinearVelocity(m_velocities[i].linearVelocity);
+			// m_velocities[i].linearVelocity = glm::vec3(0.0f);
+			// body->setLinearVelocity(m_velocities[i].linearVelocity);
 			body->setSleep(duration);
 		}
 		else
@@ -136,6 +141,7 @@ void Island::solve(float duration)
 			// }
 			body->setAwake();
 		}
+
 	}
 
 	contactSolver.destroy();
