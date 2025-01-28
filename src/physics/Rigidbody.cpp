@@ -23,7 +23,7 @@ static inline void _transformInertiaTensor(glm::mat3 &iitWorld, const glm::mat3 
 }
 
 int32_t Rigidbody::BODY_COUNT = 0;
-const float Rigidbody::START_SLEEP_TIME = 1.0f;
+const float Rigidbody::START_SLEEP_TIME = 0.1f;
 
 Rigidbody::Rigidbody(const BodyDef *bd, World *world)
 {
@@ -88,9 +88,11 @@ void Rigidbody::integrate(float duration)
 		return;
 	}
 
-	// Set acceleration by F = ma
 	m_lastFrameAcceleration = m_acceleration;
+
+	// Set acceleration by F = ma
 	m_lastFrameAcceleration += (m_forceAccum * m_inverseMass);
+
 
 	// gravity
 	addGravity();
@@ -379,6 +381,8 @@ void Rigidbody::setSleep(float duration)
 
 		if (m_sleepTime > START_SLEEP_TIME)
 		{
+			m_linearVelocity = glm::vec3(0.0f);
+			m_angularVelocity = glm::vec3(0.0f);
 			m_isAwake = false;
 		}
 	}

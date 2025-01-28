@@ -48,6 +48,7 @@ struct BodyDef
 	glm::vec3 m_position;
 	glm::quat m_orientation;
 	// float m_angle;
+
 	glm::vec3 m_linearVelocity;
 	glm::vec3 m_angularVelocity;
 	float m_linearDamping;

@@ -243,7 +243,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	glm::vec3 upper = *std::prev(shape->m_vertices.end());
 	glm::vec3 lower = *shape->m_vertices.begin();
 	glm::vec3 diff = upper - lower;
-	float mass = 60.0f;
+	float mass = 100.0f;
 	float h = abs(diff.y);
 	float w = abs(diff.x);
 	float d = abs(diff.z);
@@ -258,7 +258,7 @@ void World::createBox(std::unique_ptr<Model> &model, int32_t xfId)
 	FixtureDef fd;
 	fd.shape = box;
 	fd.friction = 0.7f;
-	fd.restitution = 0.2f;
+	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
 	if (m_rigidbodyCount != 0)
@@ -292,7 +292,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// calculate inersiaTensor - (2 / 5) * m * r * r
-	float mass = 10.0f;
+	float mass = 30.0f;
 	float r = shape->m_radius;
 	float val = (2.0f / 5.0f) * mass * r * r;
 	glm::mat3 m(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
@@ -302,7 +302,7 @@ void World::createSphere(std::unique_ptr<Model> &model, int32_t xfId)
 
 	FixtureDef fd;
 	fd.shape = sphere;
-	fd.friction = 0.3f;
+	fd.friction = 0.4f;
 	fd.restitution = 0.8f;
 	body->createFixture(&fd);
 
@@ -344,8 +344,8 @@ void World::createGround(std::unique_ptr<Model> &model, int32_t xfId)
 	BoxShape *box = shape->clone();
 	FixtureDef fd;
 	fd.shape = box;
-	fd.friction = 0.8f;
-	fd.restitution = 0.2f;
+	fd.friction = 0.5f;
+	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
 	if (m_rigidbodyCount != 0)
@@ -378,7 +378,7 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
-	float mass = 100.0f;
+	float mass = 10.0f;
 	float r = shape->m_radius;
 	float h = shape->m_height;
 	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mass;
@@ -391,8 +391,8 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	CylinderShape *cylinder = shape->clone();
 	FixtureDef fd;
 	fd.shape = cylinder;
-	fd.friction = 0.7f;
-	fd.restitution = 0.3f;
+	fd.friction = 0.4f;
+	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
 
@@ -448,8 +448,8 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	CapsuleShape *capsule = shape->clone();
 	FixtureDef fd;
 	fd.shape = capsule;
-	fd.friction = 0.7f;
-	fd.restitution = 0.2f;
+	fd.friction = 0.4f;
+	fd.restitution = 0.4f;
 
 	body->createFixture(&fd);
 

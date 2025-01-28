@@ -129,7 +129,7 @@ void App::processEvents()
 		transforms.push_back(sphereXf);
 		int32_t idx = models.size() - 1;
 		world->createBody(models[idx], idx);
-		world->registerBodyForce(idx, cameraFront * 100000.0f);
+		world->registerBodyForce(idx, cameraFront * 150000.0f);
 
 		models[idx]->createDescriptorSets(device, descriptorPool->get(), renderer->getDescriptorSetLayout());
 
@@ -191,7 +191,8 @@ void App::mainLoop()
 	while (!glfwWindowShouldClose(window))
 	{
 		float time = glfwGetTime();
-		float duration = time - lastTime;
+		// float duration = time - lastTime;
+		float duration = 0.004f;
 		lastTime = time;
 		glfwPollEvents();
 		processCameraControl();
@@ -267,18 +268,18 @@ void App::createModels()
 	transforms.push_back(groundXf);
 
 	// 박스
-	int32_t N = 1;
+	int32_t N = 4;
 	float bz = 0.0f;
 	for (int32_t i = 0; i < N; i++)
 	{
-		float by = 2.0f;
+		float by = 0.0f;
 		for (int32_t j = 0; j < N; j++)
 		{
 			float bx = 0.0f;
 			for (int32_t k = 0; k < N; k++)
 			{
 				ale::Transform boxXf(glm::vec3(bx, by, bz),
-									 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(40.0f))));
+									 glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
 				models.push_back(Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXf,
 												  "C:/Users/seonjo/FT_NEWTON/models/container.png"));
 				transforms.push_back(boxXf);
@@ -391,8 +392,8 @@ void App::createModels()
 	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXF,
 	// "C:/Users/seonjo/FT_NEWTON/models/container.png")); transforms.push_back(boxXF);
 
-	// ale::Transform boxXF1(glm::vec3(0.0f, 0.0f, 0.0f),
-	// 					  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f))));
+	// ale::Transform boxXF1(glm::vec3(0.3f, 1.5f, 0.0f),
+	// 					  glm::quat(glm::vec3(glm::radians(0.0f), glm::radians(0.0f), glm::radians(-30.0f))));
 	// models.push_back(
 	// 	Model::createBox(deviceManager.get(), commandManager->getCommandPool(), boxXF1, "models/container.png"));
 	// transforms.push_back(boxXF1);

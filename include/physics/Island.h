@@ -10,7 +10,9 @@ struct Position
 {
 	glm::vec3 position;
 	glm::vec3 positionBuffer;
-	bool isStop {true};
+	bool isNormalStop {true};
+	bool isTangentStop {true};
+	bool isNormal {false};
 };
 
 

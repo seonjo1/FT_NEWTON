@@ -46,6 +46,7 @@ class ContactSolver
 	void initializeVelocityConstraints();
 	void solveVelocityConstraints();
 	void solvePositionConstraints();
+	void checkSleepContact();
 
 	static const float NORMAL_STOP_VELOCITY;
 	static const float TANGENT_STOP_VELOCITY;
