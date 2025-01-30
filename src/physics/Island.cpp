@@ -100,7 +100,7 @@ void Island::solve(float duration)
 		{
 			// std::cout << "sleep!!!\n";
 			m_velocities[i].linearVelocity = glm::vec3(0.0f);
-			// m_velocities[i].angularVelocity = glm::vec3(0.0f);
+			m_velocities[i].angularVelocity = glm::vec3(0.0f);
 			body->setSleep(duration);
 		}
 		else
