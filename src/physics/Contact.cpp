@@ -177,7 +177,11 @@ void Contact::update()
 	// 같은 충돌이 있는경우 Impulse 재사용
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 
-	// warm start
+	if (wasTouched && !touching)
+	{
+		bodyA->setAwake();
+		bodyB->setAwake();
+	}
 
 	for (int32_t i = 0; i < m_manifold.pointsCount; ++i)
 	{
