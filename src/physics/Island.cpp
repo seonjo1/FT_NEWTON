@@ -4,10 +4,10 @@
 namespace ale
 {
 
-const int32_t Island::VELOCITY_ITERATION = 15;
-const int32_t Island::POSITION_ITERATION = 15;
+const int32_t Island::VELOCITY_ITERATION = 10;
+const int32_t Island::POSITION_ITERATION = 10;
 const float Island::STOP_LINEAR_VELOCITY = 1.0f;
-const float Island::STOP_ANGULAR_VELOCITY = 0.05f;
+const float Island::STOP_ANGULAR_VELOCITY = 0.1f;
 
 Island::Island(int32_t bodyCount, int32_t contactCount)
 {
@@ -98,12 +98,27 @@ void Island::solve(float duration)
 			glm::length(m_velocities[i].linearVelocity) < STOP_LINEAR_VELOCITY &&
 			glm::length(m_velocities[i].angularVelocity) < STOP_ANGULAR_VELOCITY)
 		{
+			// std::cout << "sleep!!!\n";
 			m_velocities[i].linearVelocity = glm::vec3(0.0f);
-			m_velocities[i].angularVelocity = glm::vec3(0.0f);
+			// m_velocities[i].angularVelocity = glm::vec3(0.0f);
 			body->setSleep(duration);
 		}
 		else
-		{
+		{			
+			// if (!m_positions[i].isNormalStop)
+			// 	std::cout << "is not Normal Stop!!\n";
+			// if (!m_positions[i].isTangentStop)
+			// 	std::cout << "is not Tangent Stop!!\n";
+			// if (!m_positions[i].isNormal)
+			// 	std::cout << "is not Normal!!\n";
+			// if (glm::length(m_velocities[i].linearVelocity) > STOP_LINEAR_VELOCITY)
+			// {
+			// 	std::cout << "too large linear velocity: " << glm::length(m_velocities[i].linearVelocity) << "\n";
+			// }
+			// if (glm::length(m_velocities[i].angularVelocity) > STOP_ANGULAR_VELOCITY)
+			// {
+			// 	std::cout << "too large angular velocity: " << glm::length(m_velocities[i].angularVelocity) << "\n";
+			// }
 			body->setAwake();
 		}
 
