@@ -129,7 +129,7 @@ void App::processEvents()
 		transforms.push_back(sphereXf);
 		int32_t idx = models.size() - 1;
 		world->createBody(models[idx], idx);
-		world->registerBodyForce(idx, cameraFront * 150000.0f);
+		world->registerBodyForce(idx, cameraFront * 300000.0f);
 
 		models[idx]->createDescriptorSets(device, descriptorPool->get(), renderer->getDescriptorSetLayout());
 
@@ -290,7 +290,7 @@ void App::createModels()
 	}
 
 	// 실린더
-	// int32_t M = 1;
+	// int32_t M = 5;
 	// float cz = 0.0f;
 	// for (int32_t i = 0; i < M; i++)
 	// {
@@ -338,7 +338,7 @@ void App::createModels()
 	// }
 
 	// 캡슐
-	// int32_t O = 6;
+	// int32_t O = 4;
 	// float cz = 0.0f;
 	// for (int32_t i = 0; i < O; i++)
 	// {
