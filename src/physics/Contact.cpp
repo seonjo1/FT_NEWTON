@@ -150,7 +150,6 @@ void Contact::evaluate(Manifold &manifold, const Transform &transformA, const Tr
 void Contact::update()
 {
 	// 이전 프레임에서 두 객체가 충돌중이었는지 확인
-	bool wasTouched = hasFlag(EContactFlag::TOUCHING);
 	bool touching = false;
 
 	// bodyA, bodyB의 Transform 가져오기
@@ -177,11 +176,6 @@ void Contact::update()
 	// 같은 충돌이 있는경우 Impulse 재사용
 	// id 는 충돌 도형의 type과 vertex 또는 line의 index 정보를 압축하여 결정
 
-	if (wasTouched && !touching)
-	{
-		bodyA->setAwake();
-		bodyB->setAwake();
-	}
 
 	for (int32_t i = 0; i < m_manifold.pointsCount; ++i)
 	{
@@ -1146,7 +1140,10 @@ void Contact::setCylinderFace(Face &face, const ConvexInfo &cylinder, const glm:
 	int32_t segments = 20;
 	float length = glm::dot(normal, cylinder.axes[0]);
 	float angleStep = 2.0f * glm::pi<float>() / static_cast<float>(segments);
-	if (length > 0.9f)
+
+	float limit = glm::dot(cylinder.axes[0], glm::normalize(cylinder.points[0] - cylinder.center));
+
+	if (length > limit)
 	{
 		face.verticesCount = segments;
 		int32_t len = segments;
@@ -1159,7 +1156,7 @@ void Contact::setCylinderFace(Face &face, const ConvexInfo &cylinder, const glm:
 		face.normal = cylinder.axes[0];
 		face.distance = glm::dot(cylinder.axes[0], face.vertices[0]);
 	}
-	else if (length < -0.9f)
+	else if (length < -limit)
 	{
 		face.verticesCount = segments;
 		int32_t len = segments * 2;
@@ -1278,7 +1275,8 @@ void Contact::setCapsuleFace(Face &face, const ConvexInfo &capsule, const glm::v
 
 bool Contact::isCollideToHemisphere(const ConvexInfo &capsule, const glm::vec3 &dir)
 {
-	return glm::length2(glm::dot(capsule.axes[0], dir)) > 1e-4f;
+	float dotResult = glm::dot(capsule.axes[0], dir);
+	return dotResult > 0.0001f || dotResult < -0.0001f;
 }
 
 void Contact::addFaceInFaceArray(FaceArray &faceArray, int32_t idx1, int32_t idx2, int32_t idx3)
