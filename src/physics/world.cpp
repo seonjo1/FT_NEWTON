@@ -378,7 +378,7 @@ void World::createCylinder(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// calculate inersiaTensor
-	float mass = 10.0f;
+	float mass = 100.0f;
 	float r = shape->m_radius;
 	float h = shape->m_height;
 	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mass;
@@ -426,7 +426,7 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	Rigidbody *body = new (static_cast<Rigidbody *>(bodyMemory)) Rigidbody(&bd, this);
 
 	// hemisphere
-	float mh = 12.0f;
+	float mh = 20.0f;
 	float r = shape->m_radius;
 	float h = shape->m_height;
 	float d = (3.0f * r / 8.0f);
@@ -434,7 +434,7 @@ void World::createCapsule(std::unique_ptr<Model> &model, int32_t xfId)
 	glm::mat3 ih(glm::vec3(val, 0.0f, 0.0f), glm::vec3(0.0f, val, 0.0f), glm::vec3(0.0f, 0.0f, val));
 
 	// cylinder
-	float mc = 40.0f;
+	float mc = 60.0f;
 	float Ixx = (1.0f / 12.0f) * (3.0f * r * r + h * h) * mc;
 	float Iyy = Ixx;
 	float Izz = (1.0f / 2.0f) * (r * r) * mc;
