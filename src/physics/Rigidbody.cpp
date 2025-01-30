@@ -378,11 +378,11 @@ void Rigidbody::setSleep(float duration)
 	if (m_canSleep)
 	{
 		m_sleepTime += duration;
+		// std::cout << "body: " << m_bodyID << " sleepTIme: " << m_sleepTime << "\n";
 
 		if (m_sleepTime > START_SLEEP_TIME)
 		{
-			m_linearVelocity = glm::vec3(0.0f);
-			m_angularVelocity = glm::vec3(0.0f);
+			// std::cout << "body: " << m_bodyID << " is full sleep!!\n";
 			m_isAwake = false;
 		}
 	}
