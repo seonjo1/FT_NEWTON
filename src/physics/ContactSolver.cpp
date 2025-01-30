@@ -297,18 +297,18 @@ void ContactSolver::solveVelocityConstraints()
 		angularVelocityBufferB = glm::vec3(0.0f);
 	}
 
-	for (int32_t i = 0; i < m_bodyCount; ++i)
-	{
+	// for (int32_t i = 0; i < m_bodyCount; ++i)
+	// {
 		
 		// std::cout << "\n\nafter velocity!!!\n";
 		// std::cout << "linear velocity: " << m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " << m_velocities[i].linearVelocity.z << "\n";
 		// std::cout << "angular velocity: " << m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " << m_velocities[i].angularVelocity.z << "\n";
-	}
+	// }
 }
 
 void ContactSolver::solvePositionConstraints()
 {
-	const float kSlop = 0.001f; // 허용 관통 오차
+	const float kSlop = 0.0001f; // 허용 관통 오차
 	const float alpha = 1.0f;
 
 	for (int i = 0; i < m_contactCount; ++i)
