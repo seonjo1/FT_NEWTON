@@ -4,8 +4,8 @@
 namespace ale
 {
 
-const int32_t Island::VELOCITY_ITERATION = 10;
-const int32_t Island::POSITION_ITERATION = 10;
+const int32_t Island::VELOCITY_ITERATION = 15;
+const int32_t Island::POSITION_ITERATION = 15;
 const float Island::STOP_LINEAR_VELOCITY = 1.0f;
 const float Island::STOP_ANGULAR_VELOCITY = 0.05f;
 
@@ -94,54 +94,24 @@ void Island::solve(float duration)
 			continue;
 		}
 
+		if (m_positions[i].isNormalStop && m_positions[i].isTangentStop && m_positions[i].isNormal &&
+			glm::length(m_velocities[i].linearVelocity) < STOP_LINEAR_VELOCITY &&
+			glm::length(m_velocities[i].angularVelocity) < STOP_ANGULAR_VELOCITY)
+		{
+			m_velocities[i].linearVelocity = glm::vec3(0.0f);
+			m_velocities[i].angularVelocity = glm::vec3(0.0f);
+			body->setSleep(duration);
+		}
+		else
+		{
+			body->setAwake();
+		}
+
 		body->updateSweep();
 		body->setPosition(m_positions[i].position + m_positions[i].positionBuffer);
 		body->setLinearVelocity(m_velocities[i].linearVelocity);
 		body->setAngularVelocity(m_velocities[i].angularVelocity);
 		body->synchronizeFixtures();
-
-		// std::cout << "\n\nfinal!!\n";
-		// std::cout << "position[" << i << "].position: " << m_positions[i].position.x << " " <<
-		// m_positions[i].position.y << " " << m_positions[i].position.z << "\n"; std::cout << "position[" << i <<
-		// "].orientation: " << m_positions[i].orientation.x << " " << m_positions[i].orientation.y << " " <<
-		// m_positions[i].orientation.z << "\n"; std::cout << "velocities[" << i << "].linearVelocity: " <<
-		// m_velocities[i].linearVelocity.x << " " << m_velocities[i].linearVelocity.y << " " <<
-		// m_velocities[i].linearVelocity.z << "\n"; std::cout << "velocities[" << i << "].angularVelocity: " <<
-		// m_velocities[i].angularVelocity.x << " " << m_velocities[i].angularVelocity.y << " " <<
-		// m_velocities[i].angularVelocity.z << "\n"; std::cout << "\n\n";
-
-		if (m_positions[i].isNormalStop && m_positions[i].isTangentStop && m_positions[i].isNormal &&
-			glm::length(m_velocities[i].linearVelocity) < STOP_LINEAR_VELOCITY &&
-			glm::length(m_velocities[i].angularVelocity) < STOP_ANGULAR_VELOCITY)
-		{
-			// if (body->getBodyId() < 3)
-			// {
-			// std::cout << "sleep!!!!!!!!!!\n";
-			// }
-			// m_velocities[i].linearVelocity = glm::vec3(0.0f);
-			// body->setLinearVelocity(m_velocities[i].linearVelocity);
-			body->setSleep(duration);
-		}
-		else
-		{
-			// if (body->getBodyId() < 3)
-			// {
-			// std::cout << "bodyId: " << body->getBodyId() << "\n";
-			// std::cout << "duration: " << duration << "\n";
-			// if (!m_positions[i].isNormalStop)
-			// 	std::cout << "too large normal relative Velocity\n";
-			// if (!m_positions[i].isTangentStop)
-			// 	std::cout << "too large tangent relative Velocity\n";
-			// if (!m_positions[i].isNormal)
-			// 	std::cout << "too small seperation\n";
-			// if (glm::length(m_velocities[i].linearVelocity) >= STOP_LINEAR_VELOCITY)
-			// 	std::cout << "too large linear velocity: " << glm::length(m_velocities[i].linearVelocity) << "\n";
-			// if (glm::length(m_velocities[i].angularVelocity) >= STOP_ANGULAR_VELOCITY)
-			// 	std::cout << "too large angular velocity: " << glm::length(m_velocities[i].angularVelocity) << "\n";
-			// }
-			body->setAwake();
-		}
-
 	}
 
 	contactSolver.destroy();
