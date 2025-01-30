@@ -57,7 +57,7 @@ glm::vec3 CapsuleToCapsuleContact::supportB(const ConvexInfo &capsule, glm::vec3
 
 	return capsule.center + move + dir * capsule.radius;
 }
-
+ 
 void CapsuleToCapsuleContact::findCollisionPoints(const ConvexInfo &capsuleA, const ConvexInfo &capsuleB,
 												  CollisionInfo &collisionInfo, EpaInfo &epaInfo,
 												  SimplexArray &simplexArray)
