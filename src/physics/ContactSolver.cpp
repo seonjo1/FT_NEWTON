@@ -166,10 +166,26 @@ void ContactSolver::solveVelocityConstraints()
 				linearVelocityBufferA -= velocityConstraint.invMassA * appliedNormalImpulse * manifoldPoint.normal;
 				linearVelocityBufferB += velocityConstraint.invMassB * appliedNormalImpulse * manifoldPoint.normal;
 
-				angularVelocityBufferA -=
-					velocityConstraint.invIA * glm::cross(rA, appliedNormalImpulse * manifoldPoint.normal);
-				angularVelocityBufferB +=
-					velocityConstraint.invIB * glm::cross(rB, appliedNormalImpulse * manifoldPoint.normal);
+				if (glm::length2(rA) == 0.0f)
+				{
+					throw std::runtime_error("normal rA is zero!!");
+				}
+
+				if (glm::length2(rB) == 0.0f)
+				{
+					throw std::runtime_error("normal rB is zero!!");
+				}
+
+				// if (glm::length2(rA) != 0.0f)
+				{
+					angularVelocityBufferA -=
+						velocityConstraint.invIA * glm::cross(rA, appliedNormalImpulse * manifoldPoint.normal);
+				}
+				// if (glm::length2(rB) != 0.0f)
+				{
+					angularVelocityBufferB +=
+						velocityConstraint.invIB * glm::cross(rB, appliedNormalImpulse * manifoldPoint.normal);
+				}
 
 				// std::cout << "\n\nAAAA\n";
 				
@@ -233,10 +249,33 @@ void ContactSolver::solveVelocityConstraints()
 				linearVelocityBufferA += velocityConstraint.invMassA * appliedTangentImpulse * tangent;
 				linearVelocityBufferB -= velocityConstraint.invMassB * appliedTangentImpulse * tangent;
 
-				angularVelocityBufferA +=
-					velocityConstraint.invIA * glm::cross(rA, appliedTangentImpulse * tangent);
-				angularVelocityBufferB -=
-					velocityConstraint.invIB * glm::cross(rB, appliedTangentImpulse * tangent);
+				if (glm::length2(rA) == 0.0f)
+				{
+					throw std::runtime_error("tangent rA is zero!!");
+				}
+
+				if (glm::length2(rB) == 0.0f)
+				{
+					throw std::runtime_error("tangent rB is zero!!");
+				}
+
+				
+				if (glm::length2(tangent) == 0.0f)
+				{
+					throw std::runtime_error("tangent vector is zero!!");
+				}
+
+				// if (glm::length2(rA) != 0.0f)
+				{
+					angularVelocityBufferA +=
+						velocityConstraint.invIA * glm::cross(rA, appliedTangentImpulse * tangent);
+				}
+
+				// if (glm::length2(rB) != 0.0f)
+				{
+					angularVelocityBufferB -=
+						velocityConstraint.invIB * glm::cross(rB, appliedTangentImpulse * tangent);
+				}
 				
 				// std::cout << "\n\nAAAA\n";
 				// std::cout << "before: " << glm::cross(rA, appliedTangentImpulse * tangent).x << " "
@@ -308,7 +347,7 @@ void ContactSolver::solveVelocityConstraints()
 
 void ContactSolver::solvePositionConstraints()
 {
-	const float kSlop = 0.0001f; // 허용 관통 오차
+	const float kSlop = 0.001f; // 허용 관통 오차
 	const float alpha = 1.0f;
 
 	for (int i = 0; i < m_contactCount; ++i)
@@ -393,15 +432,19 @@ void ContactSolver::checkSleepContact()
 			}
 
 			float normalDotUpVector = glm::dot(manifoldPoint.normal, upVector);
-			if (normalDotUpVector < -0.95f)
+			if (normalDotUpVector < -0.3f)
 			{
 				// std::cout << "!!!!!!!!!!!!!!!!!!seperation: " << seperationSum << "\n";
 				m_positions[indexA].isNormal = true;
 			}
-			if (normalDotUpVector > 0.95f)
+			if (normalDotUpVector > 0.3f)
 			{
 				m_positions[indexB].isNormal = true;
 			}
+
+			// m_positions[indexA].isNormal = true;
+			// m_positions[indexB].isNormal = true;
+
 		}
 
 	}
